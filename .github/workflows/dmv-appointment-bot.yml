@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.57.0-jammy
+    permissions:
+      contents: write
     concurrency:
       group: dmv-appointment-bot
       cancel-in-progress: true
@@ -234,6 +236,24 @@ jobs:
         with:
           path: dmv-history.json
           key: dmv-history-${{ github.run_id }}
+
+      - name: Commit updated history (main only)
+        if: success() && github.ref == 'refs/heads/main'
+        run: |
+          if [ ! -f dmv-history.json ]; then
+            echo "No history file to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git status --short
+          if git status --short | grep -q "dmv-history.json"; then
+            git add dmv-history.json
+            git commit -m "Update DMV history [skip ci]" || true
+            git push origin HEAD
+          else
+            echo "No history changes to commit"
+          fi
 
       # Optional: send an email if any alert matches the target window.
       # Configure SMTP_* and DMV_EMAIL_* as encrypted repo/organization secrets.
