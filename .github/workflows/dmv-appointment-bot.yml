@@ -1,0 +1,199 @@
+name: DMV Appointment Bot
+
+on:
+  schedule:
+    # Run roughly every 5 minutes (GitHub does not guarantee exact timing)
+    # Note: Scheduled workflows only run on the default branch (main/master)
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "Target date (YYYY-MM-DD) to alert on/before"
+        required: false
+        default: ""
+      target_window_days:
+        description: "Window in days (±) around target_date (e.g., 60 for ±60 days)"
+        required: false
+        default: "60"
+        type: number
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-jammy
+    concurrency:
+      group: dmv-appointment-bot
+      cancel-in-progress: true
+    env:
+      # Priority: manual input > repo variable DMV_TARGET_DATE > fallback
+      DMV_TARGET_DATE: ${{ github.event_name == 'workflow_dispatch' && inputs.target_date || vars.DMV_TARGET_DATE || '' }}
+      DMV_TARGET_WINDOW_DAYS: ${{ github.event_name == 'workflow_dispatch' && inputs.target_window_days || vars.DMV_TARGET_WINDOW_DAYS || '60' }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        # Playwright Docker image already includes Node & browsers.
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run DMV appointment bot
+        run: npm test
+
+      - name: Analyze results
+        id: analyze
+        run: |
+          if [ ! -f dmv-results.json ]; then
+            echo "dmv-results.json not found"
+            echo "should_email=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          node <<'EOF'
+          const fs = require('fs');
+          const data = JSON.parse(fs.readFileSync('dmv-results.json', 'utf8'));
+          const alerts = data.alerts || [];
+          const results = data.results || [];
+          const targetDate = data.targetDate || '';
+          const windowDays = data.targetWindowDays || 0;
+          const generatedAt = data.generatedAt || new Date().toISOString();
+
+          // TEMP: inject a fake January alert to exercise subject logic; remove after testing.
+          const fakeJanAlert = {
+            locationName: 'Downtown Satellite City Hall',
+            dataVal: '2026-01-12 09:00:00',
+            dateText: '2026-01-12',
+            timeText: '09:00 AM',
+            ok: true,
+            reason: '',
+          };
+          results.unshift(fakeJanAlert);
+          alerts.unshift(fakeJanAlert);
+
+          const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          const ordinal = (n) => {
+            const s = ['th','st','nd','rd'];
+            const v = n % 100;
+            return s[(v - 20) % 10] || s[v] || s[0];
+          };
+          const formatTime = (s) => {
+            if (!s) return '';
+            const trimmed = s.trim();
+            // Preserve existing AM/PM formatting if already provided.
+            if (/am|pm/i.test(trimmed)) return trimmed;
+            const [hh = '', mm = '00'] = trimmed.split(':');
+            const hourNum = Number(hh);
+            if (Number.isNaN(hourNum)) return trimmed;
+            const ampm = hourNum >= 12 ? 'PM' : 'AM';
+            const hour12 = ((hourNum + 11) % 12) + 1;
+            return `${hour12}:${mm.padStart(2, '0')} ${ampm}`;
+          };
+          const formatDate = (s) => {
+            if (!s) return '';
+            const d = new Date(s);
+            if (Number.isNaN(d.getTime())) return s;
+            const day = d.getUTCDate();
+            const month = monthNames[d.getUTCMonth()];
+            const year = d.getUTCFullYear();
+            return `${month} ${day}${ordinal(day)}, ${year}`;
+          };
+
+          let should = 'false';
+          const allRows = results.map((r) => {
+            const raw = r.dataVal || '';
+            const date = raw.split(' ')[0] || r.dateText || '';
+            const time = r.timeText || (raw.split(' ')[1] || '');
+            return {
+              loc: r.locationName || 'Unknown',
+              date,
+              time,
+              raw,
+              ok: r.ok,
+              reason: r.reason || '',
+              prettyDate: formatDate(raw.split(' ')[0] || r.dateText || ''),
+            };
+          });
+
+          let textBody = `Target window: ${targetDate} ±${windowDays}d\n` +
+            `All locations (soonest found):\n` +
+            (allRows.length
+              ? allRows.map(r => `- ${r.loc}: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`).join('\n')
+              : 'No results');
+
+          let htmlBody = `
+              <h3>DMV Appointment Results</h3>
+              <p>Target window: <strong>${targetDate} ±${windowDays}d</strong></p>
+              <p><strong>All locations (soonest found):</strong><br>
+              ${allRows.length ? allRows.map(r => `${r.loc}: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`).join('<br>') : 'No results'}
+              </p>
+            `;
+
+          if (alerts.length > 0) {
+            should = 'true';
+            textBody =
+              `Target window: ${targetDate} ±${windowDays}d\n` +
+              `Alerts found in target window.\n\n` +
+              `All locations (soonest found):\n` +
+              (allRows.length
+                ? allRows.map(r => `- ${r.loc}: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`).join('\n')
+                : 'No results');
+
+            htmlBody = `
+              <h3>DMV Appointment Alerts</h3>
+              <p>Target window: <strong>${targetDate} ±${windowDays}d</strong></p>
+              <p><strong>Alerts found in target window.</strong></p>
+              <p><strong>All locations (soonest found):</strong><br>
+              ${allRows.length ? allRows.map(r => `${r.loc}: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`).join('<br>') : 'No results'}
+              </p>
+              <p>Generated at: ${generatedAt}</p>
+            `;
+          }
+
+          // Dynamic subject: include trimmed location and human-friendly date/time.
+          const alertsSorted = [...alerts].sort((a, b) => (a.dataVal || '').localeCompare(b.dataVal || ''));
+          const firstAlert = alertsSorted[0] || {};
+          const raw = firstAlert.dataVal || '';
+          const [rawDate, rawTime] = raw.split(' ');
+          const slotDate = rawDate || firstAlert.dateText || '';
+          const slotTime = rawTime || firstAlert.timeText || '';
+          const locationRaw = firstAlert.locationName || 'Unknown';
+          const trimmedLocation = locationRaw.replace(/\s*Satellite City Hall$/i, '').trim() || locationRaw;
+          const prettyDate = formatDate(slotDate);
+          const prettyTime = formatTime(slotTime);
+          const subjectBase = `DMV appointment alert – ${trimmedLocation}${prettyDate ? ' – ' + prettyDate : ''}${prettyTime ? ' ' + prettyTime : ''}`;
+          const d = slotDate ? new Date(slotDate) : null;
+          const isJanuary = d && !Number.isNaN(d.getTime()) && d.getUTCMonth() === 0;
+          const subject = isJanuary ? subjectBase.toUpperCase() : subjectBase;
+
+          const outFile = process.env.GITHUB_OUTPUT;
+          fs.appendFileSync(outFile, `should_email=${should}\n`);
+          fs.appendFileSync(outFile, `email_text<<EOF\n${textBody}\nEOF\n`);
+          fs.appendFileSync(outFile, `email_html<<EOF\n${htmlBody}\nEOF\n`);
+          fs.appendFileSync(outFile, `subject=${subject}\n`);
+          console.log(`Alerts found: ${alerts.length}`);
+          EOF
+
+      # Optional: send an email if any alert matches the target window.
+      # Configure SMTP_* and DMV_EMAIL_* as encrypted repo/organization secrets.
+      - name: Send email notification
+        if: steps.analyze.outputs.should_email == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: ${{ steps.analyze.outputs.subject }}
+          to: ${{ secrets.DMV_EMAIL_TO }}
+          from: ${{ secrets.DMV_EMAIL_FROM }}
+          secure: true
+          html_body: ${{ steps.analyze.outputs.email_html }}
+          body: ${{ steps.analyze.outputs.email_text }}
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: screenshots/
+          if-no-files-found: ignore
