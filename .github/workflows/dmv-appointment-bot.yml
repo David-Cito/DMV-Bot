@@ -35,6 +35,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
         # Playwright Docker image already includes Node & browsers.
 
       - name: Restore history cache
@@ -239,18 +241,22 @@ jobs:
 
       - name: Commit updated history (main only)
         if: success() && github.ref == 'refs/heads/main'
+        working-directory: ${{ github.workspace }}
         run: |
           if [ ! -f dmv-history.json ]; then
             echo "No history file to commit"
             exit 0
           fi
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch origin main
+          git checkout main
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git status --short
           if git status --short | grep -q "dmv-history.json"; then
             git add dmv-history.json
             git commit -m "Update DMV history [skip ci]" || true
-            git push origin HEAD
+            git push origin HEAD:main
           else
             echo "No history changes to commit"
           fi
