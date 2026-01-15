@@ -35,6 +35,15 @@ jobs:
         uses: actions/checkout@v4
         # Playwright Docker image already includes Node & browsers.
 
+      - name: Restore history cache
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: dmv-history.json
+          key: dmv-history-${{ github.run_id }}
+          restore-keys: |
+            dmv-history-
+
       - name: Install dependencies
         run: npm ci
 
@@ -57,6 +66,16 @@ jobs:
           const targetDate = data.targetDate || '';
           const windowDays = data.targetWindowDays || 0;
           const generatedAt = data.generatedAt || new Date().toISOString();
+
+          // Load history log if present.
+          let history = { locations: {}, overall: { changes: [] } };
+          try {
+            if (fs.existsSync('dmv-history.json')) {
+              history = JSON.parse(fs.readFileSync('dmv-history.json', 'utf8'));
+            }
+          } catch (e) {
+            console.log(`Failed to read history log: ${e && e.message ? e.message : e}`);
+          }
 
           const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
           const ordinal = (n) => {
@@ -85,6 +104,17 @@ jobs:
             const year = d.getUTCFullYear();
             return `${month} ${day}${ordinal(day)}, ${year}`;
           };
+          const formatDateTime = (s) => {
+            if (!s) return '';
+            const d = new Date(s);
+            if (Number.isNaN(d.getTime())) return s;
+            const time = d.toISOString().slice(11, 16) + ' UTC';
+            return `${formatDate(d.toISOString().slice(0, 10))} ${time}`;
+          };
+          const displayLoc = (s) =>
+            (s || '')
+              .replace(/\s*Satellite City Hall$/i, '')
+              .trim() || s || 'Unknown';
 
           let should = 'false';
           const allRows = results.map((r) => {
@@ -93,6 +123,7 @@ jobs:
             const time = r.timeText || (raw.split(' ')[1] || '');
             return {
               loc: r.locationName || 'Unknown',
+              dispLoc: displayLoc(r.locationName || 'Unknown'),
               date,
               time,
               raw,
@@ -105,14 +136,14 @@ jobs:
           let textBody = `Target window: ${targetDate} ±${windowDays}d\n` +
             `All locations (soonest found):\n` +
             (allRows.length
-              ? allRows.map(r => `- ${r.loc}: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`).join('\n')
+              ? allRows.map(r => `- ${r.dispLoc}: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`).join('\n')
               : 'No results');
 
           let htmlBody = `
               <h3>DMV Appointment Results</h3>
               <p>Target window: <strong>${targetDate} ±${windowDays}d</strong></p>
               <p><strong>All locations (soonest found):</strong><br>
-              ${allRows.length ? allRows.map(r => `${r.loc}: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`).join('<br>') : 'No results'}
+              ${allRows.length ? allRows.map(r => `${r.dispLoc}: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`).join('<br>') : 'No results'}
               </p>
             `;
 
@@ -123,7 +154,7 @@ jobs:
               `Alerts found in target window.\n\n` +
               `All locations (soonest found):\n` +
               (allRows.length
-                ? allRows.map(r => `- ${r.loc}: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`).join('\n')
+                ? allRows.map(r => `- ${r.dispLoc}: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`).join('\n')
                 : 'No results');
 
             htmlBody = `
@@ -131,11 +162,47 @@ jobs:
               <p>Target window: <strong>${targetDate} ±${windowDays}d</strong></p>
               <p><strong>Alerts found in target window.</strong></p>
               <p><strong>All locations (soonest found):</strong><br>
-              ${allRows.length ? allRows.map(r => `${r.loc}: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`).join('<br>') : 'No results'}
+              ${allRows.length ? allRows.map(r => `${r.dispLoc}: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`).join('<br>') : 'No results'}
               </p>
               <p>Generated at: ${generatedAt}</p>
             `;
           }
+
+          // Append latest history per location.
+          const historyEntries = Object.entries(history.locations || {});
+          const historyTextLines = historyEntries.length
+            ? historyEntries.map(([loc, h]) => {
+                const dispLoc = displayLoc(loc);
+                const latest = (h && h.changes && h.changes[h.changes.length - 1]) || null;
+                if (!latest) return `- ${dispLoc}: no history entries`;
+                const datePart = latest.toDataVal ? (latest.toDataVal.split(' ')[0] || '') : '';
+                const pretty = formatDate(datePart) || datePart || 'unknown date';
+                const dir = latest.direction || 'unknown';
+                const delta = Number.isFinite(latest.deltaDays) ? `${latest.deltaDays}d` : 'n/a';
+                const when = formatDateTime(latest.changedAt || '') || latest.changedAt || '';
+                return `- ${dispLoc}: ${pretty} (${dir}, ${delta}) @ ${when}`;
+              })
+            : ['- No history entries yet'];
+          const historyHtmlLines = historyEntries.length
+            ? historyEntries.map(([loc, h]) => {
+                const dispLoc = displayLoc(loc);
+                const latest = (h && h.changes && h.changes[h.changes.length - 1]) || null;
+                if (!latest) return `${dispLoc}: no history entries`;
+                const datePart = latest.toDataVal ? (latest.toDataVal.split(' ')[0] || '') : '';
+                const pretty = formatDate(datePart) || datePart || 'unknown date';
+                const dir = latest.direction || 'unknown';
+                const delta = Number.isFinite(latest.deltaDays) ? `${latest.deltaDays}d` : 'n/a';
+                const when = formatDateTime(latest.changedAt || '') || latest.changedAt || '';
+                return `${dispLoc}: ${pretty} (${dir}, ${delta}) @ ${when}`;
+              })
+            : ['No history entries yet'];
+
+          textBody += `\n\nHistory (latest per location):\n${historyTextLines.join('\n')}`;
+          htmlBody += `
+            <p><strong>History (latest per location):</strong><br>
+            ${historyHtmlLines.join('<br>')}
+            </p>
+          `;
 
           // Dynamic subject: include trimmed location and human-friendly date/time.
           const alertsSorted = [...alerts].sort((a, b) => (a.dataVal || '').localeCompare(b.dataVal || ''));
@@ -160,6 +227,13 @@ jobs:
           fs.appendFileSync(outFile, `subject=${subject}\n`);
           console.log(`Alerts found: ${alerts.length}`);
           EOF
+
+      - name: Save history cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: dmv-history.json
+          key: dmv-history-${{ github.run_id }}
 
       # Optional: send an email if any alert matches the target window.
       # Configure SMTP_* and DMV_EMAIL_* as encrypted repo/organization secrets.

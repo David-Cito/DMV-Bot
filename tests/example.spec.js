@@ -19,6 +19,9 @@ const LOCATIONS = [
 const TARGET_DATE_ENV = process.env.DMV_TARGET_DATE || '';
 const TARGET_WINDOW_ENV = process.env.DMV_TARGET_WINDOW_DAYS || '';
 
+// Persistent history of soonest-slot changes.
+const HISTORY_PATH = path.join(process.cwd(), 'dmv-history.json');
+
 function toTime(dateStr) {
   // Expects YYYY-MM-DD; returns ms or NaN.
   return Date.parse(dateStr);
@@ -29,6 +32,140 @@ function todayPlus(days) {
   d.setUTCDate(d.getUTCDate() + days);
   const iso = d.toISOString().slice(0, 10); // YYYY-MM-DD
   return iso;
+}
+
+function loadHistory() {
+  try {
+    if (fs.existsSync(HISTORY_PATH)) {
+      return JSON.parse(fs.readFileSync(HISTORY_PATH, 'utf8'));
+    }
+  } catch (e) {
+    console.log(`Failed to read history file: ${e && e.message ? e.message : e}`);
+  }
+  return { locations: {}, overall: { changes: [] } };
+}
+
+function saveHistory(history) {
+  try {
+    fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2), 'utf8');
+    console.log(`Updated history at ${HISTORY_PATH}`);
+  } catch (e) {
+    console.log(`Failed to write history file: ${e && e.message ? e.message : e}`);
+  }
+}
+
+function recordLocationChange(history, result, nowIso) {
+  if (!result || !result.ok || !result.dataVal) return null;
+  const loc = result.locationName || 'Unknown';
+  const entry = history.locations[loc] || { changes: [] };
+  const last = entry.lastDataVal || '';
+  const lastDateOnly = (last.split(' ')[0] || '').trim();
+  const nextDateOnly = (result.dataVal.split(' ')[0] || '').trim();
+
+  if (last === result.dataVal) {
+    entry.lastSeenAt = nowIso;
+    entry.lastDateText = result.dateText || '';
+    entry.lastTimeText = result.timeText || '';
+    history.locations[loc] = entry;
+    return null; // No change.
+  }
+
+  const prevChange = entry.changes[entry.changes.length - 1];
+  const deltaMs =
+    prevChange && prevChange.changedAt
+      ? Date.parse(nowIso) - Date.parse(prevChange.changedAt)
+      : null;
+
+  const change = {
+    changedAt: nowIso,
+    fromDataVal: last || '',
+    fromDateText: entry.lastDateText || '',
+    fromTimeText: entry.lastTimeText || '',
+    toDataVal: result.dataVal,
+    toDateText: result.dateText || '',
+    toTimeText: result.timeText || '',
+    deltaMs,
+    direction: computeDirection(lastDateOnly, nextDateOnly),
+    deltaDays: computeDeltaDays(lastDateOnly, nextDateOnly),
+  };
+
+  entry.lastDataVal = result.dataVal;
+  entry.lastDateText = result.dateText || '';
+  entry.lastTimeText = result.timeText || '';
+  entry.lastSeenAt = nowIso;
+  entry.changes.push(change);
+  history.locations[loc] = entry;
+  return change;
+}
+
+function recordOverallChange(history, earliestResult, nowIso) {
+  if (!earliestResult || !earliestResult.ok || !earliestResult.dataVal) return null;
+  const overall = history.overall || { changes: [] };
+  const last = overall.lastDataVal || '';
+  const lastDateOnly = (last.split(' ')[0] || '').trim();
+  const nextDateOnly = (earliestResult.dataVal.split(' ')[0] || '').trim();
+
+  if (last === earliestResult.dataVal) {
+    overall.lastSeenAt = nowIso;
+    overall.lastLocation = earliestResult.locationName || 'Unknown';
+    history.overall = overall;
+    return null;
+  }
+
+  const prevChange = overall.changes[overall.changes.length - 1];
+  const deltaMs =
+    prevChange && prevChange.changedAt
+      ? Date.parse(nowIso) - Date.parse(prevChange.changedAt)
+      : null;
+
+  const change = {
+    changedAt: nowIso,
+    fromDataVal: last || '',
+    fromLocation: overall.lastLocation || '',
+    toDataVal: earliestResult.dataVal,
+    toLocation: earliestResult.locationName || 'Unknown',
+    deltaMs,
+    direction: computeDirection(lastDateOnly, nextDateOnly),
+    deltaDays: computeDeltaDays(lastDateOnly, nextDateOnly),
+  };
+
+  overall.lastDataVal = earliestResult.dataVal;
+  overall.lastLocation = earliestResult.locationName || 'Unknown';
+  overall.lastSeenAt = nowIso;
+  overall.changes.push(change);
+  history.overall = overall;
+  return change;
+}
+
+function computeDirection(fromDate, toDate) {
+  const fromMs = toTime(fromDate);
+  const toMs = toTime(toDate);
+  if (Number.isNaN(fromMs) || !fromDate) return 'new';
+  if (Number.isNaN(toMs) || !toDate) return 'unknown';
+  if (toMs < fromMs) return 'sooner';
+  if (toMs > fromMs) return 'later';
+  return 'same';
+}
+
+function computeDeltaDays(fromDate, toDate) {
+  const fromMs = toTime(fromDate);
+  const toMs = toTime(toDate);
+  if (Number.isNaN(fromMs) || Number.isNaN(toMs)) return null;
+  return Math.round((toMs - fromMs) / (24 * 60 * 60 * 1000));
+}
+
+function formatDuration(ms) {
+  if (ms == null || Number.isNaN(ms)) return 'n/a';
+  const sec = Math.floor(ms / 1000);
+  const min = Math.floor(sec / 60);
+  const hr = Math.floor(min / 60);
+  const day = Math.floor(hr / 24);
+  const parts = [];
+  if (day) parts.push(`${day}d`);
+  if (hr % 24) parts.push(`${hr % 24}h`);
+  if (min % 60) parts.push(`${min % 60}m`);
+  if (parts.length === 0) parts.push(`${sec}s`);
+  return parts.join(' ');
 }
 
 async function getSoonestAppointmentForLocation(page, locationName, opts = {}) {
@@ -180,6 +317,9 @@ test('dmv appointment bot - check soonest appointments by location', async ({
   browser,
 }) => {
   const results = [];
+  const history = loadHistory();
+  const nowIso = new Date().toISOString();
+  const changeLog = [];
 
   for (const locationName of LOCATIONS) {
     // Helper to run one attempt (optionally with hard reload) and clean up its context.
@@ -264,6 +404,18 @@ test('dmv appointment bot - check soonest appointments by location', async ({
       console.log(
         `[${locationName}] soonest: ${res.dataVal} (${res.dateText} ${res.timeText})`
       );
+      const locChange = recordLocationChange(history, res, nowIso);
+      if (locChange) {
+        changeLog.push({
+          type: 'location',
+          location: locationName,
+          to: res.dataVal,
+          from: locChange.fromDataVal,
+          delta: locChange.deltaMs,
+          deltaDays: locChange.deltaDays,
+          direction: locChange.direction,
+        });
+      }
     } else {
       console.log(`[${locationName}] no result: ${res ? res.reason : 'unknown error'}`);
     }
@@ -278,6 +430,38 @@ test('dmv appointment bot - check soonest appointments by location', async ({
 
   const okCount = results.filter((r) => r.ok).length;
   console.log(`Done. Locations checked: ${results.length}, successes: ${okCount}`);
+
+  // Track overall earliest change across all locations.
+  const earliest = [...results]
+    .filter((r) => r && r.ok && r.dataVal)
+    .sort((a, b) => a.dataVal.localeCompare(b.dataVal))[0];
+  const overallChange = recordOverallChange(history, earliest, nowIso);
+  if (overallChange) {
+    changeLog.push({
+      type: 'overall',
+      to: overallChange.toDataVal,
+      from: overallChange.fromDataVal,
+      location: overallChange.toLocation,
+      delta: overallChange.deltaMs,
+      deltaDays: overallChange.deltaDays,
+      direction: overallChange.direction,
+    });
+  }
+
+  if (changeLog.length) {
+    console.log('Change log (this run):');
+    changeLog.forEach((c) => {
+      const scope = c.type === 'overall' ? 'OVERALL' : c.location;
+      console.log(
+        `- ${scope}: ${c.from || 'none'} -> ${c.to} (Δ ${formatDuration(c.delta)}; ${c.direction} ${c.deltaDays ?? 'n/a'}d)`
+      );
+    });
+  } else {
+    console.log('No soonest-date changes detected this run.');
+  }
+
+  history.lastRunAt = nowIso;
+  saveHistory(history);
 
   // If a target date is provided, surface any slots within ±window days of that date.
   const resolvedTargetDate = TARGET_DATE_ENV || todayPlus(60);
