@@ -58,18 +58,6 @@ jobs:
           const windowDays = data.targetWindowDays || 0;
           const generatedAt = data.generatedAt || new Date().toISOString();
 
-          // TEMP: inject a fake January alert to exercise subject logic; remove after testing.
-          const fakeJanAlert = {
-            locationName: 'Downtown Satellite City Hall',
-            dataVal: '2026-01-12 09:00:00',
-            dateText: '2026-01-12',
-            timeText: '09:00 AM',
-            ok: true,
-            reason: '',
-          };
-          results.unshift(fakeJanAlert);
-          alerts.unshift(fakeJanAlert);
-
           const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
           const ordinal = (n) => {
             const s = ['th','st','nd','rd'];
