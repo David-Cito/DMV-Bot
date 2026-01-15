@@ -248,7 +248,7 @@ jobs:
             ? historyEntries.map(([loc, h]) => {
                 const dispLoc = displayLoc(loc);
                 const latest = (h && h.changes && h.changes[h.changes.length - 1]) || null;
-                if (!latest) return `- ${dispLoc}:\n  previous earliest: (none)\n  last change: no history`;
+                if (!latest) return `- ${dispLoc}:\n  previous earliest: (none)\n  last change: no history\n  changed at: (n/a)`;
                 const prevPart = latest.fromDataVal ? (latest.fromDataVal.split(' ')[0] || '') : '';
                 const prettyPrev = prevPart ? (formatDate(prevPart) || prevPart) : '(none recorded)';
                 const dir = latest.direction || 'unknown';
@@ -259,7 +259,7 @@ jobs:
                 else if (dir === 'new') changeLine = 'first recorded date';
                 else if (dir === 'same') changeLine = 'no date change';
                 const changedAtHst = latest.changedAt ? formatHst(latest.changedAt) : 'unknown time';
-                return `- ${dispLoc}:\n  previous earliest: ${prettyPrev}\n  last change: ${changeLine} @ ${changedAtHst}`;
+                return `- ${dispLoc}:\n  previous earliest: ${prettyPrev}\n  last change: ${changeLine}\n  changed at: ${changedAtHst}`;
               })
             : ['- No history entries yet'];
           const historyHtmlLines = historyEntries.length
@@ -267,7 +267,7 @@ jobs:
                 const dispLoc = displayLoc(loc);
                 const latest = (h && h.changes && h.changes[h.changes.length - 1]) || null;
                 if (!latest)
-                  return `<li><strong>${dispLoc}</strong><br>previous earliest: (none)<br>last change: no history</li>`;
+                  return `<li><strong>${dispLoc}</strong><br>previous earliest: (none)<br>last change: no history<br>changed at: (n/a)</li>`;
                 const prevPart = latest.fromDataVal ? (latest.fromDataVal.split(' ')[0] || '') : '';
                 const prettyPrev = prevPart ? (formatDate(prevPart) || prevPart) : '(none recorded)';
                 const dir = latest.direction || 'unknown';
@@ -278,7 +278,7 @@ jobs:
                 else if (dir === 'new') changeLine = 'first recorded date';
                 else if (dir === 'same') changeLine = 'no date change';
                 const changedAtHst = latest.changedAt ? formatHst(latest.changedAt) : 'unknown time';
-                return `<li><strong>${dispLoc}</strong><br>previous earliest: ${prettyPrev}<br>last change: ${changeLine} @ ${changedAtHst}</li>`;
+                return `<li><strong>${dispLoc}</strong><br>previous earliest: ${prettyPrev}<br>last change: ${changeLine}<br>changed at: ${changedAtHst}</li>`;
               })
             : ['No history entries yet'];
 
