@@ -456,6 +456,18 @@ test('dmv appointment bot - check soonest appointments by location', async ({
         `- ${scope}: ${c.from || 'none'} -> ${c.to} (Δ ${formatDuration(c.delta)}; ${c.direction} ${c.deltaDays ?? 'n/a'}d)`
       );
     });
+    // Quick frequency/recency summary per location for easy analysis.
+    const summaries = Object.entries(history.locations || {}).map(([loc, entry]) => {
+      const changes = entry.changes || [];
+      const last = changes[changes.length - 1];
+      const dir = last ? last.direction : 'n/a';
+      const dd = last && Number.isFinite(last.deltaDays) ? `${Math.abs(last.deltaDays)}d` : 'n/a';
+      return `${loc.replace(/\s*Satellite City Hall$/i, '')}: ${changes.length} change(s); last ${dir} ${dd}`;
+    });
+    if (summaries.length) {
+      console.log('Change frequency summary:');
+      summaries.forEach((s) => console.log(`- ${s}`));
+    }
   } else {
     console.log('No soonest-date changes detected this run.');
   }
