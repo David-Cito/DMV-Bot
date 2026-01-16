@@ -43,7 +43,9 @@ jobs:
         id: cache-restore
         uses: actions/cache/restore@v4
         with:
-          path: dmv-history.json
+          path: |
+            dmv-history.json
+            history/dmv-month-history-*.json
           key: dmv-history-${{ github.run_id }}
           restore-keys: |
             dmv-history-
@@ -373,7 +375,9 @@ jobs:
         if: always()
         uses: actions/cache/save@v4
         with:
-          path: dmv-history.json
+          path: |
+            dmv-history.json
+            history/dmv-month-history-*.json
           key: dmv-history-${{ github.run_id }}
 
       - name: Commit updated history (main only)
@@ -403,8 +407,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git status --short
-          if git status --short | grep -q "dmv-history.json"; then
-            git add dmv-history.json
+          if git status --short | grep -E "dmv-history.json|history/dmv-month-history-.*\\.json"; then
+            git add dmv-history.json history/dmv-month-history-*.json
             git commit -m "Update DMV history [skip ci]" || true
             git push origin HEAD:main
           else

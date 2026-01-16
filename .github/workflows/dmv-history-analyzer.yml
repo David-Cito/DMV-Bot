@@ -1,0 +1,51 @@
+name: DMV History Analyzer
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run analyzer (read-only)
+        id: analyze
+        run: |
+          node scripts/analyze-history.js
+
+      - name: Run booking-oriented analyzer (read-only)
+        id: analyze_booking
+        run: |
+          node scripts/analyze-history-booking.js
+
+      - name: Send email notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: DMV analysis report
+          to: ${{ secrets.DMV_EMAIL_TO }}
+          from: ${{ secrets.DMV_EMAIL_FROM }}
+          secure: true
+          html_body: |
+            <h3>Generic Patterns</h3>
+            ${{ steps.analyze.outputs.html_body || '' }}
+            <hr>
+            <h3>Booking-Oriented Insights</h3>
+            ${{ steps.analyze_booking.outputs.booking_html_body || '' }}
+          body: |
+            Generic Patterns:
+            ${{ steps.analyze.outputs.text_body || 'No body generated' }}
+
+            ----
+            Booking-Oriented Insights:
+            ${{ steps.analyze_booking.outputs.booking_text_body || 'No body generated' }}

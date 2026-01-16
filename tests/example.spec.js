@@ -126,8 +126,8 @@ function buildMonthByDate(monthSlots) {
 
 // Persistent history of soonest-slot changes.
 const HISTORY_PATH = path.join(process.cwd(), 'dmv-history.json');
-const DAY_HISTORY_PATH = path.join(process.cwd(), 'dmv-day-history.json');
-const MONTH_HISTORY_PATH = path.join(process.cwd(), 'dmv-month-history.json');
+const HISTORY_DIR = path.join(process.cwd(), 'history');
+const MONTH_HISTORY_BASENAME = 'dmv-month-history';
 
 function toTime(dateStr) {
   // Expects YYYY-MM-DD; returns ms or NaN.
@@ -152,26 +152,21 @@ function loadHistory() {
   return { locations: {}, overall: { changes: [] } };
 }
 
-function loadDayHistory() {
-  try {
-    if (fs.existsSync(DAY_HISTORY_PATH)) {
-      return JSON.parse(fs.readFileSync(DAY_HISTORY_PATH, 'utf8'));
-    }
-  } catch (e) {
-    console.log(`Failed to read day history file: ${e && e.message ? e.message : e}`);
-  }
-  return { locations: {} };
+function monthHistoryPathForLocation(locationName) {
+  const safeLoc = (locationName || 'Unknown').replace(/[^A-Za-z0-9]+/g, '_');
+  return path.join(HISTORY_DIR, `${MONTH_HISTORY_BASENAME}-${safeLoc}.json`);
 }
 
-function loadMonthHistory() {
+function loadMonthHistoryForLocation(locationName) {
+  const filePath = monthHistoryPathForLocation(locationName);
   try {
-    if (fs.existsSync(MONTH_HISTORY_PATH)) {
-      return JSON.parse(fs.readFileSync(MONTH_HISTORY_PATH, 'utf8'));
+    if (fs.existsSync(filePath)) {
+      return JSON.parse(fs.readFileSync(filePath, 'utf8'));
     }
   } catch (e) {
-    console.log(`Failed to read month history file: ${e && e.message ? e.message : e}`);
+    console.log(`Failed to read month history file for ${locationName}: ${e && e.message ? e.message : e}`);
   }
-  return { locations: {} };
+  return { location: locationName, months: {} };
 }
 
 function saveHistory(history) {
@@ -183,47 +178,35 @@ function saveHistory(history) {
   }
 }
 
-function saveDayHistory(history) {
+function saveMonthHistoryForLocation(locationName, history) {
+  const filePath = monthHistoryPathForLocation(locationName);
   try {
-    fs.writeFileSync(DAY_HISTORY_PATH, JSON.stringify(history, null, 2), 'utf8');
-    console.log(`Updated day history at ${DAY_HISTORY_PATH}`);
+    if (!fs.existsSync(HISTORY_DIR)) {
+      fs.mkdirSync(HISTORY_DIR, { recursive: true });
+    }
   } catch (e) {
-    console.log(`Failed to write day history file: ${e && e.message ? e.message : e}`);
+    console.log(`Failed to ensure history directory: ${e && e.message ? e.message : e}`);
+    return;
+  }
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(history, null, 2), 'utf8');
+    console.log(`Updated month history for ${locationName} at ${filePath}`);
+  } catch (e) {
+    console.log(`Failed to write month history file for ${locationName}: ${e && e.message ? e.message : e}`);
   }
 }
 
-function saveMonthHistory(history) {
-  try {
-    fs.writeFileSync(MONTH_HISTORY_PATH, JSON.stringify(history, null, 2), 'utf8');
-    console.log(`Updated month history at ${MONTH_HISTORY_PATH}`);
-  } catch (e) {
-    console.log(`Failed to write month history file: ${e && e.message ? e.message : e}`);
-  }
-}
-
-function recordDayAppointments(dayHistory, locationName, dateStr, slots) {
-  if (!Array.isArray(slots) || !slots.length) return;
-  if (!dateStr) return;
-  const loc = dayHistory.locations[locationName] || { days: {} };
-  loc.days[dateStr] = {
-    capturedAt: new Date().toISOString(),
-    date: dateStr,
-    slots,
-    times: buildTimeList(slots),
-  };
-  dayHistory.locations[locationName] = loc;
-}
-
-function recordMonthAppointments(monthHistory, locationName, monthKey, monthSlots) {
+function recordMonthAppointments(locationName, monthKey, monthSlots) {
   if (!Array.isArray(monthSlots) || !monthSlots.length || !monthKey) return;
-  const loc = monthHistory.locations[locationName] || { months: {} };
-  loc.months[monthKey] = {
+  const history = loadMonthHistoryForLocation(locationName);
+  history.location = locationName;
+  history.months = history.months || {};
+  history.months[monthKey] = {
     capturedAt: new Date().toISOString(),
     month: monthKey,
-    slots: monthSlots,
     byDate: buildMonthByDate(monthSlots),
   };
-  monthHistory.locations[locationName] = loc;
+  saveMonthHistoryForLocation(locationName, history);
 }
 
 function recordLocationChange(history, result, nowIso) {
@@ -548,8 +531,6 @@ test('dmv appointment bot - check soonest appointments by location', async ({
 }) => {
   const results = [];
   const history = loadHistory();
-  const dayHistory = loadDayHistory();
-  const monthHistory = loadMonthHistory();
   const nowIso = new Date().toISOString();
   const changeLog = [];
 
@@ -636,7 +617,6 @@ test('dmv appointment bot - check soonest appointments by location', async ({
       console.log(
         `[${locationName}] soonest: ${res.dataVal} (${res.dateText} ${res.timeText})`
       );
-      recordDayAppointments(dayHistory, locationName, res.dataVal.split(' ')[0] || '', res.daySlots);
       if (res.monthSlots) {
         const weekly = {};
         res.monthSlots.forEach((d) => {
@@ -661,7 +641,7 @@ test('dmv appointment bot - check soonest appointments by location', async ({
           );
         }
         const monthKey = res.dataVal.split(' ')[0]?.slice(0, 7) || '';
-        recordMonthAppointments(monthHistory, locationName, monthKey, res.monthSlots);
+        recordMonthAppointments(locationName, monthKey, res.monthSlots);
       }
       const locChange = recordLocationChange(history, res, nowIso);
       if (locChange) {
@@ -734,8 +714,6 @@ test('dmv appointment bot - check soonest appointments by location', async ({
 
   history.lastRunAt = nowIso;
   saveHistory(history);
-  saveDayHistory(dayHistory);
-  saveMonthHistory(monthHistory);
 
   // If a target date is provided, surface any slots within ±window days of that date.
   const resolvedTargetDate = TARGET_DATE_ENV || todayPlus(60);
