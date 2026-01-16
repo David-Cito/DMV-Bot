@@ -2,12 +2,9 @@
   "location": "Windward City Satellite City Hall",
   "months": {
     "2026-03": {
-      "capturedAt": "2026-01-16T21:49:48.482Z",
+      "capturedAt": "2026-01-16T21:57:26.165Z",
       "month": "2026-03",
       "byDate": {
-        "2026-03-05": [
-          "15:15:00"
-        ],
         "2026-03-06": [
           "13:45:00",
           "14:45:00"
