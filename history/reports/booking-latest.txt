@@ -1,0 +1,33 @@
+DMV Booking-Oriented Insights
+
+Downtown:
+  - Lead days (weighted by slots): min 46.5, p10 48.5, median 60.5, p90 72.5, max 73.5
+  - Drift (last changes): sooner:6, later:5, same:4, new:0, unknown:0; avg deltaDays 0.00
+  - Change cadence (hrs): p10 0.1, median 0.5, p90 1.4
+  - New-slot peak hour (UTC): 22h (3 changes)
+  - Earliest slot time: 08:00:00, Latest slot time: 15:45:00
+  - Last change: 2026-03-04 12:30:00 @ Jan 16, 2026, 12:11 AM HST
+
+Hawaii Kai:
+  - Lead days (weighted by slots): min 67.5, p10 72.5, median 73.5, p90 73.5, max 73.5
+  - Drift (last changes): sooner:4, later:4, same:7, new:0, unknown:0; avg deltaDays 0.00
+  - Change cadence (hrs): p10 0.1, median 0.6, p90 2.1
+  - New-slot peak hour (UTC): 0h (5 changes)
+  - Earliest slot time: 08:15:00, Latest slot time: 15:45:00
+  - Last change: 2026-03-25 14:45:00 @ Jan 15, 2026, 11:05 PM HST
+
+Pearlridge:
+  - Lead days (weighted by slots): min 51.5, p10 53.5, median 61.5, p90 72.5, max 73.5
+  - Drift (last changes): sooner:6, later:6, same:3, new:0, unknown:0; avg deltaDays 0.00
+  - Change cadence (hrs): p10 0.1, median 0.4, p90 1.7
+  - New-slot peak hour (UTC): 0h (4 changes)
+  - Earliest slot time: 09:00:00, Latest slot time: 16:45:00
+  - Last change: 2026-03-09 14:15:00 @ Jan 15, 2026, 09:50 PM HST
+
+Windward City:
+  - Lead days (weighted by slots): min 47.5, p10 52.5, median 60.5, p90 72.5, max 73.5
+  - Drift (last changes): sooner:1, later:4, same:7, new:1, unknown:0; avg deltaDays 0.25
+  - Change cadence (hrs): p10 0.3, median 0.6, p90 3.1
+  - New-slot peak hour (UTC): 23h (3 changes)
+  - Earliest slot time: 08:00:00, Latest slot time: 15:45:00
+  - Last change: 2026-03-05 09:15:00 @ Jan 15, 2026, 10:30 PM HST

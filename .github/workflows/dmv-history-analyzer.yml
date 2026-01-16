@@ -1,0 +1,59 @@
+name: DMV History Analyzer
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Stamp generated time (UTC)
+        run: echo "GEN_AT=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> "$GITHUB_ENV"
+
+      - name: Run analyzer (read-only)
+        id: analyze
+        run: |
+          node scripts/analyze-history.js
+
+      - name: Run booking-oriented analyzer (read-only)
+        id: analyze_booking
+        run: |
+          node scripts/analyze-history-booking.js
+
+      - name: Send email notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: DMV analysis report (${{ env.GEN_AT }})
+          to: ${{ secrets.DMV_EMAIL_TO }}
+          from: ${{ secrets.DMV_EMAIL_FROM }}
+          secure: true
+          html_body: |
+            <h2>DMV Analysis Report</h2>
+            <p><strong>Generated at:</strong> ${{ env.GEN_AT }}</p>
+            <h3>Generic Patterns</h3>
+            ${{ steps.analyze.outputs.html_body || '' }}
+            <hr>
+            <h3>Booking-Oriented Insights</h3>
+            ${{ steps.analyze_booking.outputs.booking_html_body || '' }}
+          body: |
+            DMV Analysis Report
+            Generated at: ${{ env.GEN_AT }}
+
+            Generic Patterns:
+            ${{ steps.analyze.outputs.text_body || 'No body generated' }}
+
+            ----
+            Booking-Oriented Insights:
+            ${{ steps.analyze_booking.outputs.booking_text_body || 'No body generated' }}
