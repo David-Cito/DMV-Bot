@@ -169,12 +169,24 @@
           "deltaMs": 5095702,
           "direction": "sooner",
           "deltaDays": -5
+        },
+        {
+          "changedAt": "2026-01-16T01:45:57.234Z",
+          "fromDataVal": "2026-02-27 10:15:00",
+          "fromDateText": "February 27, 2026",
+          "fromTimeText": "10:15 AM",
+          "toDataVal": "2026-03-04 10:45:00",
+          "toDateText": "March 04, 2026",
+          "toTimeText": "10:45 AM",
+          "deltaMs": 315169,
+          "direction": "later",
+          "deltaDays": 5
         }
       ],
-      "lastDataVal": "2026-02-27 10:15:00",
-      "lastDateText": "February 27, 2026",
-      "lastTimeText": "10:15 AM",
-      "lastSeenAt": "2026-01-16T01:40:42.065Z"
+      "lastDataVal": "2026-03-04 10:45:00",
+      "lastDateText": "March 04, 2026",
+      "lastTimeText": "10:45 AM",
+      "lastSeenAt": "2026-01-16T01:45:57.234Z"
     },
     "Hawaii Kai Satellite City Hall": {
       "changes": [
@@ -386,7 +398,7 @@
       "lastDataVal": "2026-03-25 11:45:00",
       "lastDateText": "March 25, 2026",
       "lastTimeText": "11:45 AM",
-      "lastSeenAt": "2026-01-16T01:40:42.065Z"
+      "lastSeenAt": "2026-01-16T01:45:57.234Z"
     },
     "Pearlridge Satellite City Hall": {
       "changes": [
@@ -610,7 +622,7 @@
       "lastDataVal": "2026-03-09 13:30:00",
       "lastDateText": "March 09, 2026",
       "lastTimeText": "1:30 PM",
-      "lastSeenAt": "2026-01-16T01:40:42.065Z"
+      "lastSeenAt": "2026-01-16T01:45:57.234Z"
     },
     "Windward City Satellite City Hall": {
       "changes": [
@@ -714,7 +726,7 @@
       "lastDataVal": "2026-03-04 11:15:00",
       "lastDateText": "March 04, 2026",
       "lastTimeText": "11:15 AM",
-      "lastSeenAt": "2026-01-16T01:40:42.065Z"
+      "lastSeenAt": "2026-01-16T01:45:57.234Z"
     }
   },
   "overall": {
@@ -968,12 +980,22 @@
         "deltaMs": 3598592,
         "direction": "sooner",
         "deltaDays": -5
+      },
+      {
+        "changedAt": "2026-01-16T01:45:57.234Z",
+        "fromDataVal": "2026-02-27 10:15:00",
+        "fromLocation": "Downtown Satellite City Hall",
+        "toDataVal": "2026-03-04 10:45:00",
+        "toLocation": "Downtown Satellite City Hall",
+        "deltaMs": 315169,
+        "direction": "later",
+        "deltaDays": 5
       }
     ],
-    "lastDataVal": "2026-02-27 10:15:00",
+    "lastDataVal": "2026-03-04 10:45:00",
     "lastLocation": "Downtown Satellite City Hall",
-    "lastSeenAt": "2026-01-16T01:40:42.065Z"
+    "lastSeenAt": "2026-01-16T01:45:57.234Z"
   },
-  "lastRunAt": "2026-01-16T01:40:42.065Z",
-  "lastRollupAt": "2026-01-16T01:41:24.021Z"
+  "lastRunAt": "2026-01-16T01:45:57.234Z",
+  "lastRollupAt": "2026-01-16T01:46:39.726Z"
 }
