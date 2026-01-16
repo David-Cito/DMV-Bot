@@ -306,7 +306,7 @@
       "lastDataVal": "2026-03-04 12:30:00",
       "lastDateText": "2026-03-04",
       "lastTimeText": "12:30 PM",
-      "lastSeenAt": "2026-01-16T17:57:59.688Z"
+      "lastSeenAt": "2026-01-16T18:35:04.924Z"
     },
     "Hawaii Kai Satellite City Hall": {
       "changes": [
@@ -621,12 +621,24 @@
           "deltaMs": 1842545,
           "direction": "later",
           "deltaDays": 3
+        },
+        {
+          "changedAt": "2026-01-16T18:35:04.924Z",
+          "fromDataVal": "2026-03-30 11:15:00",
+          "fromDateText": "2026-03-30",
+          "fromTimeText": "11:15 AM",
+          "toDataVal": "2026-03-30 11:45:00",
+          "toDateText": "2026-03-30",
+          "toTimeText": "11:45 AM",
+          "deltaMs": 2225236,
+          "direction": "same",
+          "deltaDays": 0
         }
       ],
-      "lastDataVal": "2026-03-30 11:15:00",
+      "lastDataVal": "2026-03-30 11:45:00",
       "lastDateText": "2026-03-30",
-      "lastTimeText": "11:15 AM",
-      "lastSeenAt": "2026-01-16T17:57:59.688Z"
+      "lastTimeText": "11:45 AM",
+      "lastSeenAt": "2026-01-16T18:35:04.924Z"
     },
     "Pearlridge Satellite City Hall": {
       "changes": [
@@ -1018,7 +1030,7 @@
       "lastDataVal": "2026-03-09 15:30:00",
       "lastDateText": "2026-03-09",
       "lastTimeText": "3:30 PM",
-      "lastSeenAt": "2026-01-16T17:57:59.688Z"
+      "lastSeenAt": "2026-01-16T18:35:04.924Z"
     },
     "Windward City Satellite City Hall": {
       "changes": [
@@ -1218,7 +1230,7 @@
       "lastDataVal": "2026-03-05 10:45:00",
       "lastDateText": "2026-03-05",
       "lastTimeText": "10:45 AM",
-      "lastSeenAt": "2026-01-16T17:57:59.688Z"
+      "lastSeenAt": "2026-01-16T18:35:04.924Z"
     }
   },
   "overall": {
@@ -1756,8 +1768,8 @@
     ],
     "lastDataVal": "2026-03-04 12:30:00",
     "lastLocation": "Downtown Satellite City Hall",
-    "lastSeenAt": "2026-01-16T17:57:59.688Z"
+    "lastSeenAt": "2026-01-16T18:35:04.924Z"
   },
-  "lastRunAt": "2026-01-16T17:57:59.688Z",
-  "lastRollupAt": "2026-01-16T17:59:48.918Z"
+  "lastRunAt": "2026-01-16T18:35:04.924Z",
+  "lastRollupAt": "2026-01-16T18:36:52.336Z"
 }
