@@ -166,6 +166,46 @@ jobs:
             };
           });
 
+          const monthTotals = Object.entries(history.locations || {}).map(([loc, h]) => {
+            const monthEntries = (h && h.months) || {};
+            const monthSummaries = Object.entries(monthEntries).map(([monthKey, m]) => {
+              const slots = (m && m.slots) || [];
+              const totalDays = slots.length;
+              const totalAppts = slots.reduce((acc, d) => acc + ((d.slots && d.slots.length) || 0), 0);
+              return { monthKey, totalDays, totalAppts };
+            });
+            return {
+              loc,
+              dispLoc: displayLoc(loc),
+              months: monthSummaries,
+            };
+          });
+
+          const monthTotalsText = monthTotals.length
+            ? monthTotals
+                .map((entry) => {
+                  if (!entry.months.length) return `- ${entry.dispLoc}: no month data`;
+                  const parts = entry.months
+                    .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
+                    .map((m) => `${m.monthKey}: ${m.totalAppts} appt(s) across ${m.totalDays} day(s)`);
+                  return `- ${entry.dispLoc}: ${parts.join('; ')}`;
+                })
+                .join('\n')
+            : '- No month data';
+
+          const monthTotalsHtml = monthTotals.length
+            ? monthTotals
+                .map((entry) => {
+                  if (!entry.months.length) return `<li><strong>${entry.dispLoc}</strong><br>no month data</li>`;
+                  const parts = entry.months
+                    .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
+                    .map((m) => `${m.monthKey}: ${m.totalAppts} appt(s) across ${m.totalDays} day(s)`)
+                    .join('<br>');
+                  return `<li><strong>${entry.dispLoc}</strong><br>${parts}</li>`;
+                })
+                .join('')
+            : '<li>No month data</li>';
+
           const soonestSectionsText = allRows.length
             ? allRows
                 .map((r) => {
@@ -191,7 +231,8 @@ jobs:
           let textBody =
             `Target window: ${targetDate} ±${windowDays}d\n` +
             `All locations:\n` +
-            soonestSectionsText;
+            soonestSectionsText +
+            `\n\nMonthly totals:\n${monthTotalsText}`;
 
           let htmlBody = `
               <h3>DMV Appointment Results</h3>
@@ -199,6 +240,10 @@ jobs:
               <p><strong>All locations:</strong></p>
               <ul>
                 ${soonestSectionsHtml}
+              </ul>
+              <p><strong>Monthly totals:</strong></p>
+              <ul>
+                ${monthTotalsHtml}
               </ul>
             `;
 
@@ -208,7 +253,8 @@ jobs:
               `Target window: ${targetDate} ±${windowDays}d\n` +
               `Alerts found in target window.\n\n` +
               `All locations:\n` +
-              soonestSectionsText;
+              soonestSectionsText +
+              `\n\nMonthly totals:\n${monthTotalsText}`;
 
             htmlBody = `
               <h3>DMV Appointment Alerts</h3>
@@ -217,6 +263,10 @@ jobs:
               <p><strong>All locations:</strong></p>
               <ul>
                 ${soonestSectionsHtml}
+              </ul>
+              <p><strong>Monthly totals:</strong></p>
+              <ul>
+                ${monthTotalsHtml}
               </ul>
               <p>Generated at: ${generatedAt}</p>
             `;

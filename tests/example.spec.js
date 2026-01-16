@@ -19,8 +19,115 @@ const LOCATIONS = [
 const TARGET_DATE_ENV = process.env.DMV_TARGET_DATE || '';
 const TARGET_WINDOW_ENV = process.env.DMV_TARGET_WINDOW_DAYS || '';
 
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function ordinalSuffix(n) {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
+}
+
+function formatHumanDate(dateStr) {
+  if (!dateStr) return 'Unknown date';
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  const day = d.getUTCDate();
+  const weekday = WEEKDAY_NAMES[d.getUTCDay()];
+  const month = MONTH_NAMES[d.getUTCMonth()];
+  return `${weekday}, ${month} ${day}${ordinalSuffix(day)}`;
+}
+
+function formatHumanMonth(dateStr) {
+  if (!dateStr) return 'Unknown month';
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return dateStr.slice(0, 7) || dateStr;
+  const month = MONTH_NAMES[d.getUTCMonth()];
+  const year = d.getUTCFullYear();
+  return `${month} ${year}`;
+}
+
+function formatSlotTime(slot) {
+  const text = slot && slot.text ? slot.text.trim() : '';
+  if (text) return text;
+  const raw = slot && slot.dataVal ? (slot.dataVal.split(' ')[1] || '') : '';
+  if (!raw) return '';
+  const [hh = '', mm = '00'] = raw.split(':');
+  const hourNum = Number(hh);
+  if (Number.isNaN(hourNum)) return raw;
+  const ampm = hourNum >= 12 ? 'PM' : 'AM';
+  const hour12 = ((hourNum + 11) % 12) + 1;
+  return `${hour12}:${mm.padStart(2, '0')} ${ampm}`;
+}
+
+function formatMonthSlotsForConsole(monthSlots) {
+  if (!Array.isArray(monthSlots) || !monthSlots.length) return null;
+  const sortedDays = monthSlots
+    .filter((d) => d && d.date)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  if (!sortedDays.length) return null;
+
+  const lines = sortedDays.map((day) => {
+    const sortedSlots = Array.isArray(day.slots)
+      ? [...day.slots].sort((a, b) => (a.dataVal || '').localeCompare(b.dataVal || ''))
+      : [];
+    const times = sortedSlots.map((s) => formatSlotTime(s)).filter(Boolean);
+    const timeText = times.length ? times.join(', ') : '(no times listed)';
+    return `  - ${formatHumanDate(day.date)}: ${timeText}`;
+  });
+
+  return {
+    monthLabel: formatHumanMonth(sortedDays[0].date),
+    lines,
+  };
+}
+
+function summarizeMonthSlots(monthSlots) {
+  if (!Array.isArray(monthSlots) || !monthSlots.length) return null;
+  const validDays = monthSlots
+    .filter((d) => d && d.date)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  if (!validDays.length) return null;
+  const start = validDays[0].date;
+  const end = validDays[validDays.length - 1].date;
+  const totalDays = validDays.length;
+  const totalAppts = validDays.reduce((acc, d) => acc + ((d.slots && d.slots.length) || 0), 0);
+  return {
+    monthLabel: formatHumanMonth(start),
+    startDate: formatHumanDate(start),
+    endDate: formatHumanDate(end),
+    totalDays,
+    totalAppts,
+  };
+}
+
+function extractTimePart(slot) {
+  const dataVal = (slot && slot.dataVal) || '';
+  return dataVal.split(' ')[1] || '';
+}
+
+function buildTimeList(slots) {
+  if (!Array.isArray(slots)) return [];
+  return [...slots]
+    .map((s) => extractTimePart(s))
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b));
+}
+
+function buildMonthByDate(monthSlots) {
+  if (!Array.isArray(monthSlots)) return {};
+  const byDate = {};
+  for (const day of monthSlots) {
+    if (!day || !day.date) continue;
+    byDate[day.date] = buildTimeList(day.slots);
+  }
+  return byDate;
+}
+
 // Persistent history of soonest-slot changes.
 const HISTORY_PATH = path.join(process.cwd(), 'dmv-history.json');
+const DAY_HISTORY_PATH = path.join(process.cwd(), 'dmv-day-history.json');
+const MONTH_HISTORY_PATH = path.join(process.cwd(), 'dmv-month-history.json');
 
 function toTime(dateStr) {
   // Expects YYYY-MM-DD; returns ms or NaN.
@@ -45,6 +152,28 @@ function loadHistory() {
   return { locations: {}, overall: { changes: [] } };
 }
 
+function loadDayHistory() {
+  try {
+    if (fs.existsSync(DAY_HISTORY_PATH)) {
+      return JSON.parse(fs.readFileSync(DAY_HISTORY_PATH, 'utf8'));
+    }
+  } catch (e) {
+    console.log(`Failed to read day history file: ${e && e.message ? e.message : e}`);
+  }
+  return { locations: {} };
+}
+
+function loadMonthHistory() {
+  try {
+    if (fs.existsSync(MONTH_HISTORY_PATH)) {
+      return JSON.parse(fs.readFileSync(MONTH_HISTORY_PATH, 'utf8'));
+    }
+  } catch (e) {
+    console.log(`Failed to read month history file: ${e && e.message ? e.message : e}`);
+  }
+  return { locations: {} };
+}
+
 function saveHistory(history) {
   try {
     fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2), 'utf8');
@@ -52,6 +181,49 @@ function saveHistory(history) {
   } catch (e) {
     console.log(`Failed to write history file: ${e && e.message ? e.message : e}`);
   }
+}
+
+function saveDayHistory(history) {
+  try {
+    fs.writeFileSync(DAY_HISTORY_PATH, JSON.stringify(history, null, 2), 'utf8');
+    console.log(`Updated day history at ${DAY_HISTORY_PATH}`);
+  } catch (e) {
+    console.log(`Failed to write day history file: ${e && e.message ? e.message : e}`);
+  }
+}
+
+function saveMonthHistory(history) {
+  try {
+    fs.writeFileSync(MONTH_HISTORY_PATH, JSON.stringify(history, null, 2), 'utf8');
+    console.log(`Updated month history at ${MONTH_HISTORY_PATH}`);
+  } catch (e) {
+    console.log(`Failed to write month history file: ${e && e.message ? e.message : e}`);
+  }
+}
+
+function recordDayAppointments(dayHistory, locationName, dateStr, slots) {
+  if (!Array.isArray(slots) || !slots.length) return;
+  if (!dateStr) return;
+  const loc = dayHistory.locations[locationName] || { days: {} };
+  loc.days[dateStr] = {
+    capturedAt: new Date().toISOString(),
+    date: dateStr,
+    slots,
+    times: buildTimeList(slots),
+  };
+  dayHistory.locations[locationName] = loc;
+}
+
+function recordMonthAppointments(monthHistory, locationName, monthKey, monthSlots) {
+  if (!Array.isArray(monthSlots) || !monthSlots.length || !monthKey) return;
+  const loc = monthHistory.locations[locationName] || { months: {} };
+  loc.months[monthKey] = {
+    capturedAt: new Date().toISOString(),
+    month: monthKey,
+    slots: monthSlots,
+    byDate: buildMonthByDate(monthSlots),
+  };
+  monthHistory.locations[locationName] = loc;
 }
 
 function recordLocationChange(history, result, nowIso) {
@@ -295,22 +467,80 @@ async function getSoonestAppointmentForLocation(page, locationName, opts = {}) {
     };
   }
 
-  // Sort by the machine-readable timestamp; format is "YYYY-MM-DD HH:mm:ss"
-  // so simple string comparison works.
-  slots.sort((a, b) => a.dataVal.localeCompare(b.dataVal));
-  const earliest = slots[0];
+  // Gather all selectable day links in the visible month.
+  const dayCells = await page.$$eval('#datepicker td[data-handler="selectDay"]', (els) =>
+    els
+      .map((el) => {
+        const link = el.querySelector('a.ui-state-default');
+        if (!link) return null;
+        const day = (link.textContent || '').trim();
+        const month = el.getAttribute('data-month');
+        const year = el.getAttribute('data-year');
+        return day ? { day, month, year } : null;
+      })
+      .filter(Boolean)
+  );
 
-  const dateHeader =
-    (await page.locator('#time_wrap_date').textContent())?.trim() || '';
-  const dateFromDataVal = earliest.dataVal.split(' ')[0] || '';
+  const monthSlots = [];
+  let earliest = null;
 
-  return {
-    locationName,
-    ok: true,
-    dateText: dateHeader || dateFromDataVal,
-    timeText: earliest.text || earliest.dataVal,
-    dataVal: earliest.dataVal,
-  };
+  for (const d of dayCells) {
+    const dayLocator = page
+      .locator(
+        `#datepicker td[data-handler="selectDay"][data-month="${d.month}"][data-year="${d.year}"] a.ui-state-default`
+      )
+      // Anchor the match so "4" does not also match "24".
+      .filter({ hasText: new RegExp(`^${d.day}$`) })
+      .first();
+
+    if (!(await dayLocator.count())) {
+      continue; // Defensive: skip if the day link vanished between reads.
+    }
+
+    await dayLocator.click();
+    await page.waitForFunction(
+      () => {
+        const wrap = document.querySelector('.time_wrap');
+        if (!wrap) return false;
+        const slotsInner = wrap.querySelectorAll('.time[data-val]');
+        return slotsInner.length > 0;
+      },
+      { timeout: 60_000 }
+    );
+    await gear.waitFor({ state: 'hidden', timeout: 60_000 }).catch(() => {});
+
+    const daySlots = await page.$$eval('.time_wrap .time[data-val]', (els) =>
+      els.map((el) => ({
+        dataVal: el.getAttribute('data-val') || '',
+        text: (el.textContent || '').trim(),
+      }))
+    );
+
+    const dateStr = `${d.year}-${String(Number(d.month) + 1).padStart(2, '0')}-${d.day.padStart(2, '0')}`;
+    monthSlots.push({ date: dateStr, slots: daySlots });
+
+    if (daySlots.length) {
+      const sorted = [...daySlots].sort((a, b) => a.dataVal.localeCompare(b.dataVal));
+      const candidate = sorted[0];
+      if (!earliest || candidate.dataVal.localeCompare(earliest.dataVal) < 0) {
+        earliest = {
+          locationName,
+          ok: true,
+          dateText: dateStr,
+          timeText: candidate.text || candidate.dataVal,
+          dataVal: candidate.dataVal,
+          daySlots,
+          monthSlots,
+        };
+      }
+    }
+  }
+
+  if (!earliest) {
+    return { locationName, ok: false, reason: 'No available day links found' };
+  }
+
+  return earliest;
 }
 
 test('dmv appointment bot - check soonest appointments by location', async ({
@@ -318,6 +548,8 @@ test('dmv appointment bot - check soonest appointments by location', async ({
 }) => {
   const results = [];
   const history = loadHistory();
+  const dayHistory = loadDayHistory();
+  const monthHistory = loadMonthHistory();
   const nowIso = new Date().toISOString();
   const changeLog = [];
 
@@ -404,6 +636,33 @@ test('dmv appointment bot - check soonest appointments by location', async ({
       console.log(
         `[${locationName}] soonest: ${res.dataVal} (${res.dateText} ${res.timeText})`
       );
+      recordDayAppointments(dayHistory, locationName, res.dataVal.split(' ')[0] || '', res.daySlots);
+      if (res.monthSlots) {
+        const weekly = {};
+        res.monthSlots.forEach((d) => {
+          const dayNum = Number(d.date.split('-')[2]) || 0;
+          const week = Math.ceil(dayNum / 7) || 1;
+          const count = Array.isArray(d.slots) ? d.slots.length : 0;
+          weekly[week] = (weekly[week] || 0) + count;
+        });
+        const weeklyText = Object.entries(weekly)
+          .sort((a, b) => Number(a[0]) - Number(b[0]))
+          .map(([w, c]) => `week ${w}: ${c} appt(s)`)
+          .join(', ');
+        if (weeklyText) {
+          console.log(`[${locationName}] weekly totals: ${weeklyText}`);
+        }
+        const monthlySummary = summarizeMonthSlots(res.monthSlots);
+        if (monthlySummary) {
+          const dispLoc =
+            (locationName || 'Unknown').replace(/\s*Satellite City Hall$/i, '').trim() || locationName;
+          console.log(
+            `[${dispLoc}] monthly (${monthlySummary.monthLabel}): ${monthlySummary.totalAppts} appt(s) across ${monthlySummary.totalDays} day(s); range ${monthlySummary.startDate} - ${monthlySummary.endDate}`
+          );
+        }
+        const monthKey = res.dataVal.split(' ')[0]?.slice(0, 7) || '';
+        recordMonthAppointments(monthHistory, locationName, monthKey, res.monthSlots);
+      }
       const locChange = recordLocationChange(history, res, nowIso);
       if (locChange) {
         changeLog.push({
@@ -435,6 +694,7 @@ test('dmv appointment bot - check soonest appointments by location', async ({
   const earliest = [...results]
     .filter((r) => r && r.ok && r.dataVal)
     .sort((a, b) => a.dataVal.localeCompare(b.dataVal))[0];
+
   const overallChange = recordOverallChange(history, earliest, nowIso);
   if (overallChange) {
     changeLog.push({
@@ -474,6 +734,8 @@ test('dmv appointment bot - check soonest appointments by location', async ({
 
   history.lastRunAt = nowIso;
   saveHistory(history);
+  saveDayHistory(dayHistory);
+  saveMonthHistory(monthHistory);
 
   // If a target date is provided, surface any slots within ±window days of that date.
   const resolvedTargetDate = TARGET_DATE_ENV || todayPlus(60);
@@ -484,26 +746,13 @@ test('dmv appointment bot - check soonest appointments by location', async ({
   if (resolvedTargetDate) {
     const targetTime = toTime(resolvedTargetDate);
     const windowMs = Math.abs(resolvedWindowDays) * 24 * 60 * 60 * 1000;
-    alerts = results.filter(
-      (r) => {
-        if (!r.ok || !r.dataVal) return false;
-        const slotDate = r.dataVal.split(' ')[0];
-        const slotTime = toTime(slotDate);
-        if (Number.isNaN(slotTime) || Number.isNaN(targetTime)) return false;
-        return slotTime >= targetTime - windowMs && slotTime <= targetTime + windowMs;
-      }
-    );
-    if (alerts.length) {
-      console.log(
-        `NOTIFY: slots within ±${resolvedWindowDays}d of ${resolvedTargetDate} -> ${JSON.stringify(
-          alerts
-        )}`
-      );
-    } else {
-      console.log(
-        `NOTIFY: none within ±${resolvedWindowDays}d of ${resolvedTargetDate}`
-      );
-    }
+    alerts = results.filter((r) => {
+      if (!r.ok || !r.dataVal) return false;
+      const slotDate = r.dataVal.split(' ')[0];
+      const slotTime = toTime(slotDate);
+      if (Number.isNaN(slotTime) || Number.isNaN(targetTime)) return false;
+      return slotTime >= targetTime - windowMs && slotTime <= targetTime + windowMs;
+    });
   }
 
   // Persist results for CI/notification steps.
