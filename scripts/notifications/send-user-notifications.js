@@ -14,6 +14,7 @@ const EMAIL_FROM = process.env.DMV_EMAIL_FROM;
 const NOTIFY_TEST =
   (process.env.DMV_NOTIFY_TEST || '').toLowerCase() === 'true' ||
   process.env.DMV_NOTIFY_TEST === '1';
+const APPT_URL = 'https://alohaq.honolulu.gov/';
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error('Supabase env vars not set; exiting.');
@@ -219,6 +220,8 @@ async function main() {
       '',
       'Appointments within 7 days:',
       ...lines,
+      '',
+      `Book here: ${APPT_URL}`,
     ].join('\n');
 
     const htmlBody = [
@@ -233,6 +236,7 @@ async function main() {
         return `<li><strong>${loc}</strong>: ${dateText} ${timeText} <em>(${m.daysOut}d out)</em></li>`;
       }),
       `</ul>`,
+      `<p><strong>Book here:</strong> <a href="${APPT_URL}">${APPT_URL}</a></p>`,
     ].join('\n');
 
     await transporter.sendMail({
