@@ -14,10 +14,10 @@ module.exports = defineConfig({
   testDir: './tests',
   // Increase per-test timeout so the bot has enough time in CI even without slowMo.
   timeout: 180_000,
-  fullyParallel: false,
+  fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  workers: 1,
+  workers: 4,
   reporter: 'html',
   use: {
     // baseURL: 'http://127.0.0.1:3000',

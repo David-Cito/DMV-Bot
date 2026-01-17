@@ -1,10 +1,6 @@
 name: DMV Appointment Bot
 
 on:
-  schedule:
-    # Run roughly every 5 minutes (GitHub does not guarantee exact timing)
-    # Note: Scheduled workflows only run on the default branch (main/master)
-    - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       target_date:
@@ -44,8 +40,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            dmv-history.json
-            history/dmv-month-history-*.json
+            data/history/dmv-history.json
+            data/history/dmv-month-history-*.json
           key: dmv-history-${{ github.run_id }}
           restore-keys: |
             dmv-history-
@@ -56,335 +52,26 @@ jobs:
       - name: Run DMV appointment bot
         run: npm test
 
-      - name: Analyze results
-        id: analyze
-        run: |
-          if [ ! -f dmv-results.json ]; then
-            echo "dmv-results.json not found"
-            echo "should_email=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          node <<'EOF'
-          const fs = require('fs');
-          const data = JSON.parse(fs.readFileSync('dmv-results.json', 'utf8'));
-          const alerts = data.alerts || [];
-          const results = data.results || [];
-          const targetDate = data.targetDate || '';
-          const windowDays = data.targetWindowDays || 0;
-          const generatedAt = data.generatedAt || new Date().toISOString();
-
-          // Load history log if present.
-          let history = { locations: {}, overall: { changes: [] } };
-          try {
-            if (fs.existsSync('dmv-history.json')) {
-              history = JSON.parse(fs.readFileSync('dmv-history.json', 'utf8'));
-            }
-          } catch (e) {
-            console.log(`Failed to read history log: ${e && e.message ? e.message : e}`);
-          }
-
-          const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-          const ordinal = (n) => {
-            const s = ['th','st','nd','rd'];
-            const v = n % 100;
-            return s[(v - 20) % 10] || s[v] || s[0];
-          };
-          const formatTime = (s) => {
-            if (!s) return '';
-            const trimmed = s.trim();
-            // Preserve existing AM/PM formatting if already provided.
-            if (/am|pm/i.test(trimmed)) return trimmed;
-            const [hh = '', mm = '00'] = trimmed.split(':');
-            const hourNum = Number(hh);
-            if (Number.isNaN(hourNum)) return trimmed;
-            const ampm = hourNum >= 12 ? 'PM' : 'AM';
-            const hour12 = ((hourNum + 11) % 12) + 1;
-            return `${hour12}:${mm.padStart(2, '0')} ${ampm}`;
-          };
-          const formatDate = (s) => {
-            if (!s) return '';
-            const d = new Date(s);
-            if (Number.isNaN(d.getTime())) return s;
-            const day = d.getUTCDate();
-            const month = monthNames[d.getUTCMonth()];
-            const year = d.getUTCFullYear();
-            return `${month} ${day}${ordinal(day)}, ${year}`;
-          };
-          const formatDateTime = (s) => {
-            if (!s) return '';
-            const d = new Date(s);
-            if (Number.isNaN(d.getTime())) return s;
-            const time = d.toISOString().slice(11, 16) + ' UTC';
-            return `${formatDate(d.toISOString().slice(0, 10))} ${time}`;
-          };
-          const formatHst = (s) => {
-            if (!s) return '';
-            const d = new Date(s);
-            if (Number.isNaN(d.getTime())) return s;
-            return d.toLocaleString('en-US', {
-              timeZone: 'Pacific/Honolulu',
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true,
-            }) + ' HST';
-          };
-          const humanElapsed = (s) => {
-            if (!s) return 'unknown';
-            const d = new Date(s);
-            if (Number.isNaN(d.getTime())) return 'unknown';
-            const ms = Date.now() - d.getTime();
-            if (ms < 0) return 'just now';
-            const sec = Math.floor(ms / 1000);
-            const min = Math.floor(sec / 60);
-            const hr = Math.floor(min / 60);
-            const day = Math.floor(hr / 24);
-            if (day) return `${day}d ${hr % 24}h`;
-            if (hr) return `${hr}h ${min % 60}m`;
-            if (min) return `${min}m`;
-            return `${sec}s`;
-          };
-          const displayLoc = (s) =>
-            (s || '')
-              .replace(/\s*Satellite City Hall$/i, '')
-              .trim() || s || 'Unknown';
-
-          let should = 'false';
-          const allRows = results.map((r) => {
-            const raw = r.dataVal || '';
-            const date = raw.split(' ')[0] || r.dateText || '';
-            const time = r.timeText || (raw.split(' ')[1] || '');
-            return {
-              loc: r.locationName || 'Unknown',
-              dispLoc: displayLoc(r.locationName || 'Unknown'),
-              date,
-              time,
-              raw,
-              ok: r.ok,
-              reason: r.reason || '',
-              prettyDate: formatDate(raw.split(' ')[0] || r.dateText || ''),
-            };
-          });
-
-          const monthTotals = Object.entries(history.locations || {}).map(([loc, h]) => {
-            const monthEntries = (h && h.months) || {};
-            const monthSummaries = Object.entries(monthEntries).map(([monthKey, m]) => {
-              const slots = (m && m.slots) || [];
-              const totalDays = slots.length;
-              const totalAppts = slots.reduce((acc, d) => acc + ((d.slots && d.slots.length) || 0), 0);
-              return { monthKey, totalDays, totalAppts };
-            });
-            return {
-              loc,
-              dispLoc: displayLoc(loc),
-              months: monthSummaries,
-            };
-          });
-
-          const monthTotalsText = monthTotals.length
-            ? monthTotals
-                .map((entry) => {
-                  if (!entry.months.length) return `- ${entry.dispLoc}: no month data`;
-                  const parts = entry.months
-                    .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
-                    .map((m) => `${m.monthKey}: ${m.totalAppts} appt(s) across ${m.totalDays} day(s)`);
-                  return `- ${entry.dispLoc}: ${parts.join('; ')}`;
-                })
-                .join('\n')
-            : '- No month data';
-
-          const monthTotalsHtml = monthTotals.length
-            ? monthTotals
-                .map((entry) => {
-                  if (!entry.months.length) return `<li><strong>${entry.dispLoc}</strong><br>no month data</li>`;
-                  const parts = entry.months
-                    .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
-                    .map((m) => `${m.monthKey}: ${m.totalAppts} appt(s) across ${m.totalDays} day(s)`)
-                    .join('<br>');
-                  return `<li><strong>${entry.dispLoc}</strong><br>${parts}</li>`;
-                })
-                .join('')
-            : '<li>No month data</li>';
-
-          const soonestSectionsText = allRows.length
-            ? allRows
-                .map((r) => {
-                  const lines = [];
-                  lines.push(`${r.dispLoc}:`);
-                  lines.push(`  - Soonest: ${r.prettyDate || r.date} ${r.time}${r.ok ? '' : ' [no result: ' + r.reason + ']'}`);
-                  return lines.join('\n');
-                })
-                .join('\n')
-            : 'No results';
-
-          const soonestSectionsHtml = allRows.length
-            ? allRows
-                .map(
-                  (r) =>
-                    `<li><strong>${r.dispLoc}</strong><br>- Soonest: ${r.prettyDate || r.date} ${r.time}${
-                      r.ok ? '' : ' [no result: ' + r.reason + ']'
-                    }</li>`
-                )
-                .join('')
-            : '<li>No results</li>';
-
-          let textBody =
-            `Target window: ${targetDate} ±${windowDays}d\n` +
-            `All locations:\n` +
-            soonestSectionsText +
-            `\n\nMonthly totals:\n${monthTotalsText}`;
-
-          let htmlBody = `
-              <h3>DMV Appointment Results</h3>
-              <p>Target window: <strong>${targetDate} ±${windowDays}d</strong></p>
-              <p><strong>All locations:</strong></p>
-              <ul>
-                ${soonestSectionsHtml}
-              </ul>
-              <p><strong>Monthly totals:</strong></p>
-              <ul>
-                ${monthTotalsHtml}
-              </ul>
-            `;
-
-          if (alerts.length > 0) {
-            should = 'true';
-            textBody =
-              `Target window: ${targetDate} ±${windowDays}d\n` +
-              `Alerts found in target window.\n\n` +
-              `All locations:\n` +
-              soonestSectionsText +
-              `\n\nMonthly totals:\n${monthTotalsText}`;
-
-            htmlBody = `
-              <h3>DMV Appointment Alerts</h3>
-              <p>Target window: <strong>${targetDate} ±${windowDays}d</strong></p>
-              <p><strong>Alerts found in target window.</strong></p>
-              <p><strong>All locations:</strong></p>
-              <ul>
-                ${soonestSectionsHtml}
-              </ul>
-              <p><strong>Monthly totals:</strong></p>
-              <ul>
-                ${monthTotalsHtml}
-              </ul>
-              <p>Generated at: ${generatedAt}</p>
-            `;
-          }
-
-          // Append latest history per location.
-          const historyEntries = Object.entries(history.locations || {});
-          const summaryTextLines = historyEntries.length
-            ? historyEntries.map(([loc, h]) => {
-                const dispLoc = displayLoc(loc);
-                const changes = (h && h.changes) || [];
-                const last = changes[changes.length - 1];
-                const dir = last ? last.direction || 'unknown' : 'n/a';
-                const dd = last && Number.isFinite(last.deltaDays) ? `${Math.abs(last.deltaDays)}d` : 'n/a';
-                const dirPhrase =
-                  dir === 'sooner' ? `moved up ${dd}` :
-                  dir === 'later' ? `moved back ${dd}` :
-                  dir === 'new' ? 'first recorded' :
-                  dir === 'same' ? 'no change' :
-                  `last ${dir} ${dd}`;
-                const whenHst = last && last.changedAt ? formatHst(last.changedAt) : 'unknown time';
-                return `- ${dispLoc}: ${changes.length} change(s); ${dirPhrase} @ ${whenHst}`;
-              })
-            : ['- No history entries yet'];
-          const summaryHtmlLines = summaryTextLines.map((line) =>
-            line.startsWith('- ') ? `<li>${line.slice(2)}</li>` : `<li>${line}</li>`
-          );
-          const historyTextLines = historyEntries.length
-            ? historyEntries.map(([loc, h]) => {
-                const dispLoc = displayLoc(loc);
-                const latest = (h && h.changes && h.changes[h.changes.length - 1]) || null;
-                if (!latest) return `- ${dispLoc}:\n  previous earliest: (none)\n  last change: no history\n  changed at: (n/a)`;
-                const prevPart = latest.fromDataVal ? (latest.fromDataVal.split(' ')[0] || '') : '';
-                const prettyPrev = prevPart ? (formatDate(prevPart) || prevPart) : '(none recorded)';
-                const dir = latest.direction || 'unknown';
-                const deltaDays = Number.isFinite(latest.deltaDays) ? Math.abs(latest.deltaDays) : null;
-                let changeLine = 'moved (direction unknown)';
-                if (dir === 'sooner' && deltaDays != null) changeLine = `moved up ${deltaDays} day${deltaDays === 1 ? '' : 's'}`;
-                else if (dir === 'later' && deltaDays != null) changeLine = `moved back ${deltaDays} day${deltaDays === 1 ? '' : 's'}`;
-                else if (dir === 'new') changeLine = 'first recorded date';
-                else if (dir === 'same') changeLine = 'no date change';
-                const changedAtHst = latest.changedAt ? formatHst(latest.changedAt) : 'unknown time';
-                return `- ${dispLoc}:\n  previous earliest: ${prettyPrev}\n  last change: ${changeLine}\n  changed at: ${changedAtHst}`;
-              })
-            : ['- No history entries yet'];
-          const historyHtmlLines = historyEntries.length
-            ? historyEntries.map(([loc, h]) => {
-                const dispLoc = displayLoc(loc);
-                const latest = (h && h.changes && h.changes[h.changes.length - 1]) || null;
-                if (!latest)
-                  return `<li><strong>${dispLoc}</strong><br>previous earliest: (none)<br>last change: no history<br>changed at: (n/a)</li>`;
-                const prevPart = latest.fromDataVal ? (latest.fromDataVal.split(' ')[0] || '') : '';
-                const prettyPrev = prevPart ? (formatDate(prevPart) || prevPart) : '(none recorded)';
-                const dir = latest.direction || 'unknown';
-                const deltaDays = Number.isFinite(latest.deltaDays) ? Math.abs(latest.deltaDays) : null;
-                let changeLine = 'moved (direction unknown)';
-                if (dir === 'sooner' && deltaDays != null) changeLine = `moved up ${deltaDays} day${deltaDays === 1 ? '' : 's'}`;
-                else if (dir === 'later' && deltaDays != null) changeLine = `moved back ${deltaDays} day${deltaDays === 1 ? '' : 's'}`;
-                else if (dir === 'new') changeLine = 'first recorded date';
-                else if (dir === 'same') changeLine = 'no date change';
-                const changedAtHst = latest.changedAt ? formatHst(latest.changedAt) : 'unknown time';
-                return `<li><strong>${dispLoc}</strong><br>previous earliest: ${prettyPrev}<br>last change: ${changeLine}<br>changed at: ${changedAtHst}</li>`;
-              })
-            : ['No history entries yet'];
-
-          textBody += `\n\n----\nHistory (latest per location):\n${historyTextLines.join('\n\n')}`;
-          htmlBody += `
-            <hr>
-            <p><strong>History (latest per location):</strong></p>
-            <ul>
-              ${historyHtmlLines.map(line => `<li>${line}</li>`).join('')}
-            </ul>
-            <p><strong>Summary (change frequency):</strong></p>
-            <ul>
-              ${summaryHtmlLines.join('')}
-            </ul>
-          `;
-
-          // Dynamic subject: include trimmed location and human-friendly date/time.
-          const alertsSorted = [...alerts].sort((a, b) => (a.dataVal || '').localeCompare(b.dataVal || ''));
-          const firstAlert = alertsSorted[0] || {};
-          const raw = firstAlert.dataVal || '';
-          const [rawDate, rawTime] = raw.split(' ');
-          const slotDate = rawDate || firstAlert.dateText || '';
-          const slotTime = rawTime || firstAlert.timeText || '';
-          const locationRaw = firstAlert.locationName || 'Unknown';
-          const trimmedLocation = locationRaw.replace(/\s*Satellite City Hall$/i, '').trim() || locationRaw;
-          const prettyDate = formatDate(slotDate);
-          const prettyTime = formatTime(slotTime);
-          const subjectBase = `DMV appointment alert – ${trimmedLocation}${prettyDate ? ' – ' + prettyDate : ''}${prettyTime ? ' ' + prettyTime : ''}`;
-          const d = slotDate ? new Date(slotDate) : null;
-          const isJanuary = d && !Number.isNaN(d.getTime()) && d.getUTCMonth() === 0;
-          const subject = isJanuary ? subjectBase.toUpperCase() : subjectBase;
-
-          const outFile = process.env.GITHUB_OUTPUT;
-          fs.appendFileSync(outFile, `should_email=${should}\n`);
-          fs.appendFileSync(outFile, `email_text<<EOF\n${textBody}\nEOF\n`);
-          fs.appendFileSync(outFile, `email_html<<EOF\n${htmlBody}\nEOF\n`);
-          fs.appendFileSync(outFile, `subject=${subject}\n`);
-          console.log(`Alerts found: ${alerts.length}`);
-          EOF
-
+      - name: Upload results to Supabase
+        if: always()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/upload-supabase.js
       - name: Save history cache
         if: always()
         uses: actions/cache/save@v4
         with:
           path: |
-            dmv-history.json
-            history/dmv-month-history-*.json
+            data/history/dmv-history.json
+            data/history/dmv-month-history-*.json
           key: dmv-history-${{ github.run_id }}
 
       - name: Commit updated history (main only)
         if: success() && github.ref == 'refs/heads/main'
         working-directory: ${{ github.workspace }}
         run: |
-          if [ ! -f dmv-history.json ]; then
+          if [ ! -f data/history/dmv-history.json ]; then
             echo "No history file to commit"
             exit 0
           fi
@@ -394,7 +81,7 @@ jobs:
 
           # Only roll up at most once every 6 hours.
           NOW_S=$(date -u +%s)
-          LAST_S=$(node -e "try { const h = require('./dmv-history.json'); const t = Date.parse(h.lastRollupAt || 0); console.log(Number.isFinite(t) ? Math.floor(t/1000) : 0); } catch { console.log(0); }")
+          LAST_S=$(node -e "try { const h = require('./data/history/dmv-history.json'); const t = Date.parse(h.lastRollupAt || 0); console.log(Number.isFinite(t) ? Math.floor(t/1000) : 0); } catch { console.log(0); }")
           DIFF=$(( NOW_S - LAST_S ))
           if [ "$LAST_S" != "0" ] && [ "$DIFF" -lt 21600 ]; then
             echo "Skip rollup commit (last ${DIFF}s ago, under 6h threshold)"
@@ -402,13 +89,13 @@ jobs:
           fi
 
           # Stamp lastRollupAt so it persists in history.
-          node -e "const fs=require('fs');const path='dmv-history.json';const h=JSON.parse(fs.readFileSync(path,'utf8'));h.lastRollupAt=new Date().toISOString();fs.writeFileSync(path,JSON.stringify(h,null,2),'utf8');"
+          node -e "const fs=require('fs');const path='data/history/dmv-history.json';const h=JSON.parse(fs.readFileSync(path,'utf8'));h.lastRollupAt=new Date().toISOString();fs.writeFileSync(path,JSON.stringify(h,null,2),'utf8');"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git status --short
-          if git status --short | grep -E "dmv-history.json|history/dmv-month-history-.*\\.json"; then
-            git add dmv-history.json history/dmv-month-history-*.json
+          if git status --short | grep -E "data/history/dmv-history.json|data/history/dmv-month-history-.*\\.json"; then
+            git add data/history/dmv-history.json data/history/dmv-month-history-*.json
             git commit -m "Update DMV history [skip ci]" || true
             git push origin HEAD:main
           else
@@ -417,21 +104,6 @@ jobs:
 
       # Optional: send an email if any alert matches the target window.
       # Configure SMTP_* and DMV_EMAIL_* as encrypted repo/organization secrets.
-      - name: Send email notification
-        if: steps.analyze.outputs.should_email == 'true'
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: ${{ secrets.SMTP_PORT }}
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
-          subject: ${{ steps.analyze.outputs.subject }}
-          to: ${{ secrets.DMV_EMAIL_TO }}
-          from: ${{ secrets.DMV_EMAIL_FROM }}
-          secure: true
-          html_body: ${{ steps.analyze.outputs.email_html }}
-          body: ${{ steps.analyze.outputs.email_text }}
-
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4

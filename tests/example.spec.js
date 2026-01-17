@@ -125,9 +125,13 @@ function buildMonthByDate(monthSlots) {
 }
 
 // Persistent history of soonest-slot changes.
-const HISTORY_PATH = path.join(process.cwd(), 'dmv-history.json');
-const HISTORY_DIR = path.join(process.cwd(), 'history');
+const DATA_DIR = path.join(process.cwd(), 'data');
+const HISTORY_DIR = path.join(DATA_DIR, 'history');
+const HISTORY_PATH = path.join(HISTORY_DIR, 'dmv-history.json');
 const MONTH_HISTORY_BASENAME = 'dmv-month-history';
+const RESULTS_DIR = path.join(DATA_DIR, 'results');
+const RUN_BUFFER_PATH = path.join(RESULTS_DIR, 'dmv-run-buffer.json');
+const RUN_LOCK_PATH = path.join(RESULTS_DIR, '.dmv-run.lock');
 
 function toTime(dateStr) {
   // Expects YYYY-MM-DD; returns ms or NaN.
@@ -144,7 +148,9 @@ function todayPlus(days) {
 function loadHistory() {
   try {
     if (fs.existsSync(HISTORY_PATH)) {
-      return JSON.parse(fs.readFileSync(HISTORY_PATH, 'utf8'));
+      const raw = fs.readFileSync(HISTORY_PATH, 'utf8');
+      if (!raw.trim()) return { locations: {}, overall: { changes: [] } };
+      return JSON.parse(raw);
     }
   } catch (e) {
     console.log(`Failed to read history file: ${e && e.message ? e.message : e}`);
@@ -161,7 +167,9 @@ function loadMonthHistoryForLocation(locationName) {
   const filePath = monthHistoryPathForLocation(locationName);
   try {
     if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      const raw = fs.readFileSync(filePath, 'utf8');
+      if (!raw.trim()) return { location: locationName, months: {} };
+      return JSON.parse(raw);
     }
   } catch (e) {
     console.log(`Failed to read month history file for ${locationName}: ${e && e.message ? e.message : e}`);
@@ -171,6 +179,9 @@ function loadMonthHistoryForLocation(locationName) {
 
 function saveHistory(history) {
   try {
+    if (!fs.existsSync(HISTORY_DIR)) {
+      fs.mkdirSync(HISTORY_DIR, { recursive: true });
+    }
     fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2), 'utf8');
     console.log(`Updated history at ${HISTORY_PATH}`);
   } catch (e) {
@@ -321,6 +332,83 @@ function formatDuration(ms) {
   if (min % 60) parts.push(`${min % 60}m`);
   if (parts.length === 0) parts.push(`${sec}s`);
   return parts.join(' ');
+}
+
+function ensureResultsDir() {
+  if (!fs.existsSync(RESULTS_DIR)) {
+    fs.mkdirSync(RESULTS_DIR, { recursive: true });
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function acquireRunLock(timeoutMs = 30_000) {
+  ensureResultsDir();
+  const start = Date.now();
+  while (true) {
+    try {
+      const fd = fs.openSync(RUN_LOCK_PATH, 'wx');
+      fs.closeSync(fd);
+      return;
+    } catch (e) {
+      if (Date.now() - start > timeoutMs) {
+        throw new Error('Timed out waiting for run lock');
+      }
+      await sleep(150);
+    }
+  }
+}
+
+function releaseRunLock() {
+  try {
+    if (fs.existsSync(RUN_LOCK_PATH)) {
+      fs.unlinkSync(RUN_LOCK_PATH);
+    }
+  } catch {
+    // Best effort; lock will expire on next run.
+  }
+}
+
+async function withRunLock(fn) {
+  await acquireRunLock();
+  try {
+    return await fn();
+  } finally {
+    releaseRunLock();
+  }
+}
+
+function loadRunBuffer() {
+  ensureResultsDir();
+  if (!fs.existsSync(RUN_BUFFER_PATH)) {
+    return { runAt: '', results: [] };
+  }
+  try {
+    const raw = fs.readFileSync(RUN_BUFFER_PATH, 'utf8');
+    if (!raw.trim()) return { runAt: '', results: [] };
+    const parsed = JSON.parse(raw);
+    return {
+      runAt: parsed.runAt || '',
+      results: Array.isArray(parsed.results) ? parsed.results : [],
+    };
+  } catch {
+    return { runAt: '', results: [] };
+  }
+}
+
+function saveRunBuffer(buffer) {
+  ensureResultsDir();
+  fs.writeFileSync(RUN_BUFFER_PATH, JSON.stringify(buffer, null, 2), 'utf8');
+}
+
+function upsertResult(results, next) {
+  const idx = results.findIndex(
+    (r) => r && next && r.locationName === next.locationName
+  );
+  if (idx >= 0) results[idx] = next;
+  else results.push(next);
 }
 
 async function getSoonestAppointmentForLocation(page, locationName, opts = {}) {
@@ -526,16 +614,134 @@ async function getSoonestAppointmentForLocation(page, locationName, opts = {}) {
   return earliest;
 }
 
-test('dmv appointment bot - check soonest appointments by location', async ({
-  browser,
-}) => {
-  const results = [];
+async function finalizeRun(results, runAt) {
+  const nowIso = runAt || new Date().toISOString();
   const history = loadHistory();
-  const nowIso = new Date().toISOString();
   const changeLog = [];
 
-  for (const locationName of LOCATIONS) {
-    // Helper to run one attempt (optionally with hard reload) and clean up its context.
+  const okCount = results.filter((r) => r && r.ok).length;
+  console.log(`Done. Locations checked: ${results.length}, successes: ${okCount}`);
+
+  for (const res of results) {
+    if (res && res.ok) {
+      const locChange = recordLocationChange(history, res, nowIso);
+      if (locChange) {
+        changeLog.push({
+          type: 'location',
+          location: res.locationName,
+          to: res.dataVal,
+          from: locChange.fromDataVal,
+          delta: locChange.deltaMs,
+          deltaDays: locChange.deltaDays,
+          direction: locChange.direction,
+        });
+      }
+    }
+  }
+
+  const earliest = [...results]
+    .filter((r) => r && r.ok && r.dataVal)
+    .sort((a, b) => a.dataVal.localeCompare(b.dataVal))[0];
+
+  const overallChange = recordOverallChange(history, earliest, nowIso);
+  if (overallChange) {
+    changeLog.push({
+      type: 'overall',
+      to: overallChange.toDataVal,
+      from: overallChange.fromDataVal,
+      location: overallChange.toLocation,
+      delta: overallChange.deltaMs,
+      deltaDays: overallChange.deltaDays,
+      direction: overallChange.direction,
+    });
+  }
+
+  if (changeLog.length) {
+    console.log('Change log (this run):');
+    changeLog.forEach((c) => {
+      const scope = c.type === 'overall' ? 'OVERALL' : c.location;
+      console.log(
+        `- ${scope}: ${c.from || 'none'} -> ${c.to} (Δ ${formatDuration(c.delta)}; ${c.direction} ${c.deltaDays ?? 'n/a'}d)`
+      );
+    });
+    const summaries = Object.entries(history.locations || {}).map(([loc, entry]) => {
+      const changes = entry.changes || [];
+      const last = changes[changes.length - 1];
+      const dir = last ? last.direction : 'n/a';
+      const dd = last && Number.isFinite(last.deltaDays) ? `${Math.abs(last.deltaDays)}d` : 'n/a';
+      return `${loc.replace(/\s*Satellite City Hall$/i, '')}: ${changes.length} change(s); last ${dir} ${dd}`;
+    });
+    if (summaries.length) {
+      console.log('Change frequency summary:');
+      summaries.forEach((s) => console.log(`- ${s}`));
+    }
+  } else {
+    console.log('No soonest-date changes detected this run.');
+  }
+
+  history.lastRunAt = nowIso;
+  saveHistory(history);
+
+  const resolvedTargetDate = TARGET_DATE_ENV || todayPlus(60);
+  const resolvedWindowDays =
+    TARGET_WINDOW_ENV === '' ? 60 : Number(TARGET_WINDOW_ENV || 0);
+
+  let alerts = [];
+  if (resolvedTargetDate) {
+    const targetTime = toTime(resolvedTargetDate);
+    const windowMs = Math.abs(resolvedWindowDays) * 24 * 60 * 60 * 1000;
+    alerts = results.filter((r) => {
+      if (!r.ok || !r.dataVal) return false;
+      const slotDate = r.dataVal.split(' ')[0];
+      const slotTime = toTime(slotDate);
+      if (Number.isNaN(slotTime) || Number.isNaN(targetTime)) return false;
+      return slotTime >= targetTime - windowMs && slotTime <= targetTime + windowMs;
+    });
+  }
+
+  const outPath = path.join(RESULTS_DIR, 'dmv-results.json');
+  const payload = {
+    generatedAt: nowIso,
+    targetDate: resolvedTargetDate,
+    targetWindowDays: resolvedWindowDays,
+    results,
+    alerts,
+  };
+  try {
+    ensureResultsDir();
+    fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
+    console.log(`Wrote results to ${outPath}`);
+  } catch (e) {
+    console.log(`Failed to write ${outPath}: ${e && e.message ? e.message : e}`);
+  }
+}
+
+async function appendResultAndFinalizeIfComplete(result) {
+  await withRunLock(async () => {
+    const buffer = loadRunBuffer();
+    if (!buffer.runAt) buffer.runAt = new Date().toISOString();
+    buffer.results = Array.isArray(buffer.results) ? buffer.results : [];
+    upsertResult(buffer.results, result);
+    saveRunBuffer(buffer);
+
+    const uniqueCount = new Set(
+      buffer.results.map((r) => r && r.locationName).filter(Boolean)
+    ).size;
+    if (uniqueCount >= LOCATIONS.length) {
+      await finalizeRun(buffer.results, buffer.runAt);
+      try {
+        fs.unlinkSync(RUN_BUFFER_PATH);
+      } catch {
+        // Ignore cleanup errors.
+      }
+    }
+  });
+}
+
+for (const locationName of LOCATIONS) {
+  test(`dmv appointment bot - ${locationName} (earliest + month slots)`, async ({
+    browser,
+  }) => {
     const runAttempt = async (forceReload = false) => {
       const context = await browser.newContext();
       const page = await context.newPage();
@@ -548,23 +754,19 @@ test('dmv appointment bot - check soonest appointments by location', async ({
         `${safeName}-${attemptLabel}-${Date.now()}.png`
       );
 
-      // Capture console logs for debugging.
       page.on('console', (msg) => {
         attemptLogs.push(`[${msg.type()}] ${msg.text()}`);
       });
 
-      // Ensure screenshot directory exists.
       if (!fs.existsSync(screenshotDir)) {
         fs.mkdirSync(screenshotDir, { recursive: true });
       }
 
       try {
-        const res = await getSoonestAppointmentForLocation(page, locationName, {
+        return await getSoonestAppointmentForLocation(page, locationName, {
           forceReload,
         });
-        return res;
       } catch (e) {
-        // Take a screenshot on failure for diagnostics.
         try {
           await page.screenshot({ path: screenshotPath, fullPage: true });
           console.log(
@@ -596,7 +798,6 @@ test('dmv appointment bot - check soonest appointments by location', async ({
       );
     }
 
-    // Retry once with hard reload if first attempt threw.
     if (!res) {
       try {
         res = await runAttempt(true);
@@ -612,7 +813,6 @@ test('dmv appointment bot - check soonest appointments by location', async ({
       }
     }
 
-    results.push(res);
     if (res && res.ok) {
       console.log(
         `[${locationName}] soonest: ${res.dataVal} (${res.dateText} ${res.timeText})`
@@ -643,109 +843,14 @@ test('dmv appointment bot - check soonest appointments by location', async ({
         const monthKey = res.dataVal.split(' ')[0]?.slice(0, 7) || '';
         recordMonthAppointments(locationName, monthKey, res.monthSlots);
       }
-      const locChange = recordLocationChange(history, res, nowIso);
-      if (locChange) {
-        changeLog.push({
-          type: 'location',
-          location: locationName,
-          to: res.dataVal,
-          from: locChange.fromDataVal,
-          delta: locChange.deltaMs,
-          deltaDays: locChange.deltaDays,
-          direction: locChange.direction,
-        });
-      }
     } else {
       console.log(`[${locationName}] no result: ${res ? res.reason : 'unknown error'}`);
     }
 
-    // Keep the page open only when running locally so you can visually inspect
-    // the times. In CI we skip this pause to avoid hitting test timeouts.
+    await appendResultAndFinalizeIfComplete(res);
+
     if (!process.env.CI) {
-      // Give a moment to observe before moving to next location.
       await new Promise((r) => setTimeout(r, 2000));
     }
-  }
-
-  const okCount = results.filter((r) => r.ok).length;
-  console.log(`Done. Locations checked: ${results.length}, successes: ${okCount}`);
-
-  // Track overall earliest change across all locations.
-  const earliest = [...results]
-    .filter((r) => r && r.ok && r.dataVal)
-    .sort((a, b) => a.dataVal.localeCompare(b.dataVal))[0];
-
-  const overallChange = recordOverallChange(history, earliest, nowIso);
-  if (overallChange) {
-    changeLog.push({
-      type: 'overall',
-      to: overallChange.toDataVal,
-      from: overallChange.fromDataVal,
-      location: overallChange.toLocation,
-      delta: overallChange.deltaMs,
-      deltaDays: overallChange.deltaDays,
-      direction: overallChange.direction,
-    });
-  }
-
-  if (changeLog.length) {
-    console.log('Change log (this run):');
-    changeLog.forEach((c) => {
-      const scope = c.type === 'overall' ? 'OVERALL' : c.location;
-      console.log(
-        `- ${scope}: ${c.from || 'none'} -> ${c.to} (Δ ${formatDuration(c.delta)}; ${c.direction} ${c.deltaDays ?? 'n/a'}d)`
-      );
-    });
-    // Quick frequency/recency summary per location for easy analysis.
-    const summaries = Object.entries(history.locations || {}).map(([loc, entry]) => {
-      const changes = entry.changes || [];
-      const last = changes[changes.length - 1];
-      const dir = last ? last.direction : 'n/a';
-      const dd = last && Number.isFinite(last.deltaDays) ? `${Math.abs(last.deltaDays)}d` : 'n/a';
-      return `${loc.replace(/\s*Satellite City Hall$/i, '')}: ${changes.length} change(s); last ${dir} ${dd}`;
-    });
-    if (summaries.length) {
-      console.log('Change frequency summary:');
-      summaries.forEach((s) => console.log(`- ${s}`));
-    }
-  } else {
-    console.log('No soonest-date changes detected this run.');
-  }
-
-  history.lastRunAt = nowIso;
-  saveHistory(history);
-
-  // If a target date is provided, surface any slots within ±window days of that date.
-  const resolvedTargetDate = TARGET_DATE_ENV || todayPlus(60);
-  const resolvedWindowDays =
-    TARGET_WINDOW_ENV === '' ? 60 : Number(TARGET_WINDOW_ENV || 0);
-
-  let alerts = [];
-  if (resolvedTargetDate) {
-    const targetTime = toTime(resolvedTargetDate);
-    const windowMs = Math.abs(resolvedWindowDays) * 24 * 60 * 60 * 1000;
-    alerts = results.filter((r) => {
-      if (!r.ok || !r.dataVal) return false;
-      const slotDate = r.dataVal.split(' ')[0];
-      const slotTime = toTime(slotDate);
-      if (Number.isNaN(slotTime) || Number.isNaN(targetTime)) return false;
-      return slotTime >= targetTime - windowMs && slotTime <= targetTime + windowMs;
-    });
-  }
-
-  // Persist results for CI/notification steps.
-  const outPath = path.join(process.cwd(), 'dmv-results.json');
-  const payload = {
-    generatedAt: new Date().toISOString(),
-    targetDate: resolvedTargetDate,
-    targetWindowDays: resolvedWindowDays,
-    results,
-    alerts,
-  };
-  try {
-    fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
-    console.log(`Wrote results to ${outPath}`);
-  } catch (e) {
-    console.log(`Failed to write ${outPath}: ${e && e.message ? e.message : e}`);
-  }
-});
+  });
+}

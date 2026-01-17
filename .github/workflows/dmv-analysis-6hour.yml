@@ -1,0 +1,55 @@
+name: DMV Analysis (6 Hour)
+
+on:
+  schedule:
+    # HST 12:00 AM, 6:00 AM, 12:00 PM, 6:00 PM (UTC 10:00, 16:00, 22:00, 04:00)
+    - cron: "0 4,10,16,22 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run 6-hour analysis
+        id: analysis
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/analysis/run-6hour-analysis.js
+
+      - name: Dispatch notifications
+        if: success()
+        env:
+          ANALYSIS_RUN_ID: ${{ steps.analysis.outputs.analysis_run_id }}
+          JOB_TYPE: ${{ steps.analysis.outputs.job_type }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (!process.env.ANALYSIS_RUN_ID) {
+              core.warning('Missing analysis_run_id; skipping notifications.');
+              return;
+            }
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'dmv-notifications.yml',
+              ref: context.ref,
+              inputs: {
+                analysis_run_id: process.env.ANALYSIS_RUN_ID,
+                job_type: process.env.JOB_TYPE || 'six_hour'
+              }
+            });

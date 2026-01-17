@@ -41,16 +41,50 @@ npm run test:debug
 npm run test:ui
 ```
 
+## Scheduling
+
+The DMV bot run is triggered externally via cron-job.org (GitHub Actions cron disabled for that workflow). Analysis workflows use GitHub Actions schedules.
+
+## Analysis Reports
+
+- 6-hour analysis runs in GitHub Actions at 12:00 AM, 6:00 AM, 12:00 PM, 6:00 PM HST (UTC: 10:00, 16:00, 22:00, 04:00).
+- Daily summary runs at 7:30 AM HST (UTC: 17:30).
+- Results are stored in Supabase:
+  - `analysis_runs` for raw snapshots and summaries
+  - `analysis_rollups_daily` for daily aggregates
+
+Notifications are fully separated in `.github/workflows/dmv-notifications.yml` and send email using existing SMTP secrets.
+
 ## Project Structure
 
 ```
 .
+├── data/
+│   ├── history/            # Temporary history (cleared after Supabase upload)
+│   └── results/            # Latest run results + run buffer
+├── docs/
+│   ├── action-map.md       # Browser action reference
+│   └── features/           # Feature documentation (current + planned)
+├── scripts/                # Analysis scripts
 ├── tests/
-│   └── example.spec.js    # Sample test file
-├── playwright.config.js   # Playwright configuration
-├── package.json           # Project dependencies
-└── README.md             # This file
+│   └── example.spec.js     # Playwright flow + data capture
+├── playwright.config.js    # Playwright configuration
+├── package.json            # Project dependencies
+└── README.md               # This file
 ```
+
+## File Map
+
+- `tests/example.spec.js` - Parallel Playwright flow (one test per location).
+- `data/history/dmv-history.json` - Earliest-appointment change log per location + overall (cleared after upload).
+- `data/history/dmv-month-history-*.json` - Monthly availability snapshots per location.
+- `data/results/dmv-results.json` - Latest run output for notifications.
+- `data/results/dmv-run-buffer.json` - Per-run aggregation buffer for parallel workers.
+- `scripts/analysis/run-6hour-analysis.js` - 6-hour Supabase analysis + rollups.
+- `scripts/analysis/run-daily-summary.js` - Daily rollup summary (Supabase).
+- `scripts/notifications/send-analysis-email.js` - Notification email builder for analysis runs.
+- `docs/action-map.md` - Human-readable action reference for browser steps.
+- `docs/features/` - Feature documentation (overview, pricing, queue, notifications, booking, backend).
 
 ## Customizing Tests
 
