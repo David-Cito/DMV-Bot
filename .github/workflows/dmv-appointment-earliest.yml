@@ -1,7 +1,12 @@
 name: DMV Appointment Bot (Earliest Only)
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      test_notify:
+        description: "Send a test notification even if no within-7-day match"
+        required: false
+        default: "false"
 
 jobs:
   run-bot:
@@ -15,6 +20,7 @@ jobs:
       cancel-in-progress: true
     env:
       DMV_EARLIEST_ONLY: "true"
+      DMV_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
       DMV_TARGET_DATE: ${{ vars.DMV_TARGET_DATE || '' }}
       DMV_TARGET_WINDOW_DAYS: ${{ vars.DMV_TARGET_WINDOW_DAYS || '60' }}
 
@@ -36,3 +42,15 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/upload-supabase.js
+
+      - name: Notify users (within 7 days)
+        if: always()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          DMV_EMAIL_FROM: ${{ secrets.DMV_EMAIL_FROM }}
+        run: node scripts/notifications/send-user-notifications.js

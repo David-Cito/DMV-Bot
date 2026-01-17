@@ -20,6 +20,7 @@
     "@playwright/test": "^1.40.0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.90.1"
+    "@supabase/supabase-js": "^2.90.1",
+    "nodemailer": "^6.9.14"
   }
 }

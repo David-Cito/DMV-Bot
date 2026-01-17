@@ -38,3 +38,22 @@ create index if not exists analysis_rollups_daily_date_idx
 
 create index if not exists analysis_rollups_daily_location_idx
   on analysis_rollups_daily (location_id, rollup_date);
+
+create table if not exists notification_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  locations text[] not null default '{}',
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists notification_subscribers_active_idx
+  on notification_subscribers (active);
+
+create table if not exists notification_state (
+  subscriber_id uuid not null references notification_subscribers(id) on delete cascade,
+  location_name text not null,
+  last_data_val text,
+  last_notified_at timestamptz,
+  primary key (subscriber_id, location_name)
+);

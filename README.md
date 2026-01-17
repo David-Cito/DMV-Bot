@@ -56,6 +56,12 @@ For every-minute checks, use `dmv-appointment-earliest.yml` (earliest-only mode)
 
 Notifications are fully separated in `.github/workflows/dmv-notifications.yml` and send email using existing SMTP secrets.
 
+## User Notification System (Within 7 Days)
+
+- Subscriber list lives in Supabase table `notification_subscribers` (email + locations).
+- `dmv-appointment-earliest.yml` sends emails every minute for earliest appointments within 7 days.
+- Deduping is handled in `notification_state` to avoid repeat alerts for the same slot.
+
 ## Project Structure
 
 ```
