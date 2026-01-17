@@ -187,7 +187,6 @@ function saveHistory(history) {
       fs.mkdirSync(HISTORY_DIR, { recursive: true });
     }
     fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2), 'utf8');
-    console.log(`Updated history at ${HISTORY_PATH}`);
   } catch (e) {
     console.log(`Failed to write history file: ${e && e.message ? e.message : e}`);
   }
@@ -205,7 +204,6 @@ function saveMonthHistoryForLocation(locationName, history) {
   }
   try {
     fs.writeFileSync(filePath, JSON.stringify(history, null, 2), 'utf8');
-    console.log(`Updated month history for ${locationName} at ${filePath}`);
   } catch (e) {
     console.log(`Failed to write month history file for ${locationName}: ${e && e.message ? e.message : e}`);
   }
@@ -684,28 +682,7 @@ async function finalizeRun(results, runAt) {
     });
   }
 
-  if (changeLog.length) {
-    console.log('Change log (this run):');
-    changeLog.forEach((c) => {
-      const scope = c.type === 'overall' ? 'OVERALL' : c.location;
-      console.log(
-        `- ${scope}: ${c.from || 'none'} -> ${c.to} (Δ ${formatDuration(c.delta)}; ${c.direction} ${c.deltaDays ?? 'n/a'}d)`
-      );
-    });
-    const summaries = Object.entries(history.locations || {}).map(([loc, entry]) => {
-      const changes = entry.changes || [];
-      const last = changes[changes.length - 1];
-      const dir = last ? last.direction : 'n/a';
-      const dd = last && Number.isFinite(last.deltaDays) ? `${Math.abs(last.deltaDays)}d` : 'n/a';
-      return `${loc.replace(/\s*Satellite City Hall$/i, '')}: ${changes.length} change(s); last ${dir} ${dd}`;
-    });
-    if (summaries.length) {
-      console.log('Change frequency summary:');
-      summaries.forEach((s) => console.log(`- ${s}`));
-    }
-  } else {
-    console.log('No soonest-date changes detected this run.');
-  }
+  // Suppress detailed change logs to keep output minimal.
 
   history.lastRunAt = nowIso;
   saveHistory(history);
@@ -847,26 +824,12 @@ for (const locationName of LOCATIONS) {
         `[${locationName}] soonest: ${res.dataVal} (${res.dateText} ${res.timeText})`
       );
       if (res.monthSlots && !EARLIEST_ONLY) {
-        const weekly = {};
-        res.monthSlots.forEach((d) => {
-          const dayNum = Number(d.date.split('-')[2]) || 0;
-          const week = Math.ceil(dayNum / 7) || 1;
-          const count = Array.isArray(d.slots) ? d.slots.length : 0;
-          weekly[week] = (weekly[week] || 0) + count;
-        });
-        const weeklyText = Object.entries(weekly)
-          .sort((a, b) => Number(a[0]) - Number(b[0]))
-          .map(([w, c]) => `week ${w}: ${c} appt(s)`)
-          .join(', ');
-        if (weeklyText) {
-          console.log(`[${locationName}] weekly totals: ${weeklyText}`);
-        }
         const monthlySummary = summarizeMonthSlots(res.monthSlots);
         if (monthlySummary) {
           const dispLoc =
             (locationName || 'Unknown').replace(/\s*Satellite City Hall$/i, '').trim() || locationName;
           console.log(
-            `[${dispLoc}] monthly (${monthlySummary.monthLabel}): ${monthlySummary.totalAppts} appt(s) across ${monthlySummary.totalDays} day(s); range ${monthlySummary.startDate} - ${monthlySummary.endDate}`
+            `[${dispLoc}] monthly ${monthlySummary.monthLabel}: ${monthlySummary.totalAppts} appt(s)`
           );
         }
         const monthKey = res.dataVal.split(' ')[0]?.slice(0, 7) || '';
