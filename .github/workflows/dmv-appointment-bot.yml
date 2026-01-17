@@ -44,8 +44,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            dmv-history.json
-            history/dmv-month-history-*.json
+            data/history/dmv-history.json
+            data/history/dmv-month-history-*.json
           key: dmv-history-${{ github.run_id }}
           restore-keys: |
             dmv-history-
@@ -59,14 +59,14 @@ jobs:
       - name: Analyze results
         id: analyze
         run: |
-          if [ ! -f dmv-results.json ]; then
+          if [ ! -f data/results/dmv-results.json ]; then
             echo "dmv-results.json not found"
             echo "should_email=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           node <<'EOF'
           const fs = require('fs');
-          const data = JSON.parse(fs.readFileSync('dmv-results.json', 'utf8'));
+          const data = JSON.parse(fs.readFileSync('data/results/dmv-results.json', 'utf8'));
           const alerts = data.alerts || [];
           const results = data.results || [];
           const targetDate = data.targetDate || '';
@@ -76,8 +76,8 @@ jobs:
           // Load history log if present.
           let history = { locations: {}, overall: { changes: [] } };
           try {
-            if (fs.existsSync('dmv-history.json')) {
-              history = JSON.parse(fs.readFileSync('dmv-history.json', 'utf8'));
+            if (fs.existsSync('data/history/dmv-history.json')) {
+              history = JSON.parse(fs.readFileSync('data/history/dmv-history.json', 'utf8'));
             }
           } catch (e) {
             console.log(`Failed to read history log: ${e && e.message ? e.message : e}`);
@@ -376,15 +376,15 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            dmv-history.json
-            history/dmv-month-history-*.json
+            data/history/dmv-history.json
+            data/history/dmv-month-history-*.json
           key: dmv-history-${{ github.run_id }}
 
       - name: Commit updated history (main only)
         if: success() && github.ref == 'refs/heads/main'
         working-directory: ${{ github.workspace }}
         run: |
-          if [ ! -f dmv-history.json ]; then
+          if [ ! -f data/history/dmv-history.json ]; then
             echo "No history file to commit"
             exit 0
           fi
@@ -394,7 +394,7 @@ jobs:
 
           # Only roll up at most once every 6 hours.
           NOW_S=$(date -u +%s)
-          LAST_S=$(node -e "try { const h = require('./dmv-history.json'); const t = Date.parse(h.lastRollupAt || 0); console.log(Number.isFinite(t) ? Math.floor(t/1000) : 0); } catch { console.log(0); }")
+          LAST_S=$(node -e "try { const h = require('./data/history/dmv-history.json'); const t = Date.parse(h.lastRollupAt || 0); console.log(Number.isFinite(t) ? Math.floor(t/1000) : 0); } catch { console.log(0); }")
           DIFF=$(( NOW_S - LAST_S ))
           if [ "$LAST_S" != "0" ] && [ "$DIFF" -lt 21600 ]; then
             echo "Skip rollup commit (last ${DIFF}s ago, under 6h threshold)"
@@ -402,13 +402,13 @@ jobs:
           fi
 
           # Stamp lastRollupAt so it persists in history.
-          node -e "const fs=require('fs');const path='dmv-history.json';const h=JSON.parse(fs.readFileSync(path,'utf8'));h.lastRollupAt=new Date().toISOString();fs.writeFileSync(path,JSON.stringify(h,null,2),'utf8');"
+          node -e "const fs=require('fs');const path='data/history/dmv-history.json';const h=JSON.parse(fs.readFileSync(path,'utf8'));h.lastRollupAt=new Date().toISOString();fs.writeFileSync(path,JSON.stringify(h,null,2),'utf8');"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git status --short
-          if git status --short | grep -E "dmv-history.json|history/dmv-month-history-.*\\.json"; then
-            git add dmv-history.json history/dmv-month-history-*.json
+          if git status --short | grep -E "data/history/dmv-history.json|data/history/dmv-month-history-.*\\.json"; then
+            git add data/history/dmv-history.json data/history/dmv-month-history-*.json
             git commit -m "Update DMV history [skip ci]" || true
             git push origin HEAD:main
           else

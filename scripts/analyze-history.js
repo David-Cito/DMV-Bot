@@ -5,8 +5,9 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = process.cwd();
-const HISTORY_FILE = path.join(ROOT, 'dmv-history.json');
-const HISTORY_DIR = path.join(ROOT, 'history');
+const DATA_DIR = path.join(ROOT, 'data');
+const HISTORY_DIR = path.join(DATA_DIR, 'history');
+const HISTORY_FILE = path.join(HISTORY_DIR, 'dmv-history.json');
 const REPORT_DIR = path.join(HISTORY_DIR, 'reports');
 
 const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];

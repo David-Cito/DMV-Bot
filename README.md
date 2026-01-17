@@ -45,12 +45,32 @@ npm run test:ui
 
 ```
 .
+├── data/
+│   ├── history/            # DMV history + monthly snapshots + reports
+│   └── results/            # Latest run results
+├── docs/
+│   ├── action-map.md       # Browser action reference
+│   └── features/           # Feature documentation (current + planned)
+├── scripts/                # Analysis scripts
 ├── tests/
-│   └── example.spec.js    # Sample test file
-├── playwright.config.js   # Playwright configuration
-├── package.json           # Project dependencies
-└── README.md             # This file
+│   └── example.spec.js     # Playwright flow + data capture
+├── playwright.config.js    # Playwright configuration
+├── package.json            # Project dependencies
+└── README.md               # This file
 ```
+
+## File Map
+
+- `tests/example.spec.js` - Main Playwright flow, data capture, and result persistence.
+- `scripts/analyze-history.js` - Generic history patterns report.
+- `scripts/analyze-history-booking.js` - Booking-oriented insights report.
+- `scripts/analyze-7day-availability.js` - 7-day availability analysis.
+- `data/history/dmv-history.json` - Earliest-appointment change log per location + overall.
+- `data/history/dmv-month-history-*.json` - Monthly availability snapshots per location.
+- `data/history/reports/` - Generated analysis reports (latest + run logs).
+- `data/results/dmv-results.json` - Latest run output for notifications.
+- `docs/action-map.md` - Human-readable action reference for browser steps.
+- `docs/features/` - Feature documentation (overview, pricing, queue, notifications, booking, backend).
 
 ## Customizing Tests
 

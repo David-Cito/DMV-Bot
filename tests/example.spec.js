@@ -125,8 +125,9 @@ function buildMonthByDate(monthSlots) {
 }
 
 // Persistent history of soonest-slot changes.
-const HISTORY_PATH = path.join(process.cwd(), 'dmv-history.json');
-const HISTORY_DIR = path.join(process.cwd(), 'history');
+const DATA_DIR = path.join(process.cwd(), 'data');
+const HISTORY_DIR = path.join(DATA_DIR, 'history');
+const HISTORY_PATH = path.join(HISTORY_DIR, 'dmv-history.json');
 const MONTH_HISTORY_BASENAME = 'dmv-month-history';
 
 function toTime(dateStr) {
@@ -171,6 +172,9 @@ function loadMonthHistoryForLocation(locationName) {
 
 function saveHistory(history) {
   try {
+    if (!fs.existsSync(HISTORY_DIR)) {
+      fs.mkdirSync(HISTORY_DIR, { recursive: true });
+    }
     fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2), 'utf8');
     console.log(`Updated history at ${HISTORY_PATH}`);
   } catch (e) {
@@ -734,7 +738,8 @@ test('dmv appointment bot - check soonest appointments by location', async ({
   }
 
   // Persist results for CI/notification steps.
-  const outPath = path.join(process.cwd(), 'dmv-results.json');
+  const resultsDir = path.join(process.cwd(), 'data', 'results');
+  const outPath = path.join(resultsDir, 'dmv-results.json');
   const payload = {
     generatedAt: new Date().toISOString(),
     targetDate: resolvedTargetDate,
@@ -743,6 +748,9 @@ test('dmv appointment bot - check soonest appointments by location', async ({
     alerts,
   };
   try {
+    if (!fs.existsSync(resultsDir)) {
+      fs.mkdirSync(resultsDir, { recursive: true });
+    }
     fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
     console.log(`Wrote results to ${outPath}`);
   } catch (e) {
