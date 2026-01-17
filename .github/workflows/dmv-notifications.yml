@@ -1,0 +1,49 @@
+name: DMV Notifications
+
+on:
+  workflow_dispatch:
+    inputs:
+      analysis_run_id:
+        description: "Supabase analysis_runs.id to email"
+        required: true
+      job_type:
+        description: "six_hour or daily_summary"
+        required: true
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build email content
+        id: build
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANALYSIS_RUN_ID: ${{ inputs.analysis_run_id }}
+          JOB_TYPE: ${{ inputs.job_type }}
+        run: node scripts/notifications/send-analysis-email.js
+
+      - name: Send email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: ${{ steps.build.outputs.subject }}
+          to: ${{ secrets.DMV_EMAIL_TO }}
+          from: ${{ secrets.DMV_EMAIL_FROM }}
+          secure: true
+          html_body: ${{ steps.build.outputs.html_body }}
+          body: ${{ steps.build.outputs.text_body }}
