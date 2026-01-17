@@ -58,50 +58,6 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/upload-supabase.js
-      - name: Save history cache
-        if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            data/history/dmv-history.json
-            data/history/dmv-month-history-*.json
-          key: dmv-history-${{ github.run_id }}
-
-      - name: Commit updated history (main only)
-        if: success() && github.ref == 'refs/heads/main'
-        working-directory: ${{ github.workspace }}
-        run: |
-          if [ ! -f data/history/dmv-history.json ]; then
-            echo "No history file to commit"
-            exit 0
-          fi
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git fetch origin main
-          git checkout main
-
-          # Only roll up at most once every 6 hours.
-          NOW_S=$(date -u +%s)
-          LAST_S=$(node -e "try { const h = require('./data/history/dmv-history.json'); const t = Date.parse(h.lastRollupAt || 0); console.log(Number.isFinite(t) ? Math.floor(t/1000) : 0); } catch { console.log(0); }")
-          DIFF=$(( NOW_S - LAST_S ))
-          if [ "$LAST_S" != "0" ] && [ "$DIFF" -lt 21600 ]; then
-            echo "Skip rollup commit (last ${DIFF}s ago, under 6h threshold)"
-            exit 0
-          fi
-
-          # Stamp lastRollupAt so it persists in history.
-          node -e "const fs=require('fs');const path='data/history/dmv-history.json';const h=JSON.parse(fs.readFileSync(path,'utf8'));h.lastRollupAt=new Date().toISOString();fs.writeFileSync(path,JSON.stringify(h,null,2),'utf8');"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git status --short
-          if git status --short | grep -E "data/history/dmv-history.json|data/history/dmv-month-history-.*\\.json"; then
-            git add data/history/dmv-history.json data/history/dmv-month-history-*.json
-            git commit -m "Update DMV history [skip ci]" || true
-            git push origin HEAD:main
-          else
-            echo "No history changes to commit"
-          fi
-
       # Optional: send an email if any alert matches the target window.
       # Configure SMTP_* and DMV_EMAIL_* as encrypted repo/organization secrets.
       - name: Upload screenshots
