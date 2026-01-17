@@ -6,6 +6,9 @@ const { createClient } = require('@supabase/supabase-js');
 
 const ROOT = process.cwd();
 const RESULTS_PATH = path.join(ROOT, 'data', 'results', 'dmv-results.json');
+const HISTORY_DIR = path.join(ROOT, 'data', 'history');
+const HISTORY_PATH = path.join(HISTORY_DIR, 'dmv-history.json');
+const DAY_HISTORY_PATH = path.join(HISTORY_DIR, 'dmv-day-history.json');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -26,6 +29,25 @@ function parseTimeFromDataVal(dataVal) {
   if (!dataVal) return null;
   const parts = dataVal.split(' ');
   return parts[1] || null; // HH:mm:ss
+}
+
+function clearHistoryFiles() {
+  if (!fs.existsSync(HISTORY_DIR)) return;
+  const monthHistoryFiles = fs
+    .readdirSync(HISTORY_DIR)
+    .filter((file) => /^dmv-month-history-.*\.json$/i.test(file))
+    .map((file) => path.join(HISTORY_DIR, file));
+  const filesToClear = [HISTORY_PATH, DAY_HISTORY_PATH, ...monthHistoryFiles];
+  for (const filePath of filesToClear) {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, '', 'utf8');
+      }
+    } catch (e) {
+      console.log(`Failed to clear history file ${filePath}: ${e?.message || e}`);
+    }
+  }
+  console.log(`Cleared ${filesToClear.length} history file(s) after upload.`);
 }
 
 async function getLocationId(name) {
@@ -104,6 +126,7 @@ async function main() {
   console.log(
     `Supabase upload complete. Run ${runId}. day_snapshots=${daySnapshotRows.length}, month_slots=${monthSlotsRows.length}`
   );
+  clearHistoryFiles();
 }
 
 main().catch((err) => {

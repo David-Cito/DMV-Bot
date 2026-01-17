@@ -41,13 +41,17 @@ npm run test:debug
 npm run test:ui
 ```
 
+## Scheduling
+
+This repo is triggered externally via cron-job.org. GitHub Actions cron is disabled; use `workflow_dispatch` or your external scheduler.
+
 ## Project Structure
 
 ```
 .
 ├── data/
-│   ├── history/            # DMV history + monthly snapshots + reports
-│   └── results/            # Latest run results
+│   ├── history/            # Temporary history (cleared after Supabase upload)
+│   └── results/            # Latest run results + run buffer
 ├── docs/
 │   ├── action-map.md       # Browser action reference
 │   └── features/           # Feature documentation (current + planned)
@@ -61,14 +65,15 @@ npm run test:ui
 
 ## File Map
 
-- `tests/example.spec.js` - Main Playwright flow, data capture, and result persistence.
+- `tests/example.spec.js` - Parallel Playwright flow (one test per location).
 - `scripts/analyze-history.js` - Generic history patterns report.
 - `scripts/analyze-history-booking.js` - Booking-oriented insights report.
 - `scripts/analyze-7day-availability.js` - 7-day availability analysis.
-- `data/history/dmv-history.json` - Earliest-appointment change log per location + overall.
+- `data/history/dmv-history.json` - Earliest-appointment change log per location + overall (cleared after upload).
 - `data/history/dmv-month-history-*.json` - Monthly availability snapshots per location.
 - `data/history/reports/` - Generated analysis reports (latest + run logs).
 - `data/results/dmv-results.json` - Latest run output for notifications.
+- `data/results/dmv-run-buffer.json` - Per-run aggregation buffer for parallel workers.
 - `docs/action-map.md` - Human-readable action reference for browser steps.
 - `docs/features/` - Feature documentation (overview, pricing, queue, notifications, booking, backend).
 

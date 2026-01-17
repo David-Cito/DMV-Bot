@@ -1,10 +1,6 @@
 name: DMV Appointment Bot
 
 on:
-  schedule:
-    # Run roughly every 5 minutes (GitHub does not guarantee exact timing)
-    # Note: Scheduled workflows only run on the default branch (main/master)
-    - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       target_date:
