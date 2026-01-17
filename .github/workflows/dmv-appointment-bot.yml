@@ -56,6 +56,13 @@ jobs:
       - name: Run DMV appointment bot
         run: npm test
 
+      - name: Upload results to Supabase
+        if: always()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/upload-supabase.js
+
       - name: Analyze results
         id: analyze
         run: |
