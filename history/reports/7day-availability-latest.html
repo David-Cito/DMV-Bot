@@ -1,0 +1,56 @@
+<h2>7-Day Appointment Availability Analysis</h2>
+<div style="background: #f0f0f0; padding: 15px; margin: 15px 0; border-left: 4px solid #007acc;">
+<h3>Metrics Explanation</h3>
+<p>This analysis tracks appointments that become available within 7 days.</p>
+<h4>Key Metrics:</h4>
+<ol>
+<li><strong>Availability Persistence:</strong> Percentage of appointments still available on the next check (5-30 min later). Higher = better chance to book.<br>
+<strong>Interpretation:</strong> &gt;80% = Very stable, 60-80% = Moderate, &lt;60% = Highly competitive.</li>
+<li><strong>Slot Count Trends:</strong> How many appointment slots appear at once when openings become available. More slots = better booking opportunity.<br>
+<strong>Interpretation:</strong> Average &gt;5 = Good, 3-5 = Moderate, &lt;3 = Limited availability.</li>
+<li><strong>Multi-Date Availability:</strong> When appointments appear within 7 days, how often multiple dates appear at the same time. Higher % = more options.</li>
+<li><strong>Cancellation Timing:</strong> Peak hours when cancellations occur (creating openings). Useful for timing checks when new appointments are likely.</li>
+<li><strong>Lead Time Trends:</strong> Whether appointments are getting closer (better) or further out (worse) over time. Shows overall availability trends.</li>
+<li><strong>Competition Indicators:</strong> How quickly appointments disappear after appearing. Faster = more competition.<br>
+<strong>Interpretation:</strong> &lt;30 min = HIGH, 30-120 min = MODERATE, &gt;120 min = LOW competition.</li>
+<li><strong>Duration Statistics:</strong> How long appointments stay available once they appear within 7 days. Longer durations = more time to book.<br>
+<strong>Interpretation:</strong> &lt;1 hour = Very competitive, 1-6 hours = Competitive, &gt;6 hours = Less competitive.</li>
+</ol>
+</div>
+<h3>Summary</h3>
+<p><strong>Total instances where appointments appeared within 7 days:</strong> 4</p>
+<p><em>Breakdown:</em> 0 from month snapshots, 4 from change history (captures same-day/short-lived appointments)</p>
+<ul>
+<li><strong>Dates tracked:</strong> 4</li>
+<li><strong>Average duration available:</strong> 7 minutes</li>
+<li><strong>Median duration:</strong> 5 minutes</li>
+<li><strong>Minimum duration:</strong> 3 minutes</li>
+<li><strong>Maximum duration:</strong> 15 minutes</li>
+</ul>
+<h3>1. Availability Persistence</h3>
+<h3>2. Slot Count Trends (on appearance within 7 days)</h3>
+<h3>3. Multi-Date Availability</h3>
+<h3>4. Cancellation Timing Patterns (from change history)</h3>
+<ul>
+<li><strong>Total "sooner" changes:</strong> 36</li>
+<li><strong>Cancellations detected:</strong> 35</li>
+<li><strong>Average days improvement:</strong> 22.1 days</li>
+</ul>
+<p><strong>Peak cancellation hours (HST):</strong> 11:00 AM HST (4), 1:00 PM HST (4), 2:00 PM HST (3), 7:00 PM HST (3), 9:00 AM HST (2)</p>
+<h3>5. Lead Time Trends</h3>
+<h3>6. Competition Indicators (disappearance speed)</h3>
+<h4>Response Time Guidance</h4>
+<p><strong>Recommendation:</strong> System should respond within 30 minutes for best results</p>
+<h3>Frequency by Location</h3>
+<p>Pearlridge: <strong>2</strong> instances</p>
+<p>Downtown: <strong>1</strong> instances</p>
+<p>Hawaii Kai: <strong>1</strong> instances</p>
+<h3>Queue System Recommendations</h3>
+<ul>
+<li><strong>Check frequency:</strong> Keep current 5-minute interval</li>
+<li><strong>Availability persistence:</strong> N/A% of appointments still available on next check</li>
+<li><strong>Competition level:</strong> LOW (based on disappearance speed)</li>
+<li><strong>Priority times:</strong> Focus checks during peak cancellation hours</li>
+<li><strong>Multi-date strategy:</strong> Most events have single dates</li>
+<li><strong>Alert threshold:</strong> Consider alerting on appointments <= 1 days out</li>
+</ul>
