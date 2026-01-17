@@ -18,6 +18,10 @@ const LOCATIONS = [
 // If TARGET_DATE is empty, we default to today + 60 days. If window is empty, default to 60 days.
 const TARGET_DATE_ENV = process.env.DMV_TARGET_DATE || '';
 const TARGET_WINDOW_ENV = process.env.DMV_TARGET_WINDOW_DAYS || '';
+const EARLIEST_ONLY =
+  (process.env.DMV_EARLIEST_ONLY || '').toLowerCase() === 'true' ||
+  process.env.DMV_EARLIEST_ONLY === '1';
+const TEST_VARIANT = EARLIEST_ONLY ? 'earliest only' : 'earliest + month slots';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -412,7 +416,7 @@ function upsertResult(results, next) {
 }
 
 async function getSoonestAppointmentForLocation(page, locationName, opts = {}) {
-  const { forceReload = false } = opts;
+  const { forceReload = false, includeMonthSlots = true } = opts;
   await page.goto(START_URL, { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle');
 
@@ -506,6 +510,14 @@ async function getSoonestAppointmentForLocation(page, locationName, opts = {}) {
   if (!(await dayLink.count())) {
     return { locationName, ok: false, reason: 'No available day links found' };
   }
+  const firstDay = await dayLink.evaluate((el) => {
+    const td = el.closest('td');
+    return {
+      day: (el.textContent || '').trim(),
+      month: td ? td.getAttribute('data-month') : '',
+      year: td ? td.getAttribute('data-year') : '',
+    };
+  });
   await dayLink.click();
 
   // After choosing a day, the page may show the loading spinner/gear again while it
@@ -535,6 +547,22 @@ async function getSoonestAppointmentForLocation(page, locationName, opts = {}) {
       locationName,
       ok: false,
       reason: 'No .time[data-val] slots found after wait',
+    };
+  }
+
+  if (!includeMonthSlots) {
+    const dayNum = String(firstDay.day || '').padStart(2, '0');
+    const monthNum = String(Number(firstDay.month || 0) + 1).padStart(2, '0');
+    const dateStr = firstDay.year ? `${firstDay.year}-${monthNum}-${dayNum}` : '';
+    const sorted = [...slots].sort((a, b) => a.dataVal.localeCompare(b.dataVal));
+    const candidate = sorted[0];
+    return {
+      locationName,
+      ok: true,
+      dateText: dateStr,
+      timeText: candidate.text || candidate.dataVal,
+      dataVal: candidate.dataVal,
+      daySlots: slots,
     };
   }
 
@@ -739,7 +767,7 @@ async function appendResultAndFinalizeIfComplete(result) {
 }
 
 for (const locationName of LOCATIONS) {
-  test(`dmv appointment bot - ${locationName} (earliest + month slots)`, async ({
+  test(`dmv appointment bot - ${locationName} (${TEST_VARIANT})`, async ({
     browser,
   }) => {
     const runAttempt = async (forceReload = false) => {
@@ -765,6 +793,7 @@ for (const locationName of LOCATIONS) {
       try {
         return await getSoonestAppointmentForLocation(page, locationName, {
           forceReload,
+          includeMonthSlots: !EARLIEST_ONLY,
         });
       } catch (e) {
         try {
@@ -817,7 +846,7 @@ for (const locationName of LOCATIONS) {
       console.log(
         `[${locationName}] soonest: ${res.dataVal} (${res.dateText} ${res.timeText})`
       );
-      if (res.monthSlots) {
+      if (res.monthSlots && !EARLIEST_ONLY) {
         const weekly = {};
         res.monthSlots.forEach((d) => {
           const dayNum = Number(d.date.split('-')[2]) || 0;

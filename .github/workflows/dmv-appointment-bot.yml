@@ -22,7 +22,7 @@ jobs:
       contents: write
     concurrency:
       group: dmv-appointment-bot
-      cancel-in-progress: true
+      cancel-in-progress: false
     env:
       # Priority: manual input > repo variable DMV_TARGET_DATE > fallback
       DMV_TARGET_DATE: ${{ github.event_name == 'workflow_dispatch' && inputs.target_date || vars.DMV_TARGET_DATE || '' }}

@@ -1,0 +1,38 @@
+name: DMV Appointment Bot (Earliest Only)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-jammy
+    permissions:
+      contents: read
+    concurrency:
+      group: dmv-appointment-bot-earliest
+      cancel-in-progress: true
+    env:
+      DMV_EARLIEST_ONLY: "true"
+      DMV_TARGET_DATE: ${{ vars.DMV_TARGET_DATE || '' }}
+      DMV_TARGET_WINDOW_DAYS: ${{ vars.DMV_TARGET_WINDOW_DAYS || '60' }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run DMV appointment bot (earliest only)
+        run: npm test
+
+      - name: Upload results to Supabase
+        if: always()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/upload-supabase.js

@@ -13,6 +13,9 @@ on:
 jobs:
   send:
     runs-on: ubuntu-latest
+    concurrency:
+      group: dmv-notifications
+      cancel-in-progress: true
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4

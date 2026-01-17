@@ -12,6 +12,9 @@ jobs:
     permissions:
       contents: read
       actions: write
+    concurrency:
+      group: dmv-analysis-6hour
+      cancel-in-progress: true
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4

@@ -44,6 +44,7 @@ npm run test:ui
 ## Scheduling
 
 The DMV bot run is triggered externally via cron-job.org (GitHub Actions cron disabled for that workflow). Analysis workflows use GitHub Actions schedules.
+For every-minute checks, use `dmv-appointment-earliest.yml` (earliest-only mode).
 
 ## Analysis Reports
 
@@ -76,6 +77,7 @@ Notifications are fully separated in `.github/workflows/dmv-notifications.yml` a
 ## File Map
 
 - `tests/example.spec.js` - Parallel Playwright flow (one test per location).
+- `.github/workflows/dmv-appointment-earliest.yml` - Earliest-only checks (fast, every-minute ready).
 - `data/history/dmv-history.json` - Earliest-appointment change log per location + overall (cleared after upload).
 - `data/history/dmv-month-history-*.json` - Monthly availability snapshots per location.
 - `data/results/dmv-results.json` - Latest run output for notifications.
