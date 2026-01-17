@@ -409,12 +409,24 @@
           "deltaMs": 10207009,
           "direction": "same",
           "deltaDays": 0
+        },
+        {
+          "changedAt": "2026-01-17T04:20:56.074Z",
+          "fromDataVal": "2026-03-05 10:15:00",
+          "fromDateText": "2026-03-05",
+          "fromTimeText": "10:15 AM",
+          "toDataVal": "2026-03-05 10:45:00",
+          "toDateText": "2026-03-05",
+          "toTimeText": "10:45 AM",
+          "deltaMs": 1961540,
+          "direction": "same",
+          "deltaDays": 0
         }
       ],
-      "lastDataVal": "2026-03-05 10:15:00",
+      "lastDataVal": "2026-03-05 10:45:00",
       "lastDateText": "2026-03-05",
-      "lastTimeText": "10:15 AM",
-      "lastSeenAt": "2026-01-17T03:48:14.534Z"
+      "lastTimeText": "10:45 AM",
+      "lastSeenAt": "2026-01-17T04:20:56.074Z"
     },
     "Hawaii Kai Satellite City Hall": {
       "changes": [
@@ -842,7 +854,7 @@
       "lastDataVal": "2026-03-31 08:15:00",
       "lastDateText": "2026-03-31",
       "lastTimeText": "8:15 AM",
-      "lastSeenAt": "2026-01-17T03:48:14.534Z"
+      "lastSeenAt": "2026-01-17T04:20:56.074Z"
     },
     "Pearlridge Satellite City Hall": {
       "changes": [
@@ -1325,12 +1337,24 @@
           "deltaMs": 14044031,
           "direction": "sooner",
           "deltaDays": -25
+        },
+        {
+          "changedAt": "2026-01-17T04:20:56.074Z",
+          "fromDataVal": "2026-02-13 16:00:00",
+          "fromDateText": "2026-02-13",
+          "fromTimeText": "4:00 PM",
+          "toDataVal": "2026-02-07 16:15:00",
+          "toDateText": "2026-02-07",
+          "toTimeText": "4:15 PM",
+          "deltaMs": 1961540,
+          "direction": "sooner",
+          "deltaDays": -6
         }
       ],
-      "lastDataVal": "2026-02-13 16:00:00",
-      "lastDateText": "2026-02-13",
-      "lastTimeText": "4:00 PM",
-      "lastSeenAt": "2026-01-17T03:48:14.534Z"
+      "lastDataVal": "2026-02-07 16:15:00",
+      "lastDateText": "2026-02-07",
+      "lastTimeText": "4:15 PM",
+      "lastSeenAt": "2026-01-17T04:20:56.074Z"
     },
     "Windward City Satellite City Hall": {
       "changes": [
@@ -1681,12 +1705,24 @@
           "deltaMs": 6775571,
           "direction": "later",
           "deltaDays": 3
+        },
+        {
+          "changedAt": "2026-01-17T04:20:56.074Z",
+          "fromDataVal": "2026-03-09 14:45:00",
+          "fromDateText": "2026-03-09",
+          "fromTimeText": "2:45 PM",
+          "toDataVal": "2026-03-09 15:00:00",
+          "toDateText": "2026-03-09",
+          "toTimeText": "3:00 PM",
+          "deltaMs": 5392978,
+          "direction": "same",
+          "deltaDays": 0
         }
       ],
-      "lastDataVal": "2026-03-09 14:45:00",
+      "lastDataVal": "2026-03-09 15:00:00",
       "lastDateText": "2026-03-09",
-      "lastTimeText": "2:45 PM",
-      "lastSeenAt": "2026-01-17T03:48:14.534Z"
+      "lastTimeText": "3:00 PM",
+      "lastSeenAt": "2026-01-17T04:20:56.074Z"
     }
   },
   "overall": {
@@ -2380,12 +2416,22 @@
         "deltaMs": 10207009,
         "direction": "sooner",
         "deltaDays": -20
+      },
+      {
+        "changedAt": "2026-01-17T04:20:56.074Z",
+        "fromDataVal": "2026-02-13 16:00:00",
+        "fromLocation": "Pearlridge Satellite City Hall",
+        "toDataVal": "2026-02-07 16:15:00",
+        "toLocation": "Pearlridge Satellite City Hall",
+        "deltaMs": 1961540,
+        "direction": "sooner",
+        "deltaDays": -6
       }
     ],
-    "lastDataVal": "2026-02-13 16:00:00",
+    "lastDataVal": "2026-02-07 16:15:00",
     "lastLocation": "Pearlridge Satellite City Hall",
-    "lastSeenAt": "2026-01-17T03:48:14.534Z"
+    "lastSeenAt": "2026-01-17T04:20:56.074Z"
   },
-  "lastRunAt": "2026-01-17T03:48:14.534Z",
-  "lastRollupAt": "2026-01-17T03:49:36.873Z"
+  "lastRunAt": "2026-01-17T04:20:56.074Z",
+  "lastRollupAt": "2026-01-17T04:22:20.760Z"
 }
