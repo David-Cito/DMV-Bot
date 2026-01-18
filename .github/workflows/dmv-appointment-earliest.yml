@@ -7,6 +7,10 @@ on:
         description: "Send a test notification even if no within-7-day match"
         required: false
         default: "false"
+      notify_window_days:
+        description: "Notify window in days (within X days)"
+        required: false
+        default: "14"
 
 jobs:
   run-bot:
@@ -21,8 +25,7 @@ jobs:
     env:
       DMV_EARLIEST_ONLY: "true"
       DMV_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
-      DMV_NOTIFY_WINDOW_DAYS: ${{ vars.DMV_NOTIFY_WINDOW_DAYS || '14' }}
-      DMV_TARGET_DATE: ${{ vars.DMV_TARGET_DATE || '' }}
+      DMV_NOTIFY_WINDOW_DAYS: ${{ inputs.notify_window_days || vars.DMV_NOTIFY_WINDOW_DAYS || '14' }}
 
     steps:
       - name: Checkout repo
