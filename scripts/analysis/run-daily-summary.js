@@ -11,7 +11,7 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 const HST_OFFSET_MS = -10 * 60 * 60 * 1000;
-const WINDOWS = [1, 3, 7, 14, 30];
+const WINDOWS = [1, 3, 7, 14, 30, 60];
 
 function toHstDateString(date) {
   const hst = new Date(date.getTime() + HST_OFFSET_MS);

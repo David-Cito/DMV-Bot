@@ -75,7 +75,7 @@ async function fetchAll(table, columns, applyFilters) {
   return out;
 }
 
-const WINDOWS = [1, 3, 7, 14, 30];
+const WINDOWS = [1, 3, 7, 14, 30, 60];
 
 async function main() {
   const now = new Date();
