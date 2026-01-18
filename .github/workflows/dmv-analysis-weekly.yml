@@ -1,0 +1,31 @@
+name: DMV Analysis (Weekly Summary)
+
+on:
+  schedule:
+    # HST Saturday 10:00 AM (UTC Saturday 20:00)
+    - cron: "0 20 * * 6"
+  workflow_dispatch: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    concurrency:
+      group: dmv-analysis-weekly
+      cancel-in-progress: true
+    steps:
+      - name: Dispatch weekly report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'dmv-notifications.yml',
+              ref: context.ref,
+              inputs: {
+                job_type: 'weekly_summary'
+              }
+            });
