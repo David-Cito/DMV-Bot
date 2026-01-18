@@ -14,7 +14,7 @@ const EMAIL_FROM = process.env.DMV_EMAIL_FROM;
 const NOTIFY_TEST =
   (process.env.DMV_NOTIFY_TEST || '').toLowerCase() === 'true' ||
   process.env.DMV_NOTIFY_TEST === '1';
-const NOTIFY_WINDOW_DAYS = Number(process.env.DMV_NOTIFY_WINDOW_DAYS || 7);
+const NOTIFY_WINDOW_DAYS = Number(process.env.DMV_NOTIFY_WINDOW_DAYS || 14);
 const APPT_URL = 'https://alohaq.honolulu.gov/';
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {

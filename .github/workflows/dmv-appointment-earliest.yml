@@ -21,9 +21,8 @@ jobs:
     env:
       DMV_EARLIEST_ONLY: "true"
       DMV_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
-      DMV_NOTIFY_WINDOW_DAYS: "14"
+      DMV_NOTIFY_WINDOW_DAYS: ${{ vars.DMV_NOTIFY_WINDOW_DAYS || '14' }}
       DMV_TARGET_DATE: ${{ vars.DMV_TARGET_DATE || '' }}
-      DMV_TARGET_WINDOW_DAYS: ${{ vars.DMV_TARGET_WINDOW_DAYS || '60' }}
 
     steps:
       - name: Checkout repo

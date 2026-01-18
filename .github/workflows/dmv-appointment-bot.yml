@@ -7,11 +7,6 @@ on:
         description: "Target date (YYYY-MM-DD) to alert on/before"
         required: false
         default: ""
-      target_window_days:
-        description: "Window in days (±) around target_date (e.g., 60 for ±60 days)"
-        required: false
-        default: "60"
-        type: number
 
 jobs:
   run-bot:
@@ -26,7 +21,6 @@ jobs:
     env:
       # Priority: manual input > repo variable DMV_TARGET_DATE > fallback
       DMV_TARGET_DATE: ${{ github.event_name == 'workflow_dispatch' && inputs.target_date || vars.DMV_TARGET_DATE || '' }}
-      DMV_TARGET_WINDOW_DAYS: ${{ github.event_name == 'workflow_dispatch' && inputs.target_window_days || vars.DMV_TARGET_WINDOW_DAYS || '60' }}
 
     steps:
       - name: Checkout repo

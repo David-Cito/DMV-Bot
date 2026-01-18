@@ -59,7 +59,7 @@ Notifications are fully separated in `.github/workflows/dmv-notifications.yml` a
 ## User Notification System (Within 7 Days)
 
 - Subscriber list lives in Supabase table `notification_subscribers` (email + locations).
-- `dmv-appointment-earliest.yml` sends emails every minute for earliest appointments within 14 days (configurable).
+- `dmv-appointment-earliest.yml` sends emails every minute for earliest appointments within `DMV_NOTIFY_WINDOW_DAYS` (default 14).
 - Deduping is handled in `notification_state` to avoid repeat alerts for the same slot.
 
 ## Project Structure
