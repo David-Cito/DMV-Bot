@@ -14,6 +14,7 @@ const EMAIL_FROM = process.env.DMV_EMAIL_FROM;
 const NOTIFY_TEST =
   (process.env.DMV_NOTIFY_TEST || '').toLowerCase() === 'true' ||
   process.env.DMV_NOTIFY_TEST === '1';
+const NOTIFY_WINDOW_DAYS = Number(process.env.DMV_NOTIFY_WINDOW_DAYS || 7);
 const APPT_URL = 'https://alohaq.honolulu.gov/';
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -168,7 +169,7 @@ async function main() {
       if (!result || !result.ok || !result.dataVal) continue;
       const dateStr = result.dataVal.split(' ')[0];
       const daysOut = daysBetween(runAt, dateStr);
-      if (daysOut == null || daysOut < 0 || daysOut > 7) continue;
+      if (daysOut == null || daysOut < 0 || daysOut > NOTIFY_WINDOW_DAYS) continue;
 
       const state = await loadNotificationState(sub.id, locName);
       if (state && state.last_data_val === result.dataVal) {
@@ -207,7 +208,7 @@ async function main() {
     const monthDay = soonest ? formatMonthDay(soonest.dateText) : '';
     const subjectPrefix = monthDay ? `${monthDay} — ` : '';
     const testLabel = matches.some((m) => m.isTest) ? 'TEST ' : '';
-    const subject = `${subjectPrefix}${testLabel}DMV Alert: ${matches.length} within 7 days`;
+    const subject = `${subjectPrefix}${testLabel}DMV Alert: ${matches.length} within ${NOTIFY_WINDOW_DAYS} days`;
     const lines = matches.map((m) => {
       const loc = trimLocation(m.locationName);
       const dateText = formatPrettyDate(m.dateText);
@@ -218,7 +219,7 @@ async function main() {
       `DMV Appointment Alert${matches.some((m) => m.isTest) ? ' (TEST)' : ''}`,
       `Run: ${formatHst(runAt)}`,
       '',
-      'Appointments within 7 days:',
+      `Appointments within ${NOTIFY_WINDOW_DAYS} days:`,
       ...lines,
       '',
       `Book here: ${APPT_URL}`,
@@ -227,7 +228,7 @@ async function main() {
     const htmlBody = [
       `<h2>DMV Appointment Alert</h2>`,
       `<p><strong>Run:</strong> ${formatHst(runAt)}</p>`,
-      `<p><strong>Appointments within 7 days:</strong></p>`,
+      `<p><strong>Appointments within ${NOTIFY_WINDOW_DAYS} days:</strong></p>`,
       `<ul>`,
       ...matches.map((m) => {
         const loc = trimLocation(m.locationName);
