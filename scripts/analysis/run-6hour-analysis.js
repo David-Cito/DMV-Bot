@@ -99,10 +99,10 @@ async function main() {
     (q) => q.gte('captured_at', windowStartIso)
   );
 
-  const monthSlots = await fetchAll(
-    'month_slots',
-    'location_id,captured_at,date,time',
-    (q) => q.gte('captured_at', lookbackStartIso)
+  const slotStates = await fetchAll(
+    'slot_states',
+    'location_id,date,time,first_seen,last_seen',
+    (q) => q.gte('first_seen', windowStartIso).lt('first_seen', windowEndIso)
   );
 
   const perLocation = {};
@@ -136,27 +136,8 @@ async function main() {
     });
   }
 
-  const slotMap = new Map();
-  for (const slot of monthSlots || []) {
-    if (!slot || !slot.location_id || !slot.date || !slot.time) continue;
-    const key = `${slot.location_id}|${slot.date}|${slot.time}`;
-    const capturedAt = slot.captured_at;
-    const existing = slotMap.get(key);
-    if (!existing) {
-      slotMap.set(key, {
-        location_id: slot.location_id,
-        date: slot.date,
-        time: slot.time,
-        first_seen: capturedAt,
-        last_seen: capturedAt,
-      });
-    } else {
-      if (capturedAt < existing.first_seen) existing.first_seen = capturedAt;
-      if (capturedAt > existing.last_seen) existing.last_seen = capturedAt;
-    }
-  }
-
-  for (const entry of slotMap.values()) {
+  for (const entry of slotStates || []) {
+    if (!entry || !entry.location_id || !entry.first_seen) continue;
     const firstSeen = new Date(entry.first_seen);
     if (firstSeen < windowStart || firstSeen > windowEnd) continue;
     const capturedDate = toHstDateString(firstSeen);
@@ -164,7 +145,7 @@ async function main() {
     if (lead == null) continue;
     const loc = perLocation[entry.location_id];
     if (!loc) continue;
-    const lastSeen = new Date(entry.last_seen);
+    const lastSeen = entry.last_seen ? new Date(entry.last_seen) : firstSeen;
     const durationMin = Math.max(0, (lastSeen - firstSeen) / (60 * 1000));
     const hour = toHstHour(firstSeen);
     WINDOWS.forEach((days) => {
@@ -336,10 +317,10 @@ async function main() {
     (q) => q.gte('captured_at', dayStartUtc.toISOString()).lt('captured_at', dayEndUtc.toISOString())
   );
 
-  const rollupSlots = await fetchAll(
-    'month_slots',
-    'location_id,captured_at,date,time',
-    (q) => q.gte('captured_at', dayStartUtc.toISOString()).lt('captured_at', dayEndUtc.toISOString())
+  const rollupSlotStates = await fetchAll(
+    'slot_states',
+    'location_id,date,time,first_seen,last_seen',
+    (q) => q.gte('first_seen', dayStartUtc.toISOString()).lt('first_seen', dayEndUtc.toISOString())
   );
 
   const rollupByLocation = {};
@@ -377,38 +358,17 @@ async function main() {
     });
   }
 
-  const rollupSlotMap = new Map();
-  for (const slot of rollupSlots || []) {
-    if (!slot || !slot.location_id || !slot.date || !slot.time) continue;
-    const loc = rollupByLocation[slot.location_id];
+  for (const entry of rollupSlotStates || []) {
+    if (!entry || !entry.location_id || !entry.first_seen) continue;
+    const loc = rollupByLocation[entry.location_id];
     if (!loc) continue;
     loc.slots_total += 1;
-    loc.slotsDistinctSet.add(`${slot.date} ${slot.time}`);
-    const key = `${slot.location_id}|${slot.date}|${slot.time}`;
-    const capturedAt = slot.captured_at;
-    const existing = rollupSlotMap.get(key);
-    if (!existing) {
-      rollupSlotMap.set(key, {
-        location_id: slot.location_id,
-        date: slot.date,
-        time: slot.time,
-        first_seen: capturedAt,
-        last_seen: capturedAt,
-      });
-    } else {
-      if (capturedAt < existing.first_seen) existing.first_seen = capturedAt;
-      if (capturedAt > existing.last_seen) existing.last_seen = capturedAt;
-    }
-  }
-
-  for (const entry of rollupSlotMap.values()) {
+    loc.slotsDistinctSet.add(`${entry.date} ${entry.time}`);
     const firstSeen = new Date(entry.first_seen);
     const capturedDate = toHstDateString(firstSeen);
     const lead = diffDays(capturedDate, entry.date);
     if (lead == null) continue;
-    const loc = rollupByLocation[entry.location_id];
-    if (!loc) continue;
-    const lastSeen = new Date(entry.last_seen);
+    const lastSeen = entry.last_seen ? new Date(entry.last_seen) : firstSeen;
     const durationMin = Math.max(0, (lastSeen - firstSeen) / (60 * 1000));
     const hour = toHstHour(firstSeen);
     WINDOWS.forEach((days) => {

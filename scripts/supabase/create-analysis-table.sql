@@ -57,3 +57,44 @@ create table if not exists notification_state (
   last_notified_at timestamptz,
   primary key (subscriber_id, location_name)
 );
+
+create table if not exists slot_states (
+  location_id uuid not null references locations(id),
+  date date not null,
+  time text not null,
+  first_seen timestamptz not null,
+  last_seen timestamptz not null,
+  primary key (location_id, date, time)
+);
+
+create index if not exists slot_states_first_seen_idx
+  on slot_states (first_seen);
+
+create index if not exists slot_states_last_seen_idx
+  on slot_states (last_seen);
+
+create table if not exists run_slot_counts (
+  run_at timestamptz not null,
+  location_id uuid not null references locations(id),
+  slots_total integer not null default 0,
+  primary key (run_at, location_id)
+);
+
+create index if not exists run_slot_counts_location_idx
+  on run_slot_counts (location_id, run_at desc);
+
+create or replace function upsert_slot_states(rows jsonb)
+returns void
+language plpgsql
+as $$
+begin
+  insert into slot_states (location_id, date, time, first_seen, last_seen)
+  select location_id, date, time, first_seen, last_seen
+  from jsonb_to_recordset(rows)
+    as x(location_id uuid, date date, time text, first_seen timestamptz, last_seen timestamptz)
+  on conflict (location_id, date, time)
+  do update set
+    last_seen = excluded.last_seen,
+    first_seen = least(slot_states.first_seen, excluded.first_seen);
+end;
+$$;

@@ -69,6 +69,17 @@ async function insertInChunks(table, rows, chunkSize = 500) {
   }
 }
 
+async function upsertSlotStatesInChunks(rows, chunkSize = 500) {
+  for (let i = 0; i < rows.length; i += chunkSize) {
+    const chunk = rows.slice(i, i + chunkSize);
+    if (!chunk.length) continue;
+    const { error } = await supabase.rpc('upsert_slot_states', {
+      rows: chunk,
+    });
+    if (error) throw error;
+  }
+}
+
 async function main() {
   const payload = JSON.parse(fs.readFileSync(RESULTS_PATH, 'utf8'));
   const runAt = payload.generatedAt || new Date().toISOString();
@@ -82,8 +93,9 @@ async function main() {
   if (runError) throw runError;
   const runId = runRow.id;
 
-  const monthSlotsRows = [];
   const daySnapshotRows = [];
+  const slotStateRows = [];
+  const runSlotCounts = [];
 
   for (const res of results) {
     if (!res || !res.locationName) continue;
@@ -99,19 +111,27 @@ async function main() {
     }
 
     if (Array.isArray(res.monthSlots)) {
+      let slotCount = 0;
       for (const day of res.monthSlots) {
         if (!day || !day.date || !Array.isArray(day.slots)) continue;
         for (const slot of day.slots) {
           const time = parseTimeFromDataVal(slot && slot.dataVal);
           if (!time) continue;
-          monthSlotsRows.push({
+          slotCount += 1;
+          slotStateRows.push({
             location_id: locationId,
-            captured_at: runAt,
             date: day.date,
             time,
+            first_seen: runAt,
+            last_seen: runAt,
           });
         }
       }
+      runSlotCounts.push({
+        run_at: runAt,
+        location_id: locationId,
+        slots_total: slotCount,
+      });
     }
   }
 
@@ -119,12 +139,16 @@ async function main() {
     await insertInChunks('day_snapshots', daySnapshotRows);
   }
 
-  if (monthSlotsRows.length) {
-    await insertInChunks('month_slots', monthSlotsRows);
+  if (slotStateRows.length) {
+    await upsertSlotStatesInChunks(slotStateRows);
+  }
+
+  if (runSlotCounts.length) {
+    await insertInChunks('run_slot_counts', runSlotCounts);
   }
 
   console.log(
-    `Supabase upload complete. Run ${runId}. day_snapshots=${daySnapshotRows.length}, month_slots=${monthSlotsRows.length}`
+    `Supabase upload complete. Run ${runId}. day_snapshots=${daySnapshotRows.length}, slot_states=${slotStateRows.length}`
   );
   clearHistoryFiles();
 }
