@@ -3,12 +3,14 @@ name: DMV Notifications
 on:
   workflow_dispatch:
     inputs:
-      analysis_run_id:
-        description: "Supabase analysis_runs.id to email"
-        required: true
       job_type:
-        description: "six_hour or daily_summary"
+        description: "Which report email to send"
         required: true
+        type: choice
+        options:
+          - six_hour
+          - daily_summary
+          - weekly_summary
 
 jobs:
   send:
@@ -33,7 +35,6 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          ANALYSIS_RUN_ID: ${{ inputs.analysis_run_id }}
           JOB_TYPE: ${{ inputs.job_type }}
         run: node scripts/notifications/send-analysis-email.js
 
@@ -45,7 +46,7 @@ jobs:
           username: ${{ secrets.SMTP_USERNAME }}
           password: ${{ secrets.SMTP_PASSWORD }}
           subject: ${{ steps.build.outputs.subject }}
-          to: ${{ secrets.DMV_EMAIL_TO }}
+          to: ${{ secrets.DMV_REPORT_EMAIL_TO || secrets.DMV_EMAIL_TO }}
           from: ${{ secrets.DMV_EMAIL_FROM }}
           secure: true
           html_body: ${{ steps.build.outputs.html_body }}
