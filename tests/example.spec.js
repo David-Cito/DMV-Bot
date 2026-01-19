@@ -19,6 +19,7 @@ const LOCATIONS = [
 const TARGET_DATE_ENV = process.env.DMV_TARGET_DATE || '';
 const TARGET_WINDOW_ENV = process.env.DMV_TARGET_WINDOW_DAYS || '';
 const TEST_VARIANT = 'single bot';
+const LOG_BOOKING_URL = (process.env.DMV_LOG_BOOKING_URL || '').toLowerCase() === 'true';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -59,28 +60,6 @@ function formatSlotTime(slot) {
   const ampm = hourNum >= 12 ? 'PM' : 'AM';
   const hour12 = ((hourNum + 11) % 12) + 1;
   return `${hour12}:${mm.padStart(2, '0')} ${ampm}`;
-}
-
-function formatMonthSlotsForConsole(monthSlots) {
-  if (!Array.isArray(monthSlots) || !monthSlots.length) return null;
-  const sortedDays = monthSlots
-    .filter((d) => d && d.date)
-    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-  if (!sortedDays.length) return null;
-
-  const lines = sortedDays.map((day) => {
-    const sortedSlots = Array.isArray(day.slots)
-      ? [...day.slots].sort((a, b) => (a.dataVal || '').localeCompare(b.dataVal || ''))
-      : [];
-    const times = sortedSlots.map((s) => formatSlotTime(s)).filter(Boolean);
-    const timeText = times.length ? times.join(', ') : '(no times listed)';
-    return `  - ${formatHumanDate(day.date)}: ${timeText}`;
-  });
-
-  return {
-    monthLabel: formatHumanMonth(sortedDays[0].date),
-    lines,
-  };
 }
 
 function summarizeMonthSlots(monthSlots) {
@@ -328,20 +307,6 @@ function computeDeltaDays(fromDate, toDate) {
   const toMs = toTime(toDate);
   if (Number.isNaN(fromMs) || Number.isNaN(toMs)) return null;
   return Math.round((toMs - fromMs) / (24 * 60 * 60 * 1000));
-}
-
-function formatDuration(ms) {
-  if (ms == null || Number.isNaN(ms)) return 'n/a';
-  const sec = Math.floor(ms / 1000);
-  const min = Math.floor(sec / 60);
-  const hr = Math.floor(min / 60);
-  const day = Math.floor(hr / 24);
-  const parts = [];
-  if (day) parts.push(`${day}d`);
-  if (hr % 24) parts.push(`${hr % 24}h`);
-  if (min % 60) parts.push(`${min % 60}m`);
-  if (parts.length === 0) parts.push(`${sec}s`);
-  return parts.join(' ');
 }
 
 function ensureResultsDir() {
@@ -626,6 +591,9 @@ async function getSoonestAppointmentForLocation(page, locationName, opts = {}) {
   // (disabled days use spans and lack this attribute).
   const datepicker = page.locator('#datepicker');
   await datepicker.waitFor({ state: 'visible', timeout: 60_000 });
+  if (LOG_BOOKING_URL) {
+    console.log(`[${locationName}] booking url: ${page.url()}`);
+  }
 
   const dayLink = datepicker
     .locator('td[data-handler="selectDay"] a.ui-state-default')
