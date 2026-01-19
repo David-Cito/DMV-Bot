@@ -206,9 +206,10 @@ async function main() {
 
     const soonest = [...matches].sort((a, b) => (a.dateText || '').localeCompare(b.dateText || ''))[0];
     const monthDay = soonest ? formatMonthDay(soonest.dateText) : '';
-    const subjectPrefix = monthDay ? `${monthDay} — ` : '';
+    const subjectLoc = soonest ? trimLocation(soonest.locationName) : '';
+    const subjectPrefix = monthDay || subjectLoc ? `${monthDay}${monthDay && subjectLoc ? ' — ' : ''}${subjectLoc} — ` : '';
     const testLabel = matches.some((m) => m.isTest) ? 'TEST ' : '';
-    const subject = `${subjectPrefix}${testLabel}DMV Alert: ${matches.length} within ${NOTIFY_WINDOW_DAYS} days`;
+    const subject = `${subjectPrefix}${testLabel}DMV Alert (${matches.length} within ${NOTIFY_WINDOW_DAYS} days)`;
     const lines = matches.map((m) => {
       const loc = trimLocation(m.locationName);
       const dateText = formatPrettyDate(m.dateText);
