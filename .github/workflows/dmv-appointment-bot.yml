@@ -51,6 +51,13 @@ jobs:
       - name: Run DMV appointment bot
         run: npm test
 
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dmv-bot-screenshots
+          path: screenshots/
+
       - name: Upload results to Supabase
         if: always()
         env:
