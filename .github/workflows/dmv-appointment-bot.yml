@@ -1,4 +1,4 @@
-name: DMV Appointment Bot (Single)
+name: DMV Appointment Bot
 
 on:
   workflow_dispatch:
@@ -56,9 +56,9 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: node scripts/upload-supabase.js
+        run: node scripts/supabase/upload-latest-run.js
 
-      - name: Notify users (within 7 days)
+      - name: Notify users
         if: always()
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
