@@ -27,18 +27,18 @@ jobs:
       DMV_NOTIFY_WINDOW_DAYS: ${{ inputs.notify_window_days || vars.DMV_NOTIFY_WINDOW_DAYS || '14' }}
 
     steps:
-      - name: Random jitter (HST)
-        run: |
-          hour=$(TZ=Pacific/Honolulu date +%H)
-          if [ "$hour" -ge 0 ] && [ "$hour" -lt 6 ]; then
-            delay=$((RANDOM % 45))
-            echo "Night hours (HST). Sleeping ${delay}s for jitter."
-            sleep "$delay"
-          else
-            delay=$((20 + RANDOM % 11))
-            echo "Daytime hours (HST). Sleeping ${delay}s for jitter."
-            sleep "$delay"
-          fi
+      # - name: Random jitter (HST)
+      #   run: |
+      #     hour=$(TZ=Pacific/Honolulu date +%H)
+      #     if [ "$hour" -ge 0 ] && [ "$hour" -lt 6 ]; then
+      #       delay=$((RANDOM % 45))
+      #       echo "Night hours (HST). Sleeping ${delay}s for jitter."
+      #       sleep "$delay"
+      #     else
+      #       delay=$((20 + RANDOM % 11))
+      #       echo "Daytime hours (HST). Sleeping ${delay}s for jitter."
+      #       sleep "$delay"
+      #     fi
 
       - name: Checkout repo
         uses: actions/checkout@v4
