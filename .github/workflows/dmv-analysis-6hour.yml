@@ -37,22 +37,16 @@ jobs:
       - name: Dispatch notifications
         if: success()
         env:
-          ANALYSIS_RUN_ID: ${{ steps.analysis.outputs.analysis_run_id }}
           JOB_TYPE: ${{ steps.analysis.outputs.job_type }}
         uses: actions/github-script@v7
         with:
           script: |
-            if (!process.env.ANALYSIS_RUN_ID) {
-              core.warning('Missing analysis_run_id; skipping notifications.');
-              return;
-            }
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'dmv-notifications.yml',
               ref: context.ref,
               inputs: {
-                analysis_run_id: process.env.ANALYSIS_RUN_ID,
                 job_type: process.env.JOB_TYPE || 'six_hour'
               }
             });
