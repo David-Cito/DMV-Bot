@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const { sendDiscordAlert } = require('./discord-notifier');
 const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -11,19 +12,21 @@ const SMTP_PORT = Number(process.env.SMTP_PORT || 0);
 const SMTP_USERNAME = process.env.SMTP_USERNAME;
 const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
 const EMAIL_FROM = process.env.DMV_EMAIL_FROM;
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const NOTIFY_TEST =
   (process.env.DMV_NOTIFY_TEST || '').toLowerCase() === 'true' ||
   process.env.DMV_NOTIFY_TEST === '1';
 const NOTIFY_WINDOW_DAYS = Number(process.env.DMV_NOTIFY_WINDOW_DAYS || 14);
 const APPT_URL = 'https://alohaq.honolulu.gov/';
+const DISCORD_MENTION_USER_ID = process.env.DISCORD_MENTION_USER_ID || '';
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error('Supabase env vars not set; exiting.');
   process.exit(1);
 }
 
-if (!SMTP_SERVER || !SMTP_PORT || !SMTP_USERNAME || !SMTP_PASSWORD || !EMAIL_FROM) {
-  console.error('SMTP env vars not set; exiting.');
+if (!DISCORD_WEBHOOK_URL && (!SMTP_SERVER || !SMTP_PORT || !SMTP_USERNAME || !SMTP_PASSWORD || !EMAIL_FROM)) {
+  console.error('No Discord webhook and SMTP env vars not set; exiting.');
   process.exit(1);
 }
 
@@ -148,15 +151,17 @@ async function main() {
     return;
   }
 
-  const transporter = nodemailer.createTransport({
-    host: SMTP_SERVER,
-    port: SMTP_PORT,
-    secure: true,
-    auth: {
-      user: SMTP_USERNAME,
-      pass: SMTP_PASSWORD,
-    },
-  });
+  const transporter = SMTP_SERVER
+    ? nodemailer.createTransport({
+        host: SMTP_SERVER,
+        port: SMTP_PORT,
+        secure: true,
+        auth: {
+          user: SMTP_USERNAME,
+          pass: SMTP_PASSWORD,
+        },
+      })
+    : null;
 
   for (const sub of subscribers) {
     const requestedLocations = Array.isArray(sub.locations) && sub.locations.length
@@ -241,13 +246,42 @@ async function main() {
       `<p><strong>Book here:</strong> <a href="${APPT_URL}">${APPT_URL}</a></p>`,
     ].join('\n');
 
-    await transporter.sendMail({
-      from: EMAIL_FROM,
-      to: sub.email,
-      subject,
-      text: textBody,
-      html: htmlBody,
-    });
+    let delivered = false;
+    let deliveryError = null;
+    if (DISCORD_WEBHOOK_URL) {
+      try {
+        await sendDiscordAlert(DISCORD_WEBHOOK_URL, {
+          subject,
+          runAt,
+          matches,
+          notifyWindowDays: NOTIFY_WINDOW_DAYS,
+          apptUrl: APPT_URL,
+          mentionUserId: DISCORD_MENTION_USER_ID,
+        });
+        delivered = true;
+      } catch (err) {
+        deliveryError = err;
+      }
+    }
+
+    if (!delivered && transporter) {
+      try {
+        await transporter.sendMail({
+          from: EMAIL_FROM,
+          to: sub.email,
+          subject,
+          text: textBody,
+          html: htmlBody,
+        });
+        delivered = true;
+      } catch (err) {
+        deliveryError = err;
+      }
+    }
+
+    if (!delivered) {
+      throw deliveryError || new Error('Notification delivery failed');
+    }
 
     for (const match of matches) {
       await upsertNotificationState(sub.id, match.locationName, match.dataVal);

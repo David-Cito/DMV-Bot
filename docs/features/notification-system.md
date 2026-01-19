@@ -4,13 +4,15 @@
 Notify users quickly when an appointment matches their constraints. Offer deposit discounts for free notification channels.
 
 ## Current
-- Email alerts via GitHub Actions SMTP.
+- Discord webhook alerts (primary) using `DISCORD_WEBHOOK_URL`.
+- Optional user mention via `DISCORD_MENTION_USER_ID`.
+- Email alerts via GitHub Actions SMTP (secondary, used if Discord fails).
 
 ## Planned (Free Notification Channels + Discounts)
 
 ### Channels to Support (Examples)
-- Email (already supported)
-- Discord webhook
+- Email (secondary fallback)
+- Discord webhook (primary)
 - Telegram bot
 - Push via Pushover/ntfy
 - SMS (paid, optional)
