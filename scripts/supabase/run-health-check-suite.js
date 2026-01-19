@@ -52,8 +52,7 @@ function main() {
   fs.writeFileSync(CHARTS_PATH, JSON.stringify(charts, null, 2), 'utf8');
   console.log(`Wrote ${CHARTS_PATH}`);
 
-  runNode(path.join('scripts', 'analysis', 'run-6hour-analysis.js'));
-  runNode(path.join('scripts', 'analysis', 'run-daily-summary.js'));
+  // Keep the suite lightweight: do not run analysis jobs here.
   runNode(path.join('scripts', 'supabase', 'run-health-check.js'));
 }
 
