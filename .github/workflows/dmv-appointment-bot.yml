@@ -20,7 +20,7 @@ jobs:
     permissions:
       contents: read
     concurrency:
-      group: dmv-appointment-bot-single
+      group: dmv-appointment-bot
       cancel-in-progress: false
     env:
       DMV_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
@@ -31,7 +31,7 @@ jobs:
         run: |
           hour=$(TZ=Pacific/Honolulu date +%H)
           if [ "$hour" -ge 0 ] && [ "$hour" -lt 6 ]; then
-            delay=$((RANDOM % 301))
+            delay=$((RANDOM % 121))
             echo "Night hours (HST). Sleeping ${delay}s for jitter."
             sleep "$delay"
           else
