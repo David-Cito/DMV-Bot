@@ -1,6 +1,6 @@
 # Action Map (Browser Inputs)
 
-This file lists every **user input action** performed by the Playwright flow in `tests/example.spec.js`. Use it to troubleshoot when a step stops working. Duplicate actions are consolidated with fallback notes.
+This file lists every **user input action** performed by the Playwright flow in `tests/bot/dmv-appointment-bot.spec.js`. Use it to troubleshoot when a step stops working. Duplicate actions are consolidated with fallback notes.
 
 ## Actions by Step
 

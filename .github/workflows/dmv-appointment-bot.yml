@@ -3,10 +3,14 @@ name: DMV Appointment Bot
 on:
   workflow_dispatch:
     inputs:
-      target_date:
-        description: "Target date (YYYY-MM-DD) to alert on/before"
+      test_notify:
+        description: "Send a test notification even if no within-7-day match"
         required: false
-        default: ""
+        default: "false"
+      notify_window_days:
+        description: "Notify window in days (within X days)"
+        required: false
+        default: "14"
 
 jobs:
   run-bot:
@@ -14,31 +18,32 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.57.0-jammy
     permissions:
-      contents: write
+      contents: read
     concurrency:
-      group: dmv-appointment-bot
+      group: dmv-appointment-bot-single
       cancel-in-progress: false
     env:
-      # Priority: manual input > repo variable DMV_TARGET_DATE > fallback
-      DMV_TARGET_DATE: ${{ github.event_name == 'workflow_dispatch' && inputs.target_date || vars.DMV_TARGET_DATE || '' }}
+      DMV_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
+      DMV_NOTIFY_WINDOW_DAYS: ${{ inputs.notify_window_days || vars.DMV_NOTIFY_WINDOW_DAYS || '14' }}
 
     steps:
+      - name: Random jitter (HST)
+        run: |
+          hour=$(TZ=Pacific/Honolulu date +%H)
+          if [ "$hour" -ge 0 ] && [ "$hour" -lt 6 ]; then
+            delay=$((RANDOM % 45))
+            echo "Night hours (HST). Sleeping ${delay}s for jitter."
+            sleep "$delay"
+          else
+            delay=$((20 + RANDOM % 11))
+            echo "Daytime hours (HST). Sleeping ${delay}s for jitter."
+            sleep "$delay"
+          fi
+
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-        # Playwright Docker image already includes Node & browsers.
-
-      - name: Restore history cache
-        id: cache-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            data/history/dmv-history.json
-            data/history/dmv-month-history-*.json
-          key: dmv-history-${{ github.run_id }}
-          restore-keys: |
-            dmv-history-
 
       - name: Install dependencies
         run: npm ci
@@ -51,13 +56,16 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: node scripts/upload-supabase.js
-      # Optional: send an email if any alert matches the target window.
-      # Configure SMTP_* and DMV_EMAIL_* as encrypted repo/organization secrets.
-      - name: Upload screenshots
+        run: node scripts/supabase/upload-latest-run.js
+
+      - name: Notify users
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots
-          path: screenshots/
-          if-no-files-found: ignore
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          DMV_EMAIL_FROM: ${{ secrets.DMV_EMAIL_FROM }}
+        run: node scripts/notifications/send-user-notifications.js

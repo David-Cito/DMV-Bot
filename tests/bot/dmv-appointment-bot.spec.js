@@ -18,10 +18,8 @@ const LOCATIONS = [
 // If TARGET_DATE is empty, we default to today + 60 days. If window is empty, default to 60 days.
 const TARGET_DATE_ENV = process.env.DMV_TARGET_DATE || '';
 const TARGET_WINDOW_ENV = process.env.DMV_TARGET_WINDOW_DAYS || '';
-const EARLIEST_ONLY =
-  (process.env.DMV_EARLIEST_ONLY || '').toLowerCase() === 'true' ||
-  process.env.DMV_EARLIEST_ONLY === '1';
-const TEST_VARIANT = EARLIEST_ONLY ? 'earliest only' : 'earliest + month slots';
+const TEST_VARIANT = 'single bot';
+const LOG_BOOKING_URL = (process.env.DMV_LOG_BOOKING_URL || '').toLowerCase() === 'true';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -64,28 +62,6 @@ function formatSlotTime(slot) {
   return `${hour12}:${mm.padStart(2, '0')} ${ampm}`;
 }
 
-function formatMonthSlotsForConsole(monthSlots) {
-  if (!Array.isArray(monthSlots) || !monthSlots.length) return null;
-  const sortedDays = monthSlots
-    .filter((d) => d && d.date)
-    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-  if (!sortedDays.length) return null;
-
-  const lines = sortedDays.map((day) => {
-    const sortedSlots = Array.isArray(day.slots)
-      ? [...day.slots].sort((a, b) => (a.dataVal || '').localeCompare(b.dataVal || ''))
-      : [];
-    const times = sortedSlots.map((s) => formatSlotTime(s)).filter(Boolean);
-    const timeText = times.length ? times.join(', ') : '(no times listed)';
-    return `  - ${formatHumanDate(day.date)}: ${timeText}`;
-  });
-
-  return {
-    monthLabel: formatHumanMonth(sortedDays[0].date),
-    lines,
-  };
-}
-
 function summarizeMonthSlots(monthSlots) {
   if (!Array.isArray(monthSlots) || !monthSlots.length) return null;
   const validDays = monthSlots
@@ -126,6 +102,17 @@ function buildMonthByDate(monthSlots) {
     byDate[day.date] = buildTimeList(day.slots);
   }
   return byDate;
+}
+
+function splitMonthSlotsByMonth(monthSlots) {
+  const grouped = {};
+  for (const day of monthSlots || []) {
+    if (!day || !day.date) continue;
+    const key = day.date.slice(0, 7);
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(day);
+  }
+  return grouped;
 }
 
 // Persistent history of soonest-slot changes.
@@ -322,20 +309,6 @@ function computeDeltaDays(fromDate, toDate) {
   return Math.round((toMs - fromMs) / (24 * 60 * 60 * 1000));
 }
 
-function formatDuration(ms) {
-  if (ms == null || Number.isNaN(ms)) return 'n/a';
-  const sec = Math.floor(ms / 1000);
-  const min = Math.floor(sec / 60);
-  const hr = Math.floor(min / 60);
-  const day = Math.floor(hr / 24);
-  const parts = [];
-  if (day) parts.push(`${day}d`);
-  if (hr % 24) parts.push(`${hr % 24}h`);
-  if (min % 60) parts.push(`${min % 60}m`);
-  if (parts.length === 0) parts.push(`${sec}s`);
-  return parts.join(' ');
-}
-
 function ensureResultsDir() {
   if (!fs.existsSync(RESULTS_DIR)) {
     fs.mkdirSync(RESULTS_DIR, { recursive: true });
@@ -413,15 +386,132 @@ function upsertResult(results, next) {
   else results.push(next);
 }
 
+function countMonthAppointments(monthSlots) {
+  if (!Array.isArray(monthSlots)) return 0;
+  return monthSlots.reduce((sum, day) => sum + ((day && day.slots && day.slots.length) || 0), 0);
+}
+
+function findEarliestSlot(monthSlots) {
+  let earliest = null;
+  for (const day of monthSlots || []) {
+    if (!day || !day.date || !Array.isArray(day.slots) || !day.slots.length) continue;
+    const sorted = [...day.slots].sort((a, b) => (a.dataVal || '').localeCompare(b.dataVal || ''));
+    const candidate = sorted[0];
+    if (!earliest || (candidate.dataVal || '').localeCompare(earliest.dataVal || '') < 0) {
+      earliest = {
+        dateStr: day.date,
+        dataVal: candidate.dataVal,
+        timeText: candidate.text || candidate.dataVal,
+        daySlots: day.slots,
+      };
+    }
+  }
+  return earliest;
+}
+
+async function readDatepickerMonthYear(page) {
+  return page.$eval('#datepicker .ui-datepicker-title', (el) => {
+    const month = el.querySelector('.ui-datepicker-month')?.textContent?.trim() || '';
+    const year = el.querySelector('.ui-datepicker-year')?.textContent?.trim() || '';
+    return `${month} ${year}`.trim();
+  });
+}
+
+async function advanceToNextMonth(page) {
+  const before = await readDatepickerMonthYear(page);
+  const nextButton = page.locator('#datepicker .ui-datepicker-next');
+  await nextButton.waitFor({ state: 'visible', timeout: 15_000 });
+  await nextButton.click();
+  await page.waitForFunction(
+    (prev) => {
+      const title = document.querySelector('#datepicker .ui-datepicker-title');
+      if (!title) return false;
+      const month = title.querySelector('.ui-datepicker-month')?.textContent?.trim() || '';
+      const year = title.querySelector('.ui-datepicker-year')?.textContent?.trim() || '';
+      return `${month} ${year}`.trim() && `${month} ${year}`.trim() !== prev;
+    },
+    before,
+    { timeout: 15_000 }
+  );
+}
+
+async function scanVisibleMonth(page, gear, locationName) {
+  const dayCells = await page.$$eval('#datepicker td[data-handler="selectDay"]', (els) =>
+    els
+      .map((el) => {
+        const link = el.querySelector('a.ui-state-default');
+        if (!link) return null;
+        const day = (link.textContent || '').trim();
+        const month = el.getAttribute('data-month');
+        const year = el.getAttribute('data-year');
+        return day ? { day, month, year } : null;
+      })
+      .filter(Boolean)
+  );
+
+  const monthSlots = [];
+  for (const d of dayCells) {
+    const dayLocator = page
+      .locator(
+        `#datepicker td[data-handler="selectDay"][data-month="${d.month}"][data-year="${d.year}"] a.ui-state-default`
+      )
+      .filter({ hasText: new RegExp(`^${d.day}$`) })
+      .first();
+
+    if (!(await dayLocator.count())) continue;
+
+    await dayLocator.click();
+    await page.waitForFunction(
+      () => {
+        const wrap = document.querySelector('.time_wrap');
+        if (!wrap) return false;
+        const slotsInner = wrap.querySelectorAll('.time[data-val]');
+        return slotsInner.length > 0;
+      },
+      { timeout: 60_000 }
+    );
+    await gear.waitFor({ state: 'hidden', timeout: 60_000 }).catch(() => {});
+
+    const daySlots = await page.$$eval('.time_wrap .time[data-val]', (els) =>
+      els.map((el) => ({
+        dataVal: el.getAttribute('data-val') || '',
+        text: (el.textContent || '').trim(),
+      }))
+    );
+
+    const dateStr = `${d.year}-${String(Number(d.month) + 1).padStart(2, '0')}-${d.day.padStart(
+      2,
+      '0'
+    )}`;
+    monthSlots.push({ date: dateStr, slots: daySlots });
+  }
+
+  return { monthSlots, totalAppointments: countMonthAppointments(monthSlots) };
+}
+
+async function enableRequestBlocking(page) {
+  await page.route('**/*', (route) => {
+    const req = route.request();
+    const type = req.resourceType();
+    const url = req.url();
+    if (['image', 'media', 'font'].includes(type)) {
+      return route.abort();
+    }
+    if (/google-analytics|googletagmanager|doubleclick|facebook|segment|hotjar/i.test(url)) {
+      return route.abort();
+    }
+    return route.continue();
+  });
+}
+
 async function getSoonestAppointmentForLocation(page, locationName, opts = {}) {
-  const { forceReload = false, includeMonthSlots = true } = opts;
+  const { forceReload = false } = opts;
   await page.goto(START_URL, { waitUntil: 'domcontentloaded' });
-  await page.waitForLoadState('networkidle');
 
   // Optional hard refresh to recover from flaky first-load states.
   if (forceReload) {
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   }
 
   await page.getByText('Driver Licensing and').click();
@@ -488,19 +578,22 @@ async function getSoonestAppointmentForLocation(page, locationName, opts = {}) {
   await page
     .getByText('DRIVER LICENSE & STATE ID Renewals')
     .click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // "I have ALL the Required ..." acknowledgement (text varies slightly, so keep it partial)
   const requiredAck = page.getByText('I have ALL the Required');
   await requiredAck.waitFor({ timeout: 30_000 });
   await requiredAck.click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // Calendar: pick the first available *selectable* day in the jQuery UI datepicker.
   // We explicitly target the datepicker table cells that have `data-handler="selectDay"`
   // (disabled days use spans and lack this attribute).
   const datepicker = page.locator('#datepicker');
   await datepicker.waitFor({ state: 'visible', timeout: 60_000 });
+  if (LOG_BOOKING_URL) {
+    console.log(`[${locationName}] booking url: ${page.url()}`);
+  }
 
   const dayLink = datepicker
     .locator('td[data-handler="selectDay"] a.ui-state-default')
@@ -548,96 +641,40 @@ async function getSoonestAppointmentForLocation(page, locationName, opts = {}) {
     };
   }
 
-  if (!includeMonthSlots) {
-    const dayNum = String(firstDay.day || '').padStart(2, '0');
-    const monthNum = String(Number(firstDay.month || 0) + 1).padStart(2, '0');
-    const dateStr = firstDay.year ? `${firstDay.year}-${monthNum}-${dayNum}` : '';
-    const sorted = [...slots].sort((a, b) => a.dataVal.localeCompare(b.dataVal));
-    const candidate = sorted[0];
-    return {
-      locationName,
-      ok: true,
-      dateText: dateStr,
-      timeText: candidate.text || candidate.dataVal,
-      dataVal: candidate.dataVal,
-      daySlots: slots,
-    };
+  const dayNum = String(firstDay.day || '').padStart(2, '0');
+  const monthNum = String(Number(firstDay.month || 0) + 1).padStart(2, '0');
+  const dateStr = firstDay.year ? `${firstDay.year}-${monthNum}-${dayNum}` : '';
+  const sorted = [...slots].sort((a, b) => a.dataVal.localeCompare(b.dataVal));
+  const candidate = sorted[0];
+
+  const combinedMonthSlots = [];
+  const scanCurrent = await scanVisibleMonth(page, gear, locationName);
+  combinedMonthSlots.push(...scanCurrent.monthSlots);
+  console.log(`[${locationName}] month appts: ${scanCurrent.totalAppointments}`);
+
+  if (scanCurrent.totalAppointments < 10) {
+    console.log(`[${locationName}] month appts < 10, scanning next`);
+    await advanceToNextMonth(page);
+    const scanNext = await scanVisibleMonth(page, gear, locationName);
+    combinedMonthSlots.push(...scanNext.monthSlots);
+    console.log(`[${locationName}] next month appts: ${scanNext.totalAppointments}`);
   }
 
-  // Gather all selectable day links in the visible month.
-  const dayCells = await page.$$eval('#datepicker td[data-handler="selectDay"]', (els) =>
-    els
-      .map((el) => {
-        const link = el.querySelector('a.ui-state-default');
-        if (!link) return null;
-        const day = (link.textContent || '').trim();
-        const month = el.getAttribute('data-month');
-        const year = el.getAttribute('data-year');
-        return day ? { day, month, year } : null;
-      })
-      .filter(Boolean)
-  );
+  const earliestFromMonths = findEarliestSlot(combinedMonthSlots);
+  const earliestDateText = earliestFromMonths?.dateStr || dateStr;
+  const earliestTimeText = earliestFromMonths?.timeText || candidate.text || candidate.dataVal;
+  const earliestDataVal = earliestFromMonths?.dataVal || candidate.dataVal;
+  const earliestDaySlots = earliestFromMonths?.daySlots || slots;
 
-  const monthSlots = [];
-  let earliest = null;
-
-  for (const d of dayCells) {
-    const dayLocator = page
-      .locator(
-        `#datepicker td[data-handler="selectDay"][data-month="${d.month}"][data-year="${d.year}"] a.ui-state-default`
-      )
-      // Anchor the match so "4" does not also match "24".
-      .filter({ hasText: new RegExp(`^${d.day}$`) })
-      .first();
-
-    if (!(await dayLocator.count())) {
-      continue; // Defensive: skip if the day link vanished between reads.
-    }
-
-    await dayLocator.click();
-    await page.waitForFunction(
-      () => {
-        const wrap = document.querySelector('.time_wrap');
-        if (!wrap) return false;
-        const slotsInner = wrap.querySelectorAll('.time[data-val]');
-        return slotsInner.length > 0;
-      },
-      { timeout: 60_000 }
-    );
-    await gear.waitFor({ state: 'hidden', timeout: 60_000 }).catch(() => {});
-
-    const daySlots = await page.$$eval('.time_wrap .time[data-val]', (els) =>
-      els.map((el) => ({
-        dataVal: el.getAttribute('data-val') || '',
-        text: (el.textContent || '').trim(),
-      }))
-    );
-
-    const dateStr = `${d.year}-${String(Number(d.month) + 1).padStart(2, '0')}-${d.day.padStart(2, '0')}`;
-    monthSlots.push({ date: dateStr, slots: daySlots });
-
-    if (daySlots.length) {
-      const sorted = [...daySlots].sort((a, b) => a.dataVal.localeCompare(b.dataVal));
-      const candidate = sorted[0];
-      if (!earliest || candidate.dataVal.localeCompare(earliest.dataVal) < 0) {
-        earliest = {
-          locationName,
-          ok: true,
-          dateText: dateStr,
-          timeText: candidate.text || candidate.dataVal,
-          dataVal: candidate.dataVal,
-          daySlots,
-          monthSlots,
-        };
-      }
-    }
-  }
-
-  if (!earliest) {
-    return { locationName, ok: false, reason: 'No available day links found' };
-  }
-
-  return earliest;
+  return {
+    locationName,
+    ok: true,
+    dateText: earliestDateText,
+    timeText: earliestTimeText,
+    dataVal: earliestDataVal,
+    daySlots: earliestDaySlots,
+    monthSlots: combinedMonthSlots,
+  };
 }
 
 async function finalizeRun(results, runAt) {
@@ -750,6 +787,7 @@ for (const locationName of LOCATIONS) {
     const runAttempt = async (forceReload = false) => {
       const context = await browser.newContext();
       const page = await context.newPage();
+      await enableRequestBlocking(page);
       const attemptLabel = forceReload ? 'retry' : 'first';
       const attemptLogs = [];
       const safeName = locationName.replace(/\s+/g, '_');
@@ -770,7 +808,6 @@ for (const locationName of LOCATIONS) {
       try {
         return await getSoonestAppointmentForLocation(page, locationName, {
           forceReload,
-          includeMonthSlots: !EARLIEST_ONLY,
         });
       } catch (e) {
         try {
@@ -823,7 +860,7 @@ for (const locationName of LOCATIONS) {
       console.log(
         `[${locationName}] soonest: ${res.dataVal} (${res.dateText} ${res.timeText})`
       );
-      if (res.monthSlots && !EARLIEST_ONLY) {
+      if (res.monthSlots) {
         const monthlySummary = summarizeMonthSlots(res.monthSlots);
         if (monthlySummary) {
           const dispLoc =
@@ -832,8 +869,10 @@ for (const locationName of LOCATIONS) {
             `[${dispLoc}] monthly ${monthlySummary.monthLabel}: ${monthlySummary.totalAppts} appt(s)`
           );
         }
-        const monthKey = res.dataVal.split(' ')[0]?.slice(0, 7) || '';
-        recordMonthAppointments(locationName, monthKey, res.monthSlots);
+        const monthGroups = splitMonthSlotsByMonth(res.monthSlots);
+        for (const [monthKey, slots] of Object.entries(monthGroups)) {
+          recordMonthAppointments(locationName, monthKey, slots);
+        }
       }
     } else {
       console.log(`[${locationName}] no result: ${res ? res.reason : 'unknown error'}`);

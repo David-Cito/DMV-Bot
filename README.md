@@ -44,7 +44,7 @@ npm run test:ui
 ## Scheduling
 
 The DMV bot run is triggered externally via cron-job.org (GitHub Actions cron disabled for that workflow). Analysis workflows use GitHub Actions schedules.
-For every-minute checks, use `dmv-appointment-earliest.yml` (earliest-only mode).
+For every-minute checks, use `dmv-appointment-bot.yml`.
 
 ## Analysis Reports
 
@@ -59,7 +59,7 @@ Notifications are fully separated in `.github/workflows/dmv-notifications.yml` a
 ## User Notification System (Within 7 Days)
 
 - Subscriber list lives in Supabase table `notification_subscribers` (email + locations).
-- `dmv-appointment-earliest.yml` sends emails every minute for earliest appointments within `DMV_NOTIFY_WINDOW_DAYS` (default 14).
+- `dmv-appointment-bot.yml` sends emails every minute for earliest appointments within `DMV_NOTIFY_WINDOW_DAYS` (default 14).
 - Deduping is handled in `notification_state` to avoid repeat alerts for the same slot.
 
 ## Project Structure
@@ -72,9 +72,10 @@ Notifications are fully separated in `.github/workflows/dmv-notifications.yml` a
 ├── docs/
 │   ├── action-map.md       # Browser action reference
 │   └── features/           # Feature documentation (current + planned)
-├── scripts/                # Analysis scripts
+├── scripts/                # Scripts (analysis, notifications, supabase)
 ├── tests/
-│   └── example.spec.js     # Playwright flow + data capture
+│   └── bot/
+│       └── dmv-appointment-bot.spec.js  # Playwright flow + data capture
 ├── playwright.config.js    # Playwright configuration
 ├── package.json            # Project dependencies
 └── README.md               # This file
@@ -82,12 +83,13 @@ Notifications are fully separated in `.github/workflows/dmv-notifications.yml` a
 
 ## File Map
 
-- `tests/example.spec.js` - Parallel Playwright flow (one test per location).
-- `.github/workflows/dmv-appointment-earliest.yml` - Earliest-only checks (fast, every-minute ready).
+- `tests/bot/dmv-appointment-bot.spec.js` - Parallel Playwright flow (one test per location).
+- `.github/workflows/dmv-appointment-bot.yml` - DMV bot runs and user notifications.
 - `data/history/dmv-history.json` - Earliest-appointment change log per location + overall (cleared after upload).
 - `data/history/dmv-month-history-*.json` - Monthly availability snapshots per location.
 - `data/results/dmv-results.json` - Latest run output for notifications.
 - `data/results/dmv-run-buffer.json` - Per-run aggregation buffer for parallel workers.
+- `scripts/supabase/upload-latest-run.js` - Uploads latest run results to Supabase.
 - `scripts/analysis/run-6hour-analysis.js` - 6-hour Supabase analysis + rollups.
 - `scripts/analysis/run-daily-summary.js` - Daily rollup summary (Supabase).
 - `scripts/notifications/send-analysis-email.js` - Notification email builder for analysis runs.
@@ -96,7 +98,7 @@ Notifications are fully separated in `.github/workflows/dmv-notifications.yml` a
 
 ## Customizing Tests
 
-Edit the test file `tests/example.spec.js` to:
+Edit the test file `tests/bot/dmv-appointment-bot.spec.js` to:
 - Change the website URL
 - Add your own test cases
 - Modify assertions and interactions
