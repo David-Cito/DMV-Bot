@@ -1,4 +1,4 @@
-name: DMV Appointment Bot (Earliest Only)
+name: DMV Appointment Bot (Single)
 
 on:
   workflow_dispatch:
@@ -20,10 +20,9 @@ jobs:
     permissions:
       contents: read
     concurrency:
-      group: dmv-appointment-bot-earliest
+      group: dmv-appointment-bot-single
       cancel-in-progress: false
     env:
-      DMV_EARLIEST_ONLY: "true"
       DMV_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
       DMV_NOTIFY_WINDOW_DAYS: ${{ inputs.notify_window_days || vars.DMV_NOTIFY_WINDOW_DAYS || '14' }}
 
@@ -49,7 +48,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run DMV appointment bot (earliest only)
+      - name: Run DMV appointment bot
         run: npm test
 
       - name: Upload results to Supabase
