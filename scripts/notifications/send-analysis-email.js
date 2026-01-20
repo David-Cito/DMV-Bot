@@ -76,6 +76,7 @@ function buildCondensedSummary(run, title) {
     const lines = [];
     lines.push('6-Hour Summary');
     if (windowLabel) lines.push(`Win: ${windowLabel}`);
+    lines.push('');
     exclusiveBuckets.forEach((key) => {
       const w = exclusiveTotals[key] || {};
       lines.push(
@@ -96,6 +97,7 @@ function buildCondensedSummary(run, title) {
   const lines = [];
   lines.push(title);
   if (windowLabel) lines.push(`Win: ${windowLabel}`);
+  lines.push('');
   exclusiveBuckets.forEach((key) => {
     const values = perLocation.map((loc) => loc.exclusive_windows && loc.exclusive_windows[key]);
     const avgNew = avg(values.map((v) => v && v.avg_new_per_day));
