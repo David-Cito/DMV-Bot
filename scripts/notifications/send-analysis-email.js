@@ -84,6 +84,11 @@ function buildCondensedSummary(run, title) {
         )}`
       );
     });
+    lines.push('');
+    lines.push('Notes:');
+    lines.push('- avg = average availability duration in minutes (last_seen - first_seen).');
+    lines.push('- med = median availability duration in minutes.');
+    lines.push('- burst = max hourly new slots / avg hourly new slots.');
     return lines.join('\n');
   }
 
@@ -104,6 +109,11 @@ function buildCondensedSummary(run, title) {
     );
   });
 
+  lines.push('');
+  lines.push('Notes:');
+  lines.push('- avg = average availability duration in minutes (last_seen - first_seen).');
+  lines.push('- med = median availability duration in minutes.');
+  lines.push('- burst = max hourly new slots / avg hourly new slots.');
   return lines.join('\n');
 }
 
