@@ -76,6 +76,27 @@ async function fetchAll(table, columns, applyFilters) {
 }
 
 const WINDOWS = [1, 3, 7, 14, 30, 60];
+const EXCLUSIVE_BUCKETS = [
+  { key: '0-7', min: 0, max: 7 },
+  { key: '8-14', min: 8, max: 14 },
+  { key: '15-30', min: 15, max: 30 },
+  { key: '31-60', min: 31, max: 60 },
+];
+
+function initWindowStats() {
+  return {
+    hitCount: 0,
+    newCount: 0,
+    durationsMin: [],
+    hourBuckets: Array.from({ length: 24 }, () => 0),
+  };
+}
+
+function getExclusiveKey(lead) {
+  if (lead == null) return null;
+  const bucket = EXCLUSIVE_BUCKETS.find((b) => lead >= b.min && lead <= b.max);
+  return bucket ? bucket.key : null;
+}
 
 async function main() {
   const now = new Date();
@@ -109,18 +130,18 @@ async function main() {
   for (const loc of locations || []) {
     const windowStats = {};
     WINDOWS.forEach((days) => {
-      windowStats[days] = {
-        hitCount: 0,
-        newCount: 0,
-        durationsMin: [],
-        hourBuckets: Array.from({ length: 24 }, () => 0),
-      };
+      windowStats[days] = initWindowStats();
+    });
+    const exclusiveStats = {};
+    EXCLUSIVE_BUCKETS.forEach((bucket) => {
+      exclusiveStats[bucket.key] = initWindowStats();
     });
     perLocation[loc.id] = {
       locationId: loc.id,
       locationName: loc.name,
       snapshotsCount: 0,
       windowStats,
+      exclusiveStats,
     };
   }
 
@@ -134,6 +155,8 @@ async function main() {
     WINDOWS.forEach((days) => {
       if (lead <= days) loc.windowStats[days].hitCount += 1;
     });
+    const exclusiveKey = getExclusiveKey(lead);
+    if (exclusiveKey) loc.exclusiveStats[exclusiveKey].hitCount += 1;
   }
 
   for (const entry of slotStates || []) {
@@ -156,6 +179,13 @@ async function main() {
         stats.hourBuckets[hour] += 1;
       }
     });
+    const exclusiveKey = getExclusiveKey(lead);
+    if (exclusiveKey) {
+      const stats = loc.exclusiveStats[exclusiveKey];
+      stats.newCount += 1;
+      stats.durationsMin.push(durationMin);
+      stats.hourBuckets[hour] += 1;
+    }
   }
 
   const perLocationMetrics = Object.values(perLocation).map((loc) => {
@@ -180,10 +210,34 @@ async function main() {
         burstiness_ratio: burstiness,
       };
     });
+
+    const exclusiveWindows = {};
+    EXCLUSIVE_BUCKETS.forEach((bucket) => {
+      const stats = loc.exclusiveStats[bucket.key];
+      const avgDuration = average(stats.durationsMin);
+      const medianDuration = percentile(stats.durationsMin, 0.5);
+      const hitRate = loc.snapshotsCount
+        ? Number((stats.hitCount / loc.snapshotsCount).toFixed(4))
+        : null;
+      const maxHour = Math.max(...stats.hourBuckets);
+      const avgHour = stats.newCount ? stats.newCount / windowHours : 0;
+      const burstiness = avgHour
+        ? Number((maxHour / avgHour).toFixed(2))
+        : null;
+      exclusiveWindows[bucket.key] = {
+        new_count: stats.newCount,
+        avg_duration_min: avgDuration,
+        median_duration_min: medianDuration,
+        hit_rate: hitRate,
+        burstiness_ratio: burstiness,
+      };
+    });
+
     return {
       location_id: loc.locationId,
       location_name: loc.locationName,
       windows,
+      exclusive_windows: exclusiveWindows,
     };
   });
 
@@ -205,10 +259,30 @@ async function main() {
     };
   });
 
+  const totalsByExclusive = {};
+  EXCLUSIVE_BUCKETS.forEach((bucket) => {
+    const allDurations = [];
+    let totalNew = 0;
+    perLocationMetrics.forEach((loc) => {
+      const w = (loc.exclusive_windows || {})[bucket.key] || {};
+      totalNew += w.new_count || 0;
+      const stats = perLocation[loc.location_id]?.exclusiveStats?.[bucket.key];
+      if (stats && Array.isArray(stats.durationsMin)) {
+        allDurations.push(...stats.durationsMin);
+      }
+    });
+    totalsByExclusive[bucket.key] = {
+      new_count: totalNew,
+      avg_duration_min: average(allDurations),
+      median_duration_min: percentile(allDurations, 0.5),
+    };
+  });
+
   const metrics = {
     window_start: windowStartIso,
     window_end: windowEndIso,
     totals_by_window: totalsByWindow,
+    totals_by_exclusive: totalsByExclusive,
     per_location: perLocationMetrics,
   };
 
@@ -222,17 +296,24 @@ async function main() {
   const textLines = [];
   textLines.push('6-Hour Summary');
   textLines.push(`Window: ${formatHst(windowStart)} - ${formatHst(windowEnd)}`);
-  WINDOWS.forEach((days) => {
-    const totals = totalsByWindow[days];
+  textLines.push('Exclusive ranges (all locations):');
+  EXCLUSIVE_BUCKETS.forEach((bucket) => {
+    const total = totalsByExclusive[bucket.key] || {};
+    textLines.push(
+      `${bucket.key} days: new ${total.new_count ?? 0} | avg ${formatMinutes(
+        total.avg_duration_min
+      )} | median ${formatMinutes(total.median_duration_min)}`
+    );
+  });
+  textLines.push('');
+  textLines.push('Exclusive ranges (per location):');
+  EXCLUSIVE_BUCKETS.forEach((bucket) => {
     textLines.push('');
-    textLines.push(`Within ${days} day${days === 1 ? '' : 's'}:`);
-    textLines.push(`New (all locations): ${totals.new_count}`);
-    textLines.push(`Average availability duration: ${formatMinutes(totals.avg_duration_min)}`);
-    textLines.push(`Median availability duration: ${formatMinutes(totals.median_duration_min)}`);
+    textLines.push(`${bucket.key} days:`);
     perLocationMetrics.forEach((loc) => {
-      const w = loc.windows[days];
+      const w = (loc.exclusive_windows || {})[bucket.key] || {};
       textLines.push(
-        `${loc.location_name}: ${w.new_count} new | avg ${formatMinutes(
+        `${loc.location_name}: ${w.new_count ?? 0} new | avg ${formatMinutes(
           w.avg_duration_min
         )} | median ${formatMinutes(
           w.median_duration_min
@@ -245,36 +326,36 @@ async function main() {
   textLines.push('');
   textLines.push('How to read:');
   textLines.push('- Higher new count = higher short-term demand.');
-  textLines.push('- Shorter median duration = higher competition.');
-  textLines.push('- Lower hit rate = queue needs faster checks.');
-  textLines.push('- Burst >2x = spiky availability; prioritize peak windows.');
+  textLines.push('- avg = average availability duration in minutes (last_seen - first_seen).');
+  textLines.push('- med = median availability duration in minutes.');
+  textLines.push('- Shorter med = higher competition.');
+  textLines.push('- Lower hit = queue needs faster checks.');
+  textLines.push('- burst = max hourly new slots / avg hourly new slots.');
 
   const htmlLines = [];
   htmlLines.push('<h2>6-Hour Summary</h2>');
   htmlLines.push(
     `<p><strong>Window:</strong> ${formatHst(windowStart)} - ${formatHst(windowEnd)}</p>`
   );
-  WINDOWS.forEach((days) => {
-    const totals = totalsByWindow[days];
-    htmlLines.push(`<h3>Within ${days} day${days === 1 ? '' : 's'}</h3>`);
+  htmlLines.push('<h3>Exclusive ranges (all locations)</h3>');
+  htmlLines.push('<ul>');
+  EXCLUSIVE_BUCKETS.forEach((bucket) => {
+    const total = totalsByExclusive[bucket.key] || {};
     htmlLines.push(
-      `<p><strong>New (all locations):</strong> ${totals.new_count}</p>`
+      `<li><strong>${bucket.key} days</strong>: new ${total.new_count ?? 0} | avg ${formatMinutes(
+        total.avg_duration_min
+      )} | median ${formatMinutes(total.median_duration_min)}</li>`
     );
-    htmlLines.push(
-      `<p><strong>Average availability duration:</strong> ${formatMinutes(
-        totals.avg_duration_min
-      )}</p>`
-    );
-    htmlLines.push(
-      `<p><strong>Median availability duration:</strong> ${formatMinutes(
-        totals.median_duration_min
-      )}</p>`
-    );
+  });
+  htmlLines.push('</ul>');
+  htmlLines.push('<h3>Exclusive ranges (per location)</h3>');
+  EXCLUSIVE_BUCKETS.forEach((bucket) => {
+    htmlLines.push(`<h4>${bucket.key} days</h4>`);
     htmlLines.push('<ul>');
     perLocationMetrics.forEach((loc) => {
-      const w = loc.windows[days];
+      const w = (loc.exclusive_windows || {})[bucket.key] || {};
       htmlLines.push(
-        `<li><strong>${loc.location_name}</strong>: ${w.new_count} new | avg ${formatMinutes(
+        `<li><strong>${loc.location_name}</strong>: ${w.new_count ?? 0} new | avg ${formatMinutes(
           w.avg_duration_min
         )} | median ${formatMinutes(
           w.median_duration_min
@@ -287,9 +368,11 @@ async function main() {
   });
   htmlLines.push('<h3>How to read</h3><ul>');
   htmlLines.push('<li>Higher new count = higher short-term demand.</li>');
-  htmlLines.push('<li>Shorter median duration = higher competition.</li>');
-  htmlLines.push('<li>Lower hit rate = queue needs faster checks.</li>');
-  htmlLines.push('<li>Burst &gt; 2x = spiky availability; prioritize peak windows.</li>');
+  htmlLines.push('<li>avg = average availability duration in minutes (last_seen - first_seen).</li>');
+  htmlLines.push('<li>med = median availability duration in minutes.</li>');
+  htmlLines.push('<li>Shorter med = higher competition.</li>');
+  htmlLines.push('<li>Lower hit = queue needs faster checks.</li>');
+  htmlLines.push('<li>burst = max hourly new slots / avg hourly new slots.</li>');
   htmlLines.push('</ul>');
 
   const { data: runRow, error: runErr } = await supabase
@@ -327,12 +410,11 @@ async function main() {
   for (const loc of locations || []) {
     const windowStats = {};
     WINDOWS.forEach((days) => {
-      windowStats[days] = {
-        hitCount: 0,
-        newCount: 0,
-        durationsMin: [],
-        hourBuckets: Array.from({ length: 24 }, () => 0),
-      };
+      windowStats[days] = initWindowStats();
+    });
+    const exclusiveStats = {};
+    EXCLUSIVE_BUCKETS.forEach((bucket) => {
+      exclusiveStats[bucket.key] = initWindowStats();
     });
     rollupByLocation[loc.id] = {
       location_id: loc.id,
@@ -342,6 +424,7 @@ async function main() {
       slots_total: 0,
       slotsDistinctSet: new Set(),
       windowStats,
+      exclusiveStats,
     };
   }
 
@@ -356,6 +439,8 @@ async function main() {
     WINDOWS.forEach((days) => {
       if (lead <= days) loc.windowStats[days].hitCount += 1;
     });
+    const exclusiveKey = getExclusiveKey(lead);
+    if (exclusiveKey) loc.exclusiveStats[exclusiveKey].hitCount += 1;
   }
 
   for (const entry of rollupSlotStates || []) {
@@ -379,6 +464,13 @@ async function main() {
         stats.hourBuckets[hour] += 1;
       }
     });
+    const exclusiveKey = getExclusiveKey(lead);
+    if (exclusiveKey) {
+      const stats = loc.exclusiveStats[exclusiveKey];
+      stats.newCount += 1;
+      stats.durationsMin.push(durationMin);
+      stats.hourBuckets[hour] += 1;
+    }
   }
 
   const rollupRows = Object.values(rollupByLocation).map((loc) => {
@@ -407,6 +499,27 @@ async function main() {
         burstiness_ratio: burstiness,
       };
     });
+    const exclusiveWindowsJson = {};
+    EXCLUSIVE_BUCKETS.forEach((bucket) => {
+      const stats = loc.exclusiveStats[bucket.key];
+      const avgDuration = average(stats.durationsMin);
+      const medianDuration = percentile(stats.durationsMin, 0.5);
+      const hitRate = loc.snapshots_count
+        ? Number((stats.hitCount / loc.snapshots_count).toFixed(4))
+        : null;
+      const maxHour = Math.max(...stats.hourBuckets);
+      const avgHour = stats.newCount ? stats.newCount / 24 : 0;
+      const burstiness = avgHour
+        ? Number((maxHour / avgHour).toFixed(2))
+        : null;
+      exclusiveWindowsJson[bucket.key] = {
+        new_count: stats.newCount,
+        avg_duration_min: avgDuration,
+        median_duration_min: medianDuration,
+        hit_rate: hitRate,
+        burstiness_ratio: burstiness,
+      };
+    });
     const within7 = windowsJson['7'] || {};
     return {
       rollup_date: loc.rollup_date,
@@ -425,13 +538,24 @@ async function main() {
       hit_rate: within7.hit_rate ?? null,
       burstiness_ratio: within7.burstiness_ratio ?? null,
       within_windows_json: windowsJson,
+      exclusive_windows_json: exclusiveWindowsJson,
       updated_at: windowEndIso,
     };
   });
 
-  const { error: rollupErr } = await supabase
+  const rollupPayload = rollupRows;
+  let rollupErr = null;
+  const rollupAttempt = await supabase
     .from('analysis_rollups_daily')
-    .upsert(rollupRows, { onConflict: 'rollup_date,location_id' });
+    .upsert(rollupPayload, { onConflict: 'rollup_date,location_id' });
+  rollupErr = rollupAttempt.error;
+  if (rollupErr && String(rollupErr.message || '').includes('exclusive_windows_json')) {
+    const fallbackRows = rollupRows.map(({ exclusive_windows_json, ...rest }) => rest);
+    const fallback = await supabase
+      .from('analysis_rollups_daily')
+      .upsert(fallbackRows, { onConflict: 'rollup_date,location_id' });
+    rollupErr = fallback.error;
+  }
   if (rollupErr) throw rollupErr;
 
   const outFile = process.env.GITHUB_OUTPUT;

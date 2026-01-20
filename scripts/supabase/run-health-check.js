@@ -30,7 +30,11 @@ async function main() {
     'notification_state',
   ];
 
-  const knownViews = ['analysis_windows'];
+  const knownViews = [
+    'analysis_windows',
+    'analysis_windows_exclusive',
+    'analysis_windows_exclusive_hst',
+  ];
 
   async function safeCount(table) {
     const { count, error } = await supabase
@@ -93,6 +97,8 @@ async function main() {
 
   const viewOrderMap = {
     analysis_windows: 'run_at',
+    analysis_windows_exclusive: 'run_at',
+    analysis_windows_exclusive_hst: 'run_at',
   };
 
   const tableChecks = [];

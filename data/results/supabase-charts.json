@@ -1,25 +1,25 @@
 [
   {
-    "name": "Overall Hit Rate Over Time (by window)",
-    "query": "select run_at, window_days, avg(hit_rate) as hit_rate from public.analysis_windows where job_type = 'six_hour' and run_at >= now() - interval '7 days' group by run_at, window_days order by run_at;",
+    "name": "Overall Hit Rate Over Time (exclusive buckets)",
+    "query": "select run_at, window_range, avg(hit_rate) as hit_rate from public.analysis_windows_exclusive where job_type = 'six_hour' and run_at >= now() - interval '7 days' group by run_at, window_range, window_min order by run_at, window_min;",
     "type": "line",
     "x": "run_at",
     "y": "hit_rate",
-    "series": "window_days"
+    "series": "window_range"
   },
   {
-    "name": "Overall New Slots vs Window (latest run)",
-    "query": "with latest as (select max(run_at) as run_at from public.analysis_windows where job_type = 'six_hour') select window_days, sum(new_count) as new_count from public.analysis_windows aw join latest l on aw.run_at = l.run_at where aw.job_type = 'six_hour' group by window_days order by window_days;",
+    "name": "Overall New Slots vs Window (exclusive, latest run)",
+    "query": "with latest as (select max(run_at) as run_at from public.analysis_windows_exclusive where job_type = 'six_hour') select window_range, sum(new_count) as new_count from public.analysis_windows_exclusive aw join latest l on aw.run_at = l.run_at where aw.job_type = 'six_hour' group by window_range, window_min order by window_min;",
     "type": "bar",
-    "x": "window_days",
+    "x": "window_range",
     "y": "new_count"
   },
   {
-    "name": "Overall Median Duration Over Time (daily summary)",
-    "query": "select run_at, window_days, avg(median_duration_min) as median_duration_min from public.analysis_windows where job_type = 'daily_summary' and run_at >= now() - interval '30 days' group by run_at, window_days order by run_at;",
+    "name": "Overall Median Duration Over Time (exclusive, daily)",
+    "query": "select run_at, window_range, avg(median_duration_min) as median_duration_min from public.analysis_windows_exclusive where job_type = 'daily_summary' and run_at >= now() - interval '30 days' group by run_at, window_range, window_min order by run_at, window_min;",
     "type": "line",
     "x": "run_at",
     "y": "median_duration_min",
-    "series": "window_days"
+    "series": "window_range"
   }
 ]

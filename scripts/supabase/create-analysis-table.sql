@@ -29,6 +29,7 @@ create table if not exists analysis_rollups_daily (
   hit_rate numeric,
   burstiness_ratio numeric,
   within_windows_json jsonb,
+  exclusive_windows_json jsonb,
   updated_at timestamptz not null default now(),
   primary key (rollup_date, location_id)
 );
@@ -38,6 +39,33 @@ create index if not exists analysis_rollups_daily_date_idx
 
 create index if not exists analysis_rollups_daily_location_idx
   on analysis_rollups_daily (location_id, rollup_date);
+
+create or replace view public.analysis_windows_exclusive as
+select
+  ar.id as run_id,
+  ar.job_type,
+  ar.run_at,
+  (pl.value->>'location_id')::uuid as location_id,
+  (pl.value->>'location_name') as location_name,
+  w.key as window_range,
+  (split_part(w.key, '-', 1))::int as window_min,
+  (split_part(w.key, '-', 2))::int as window_max,
+  (w.value->>'new_count')::int as new_count,
+  (w.value->>'avg_new_per_day')::numeric as avg_new_per_day,
+  (w.value->>'hit_rate')::numeric as hit_rate,
+  (w.value->>'burstiness_ratio')::numeric as burstiness_ratio,
+  (w.value->>'avg_duration_min')::numeric as avg_duration_min,
+  (w.value->>'median_duration_min')::numeric as median_duration_min
+from public.analysis_runs ar
+join lateral jsonb_array_elements(ar.metrics_json->'per_location') pl on true
+join lateral jsonb_each(pl.value->'exclusive_windows') w on true
+where ar.job_type in ('six_hour', 'daily_summary');
+
+create or replace view public.analysis_windows_exclusive_hst as
+select
+  *,
+  (run_at at time zone 'Pacific/Honolulu') as run_at_hst
+from public.analysis_windows_exclusive;
 
 create table if not exists notification_subscribers (
   id uuid primary key default gen_random_uuid(),

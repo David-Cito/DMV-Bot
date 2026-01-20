@@ -1,5 +1,5 @@
 {
-  "run_at": "2026-01-19T16:45:38.602Z",
+  "run_at": "2026-01-20T03:54:39.256Z",
   "report": {
     "tables": [
       {
@@ -15,8 +15,8 @@
         "name": "runs",
         "ok": true,
         "sample": {
-          "id": "53ff0de5-0329-427c-9852-9e42445c7c84",
-          "run_at": "2026-01-19T16:43:05.721+00:00",
+          "id": "0f9eefd2-cd9b-49f1-8e82-6ee955f53933",
+          "run_at": "2026-01-20T03:53:04.9+00:00",
           "source": "github-actions"
         }
       },
@@ -24,33 +24,17 @@
         "name": "day_snapshots",
         "ok": true,
         "sample": {
-          "id": "dda4268f-6b23-4fc7-ac43-6e47c2b4b2af",
+          "id": "50c0eddb-00fe-4a11-b320-6042a823db60",
           "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
-          "captured_at": "2026-01-19T16:43:05.721+00:00",
-          "date": "2026-03-12",
+          "captured_at": "2026-01-20T03:53:04.9+00:00",
+          "date": "2026-02-10",
           "slots": [
             {
-              "text": "3:15 PM",
-              "dataVal": "2026-03-12 15:15:00"
-            },
-            {
-              "text": "3:30 PM",
-              "dataVal": "2026-03-12 15:30:00"
-            },
-            {
-              "text": "3:45 PM",
-              "dataVal": "2026-03-12 15:45:00"
-            },
-            {
-              "text": "4:00 PM",
-              "dataVal": "2026-03-12 16:00:00"
-            },
-            {
-              "text": "4:15 PM",
-              "dataVal": "2026-03-12 16:15:00"
+              "text": "11:00 AM",
+              "dataVal": "2026-02-10 11:00:00"
             }
           ],
-          "created_at": "2026-01-19T16:43:17.318863+00:00"
+          "created_at": "2026-01-20T03:53:16.123758+00:00"
         }
       },
       {
@@ -61,29 +45,29 @@
           "date": "2026-04-30",
           "time": "14:00:00",
           "first_seen": "2026-01-19T02:41:09.196+00:00",
-          "last_seen": "2026-01-19T16:43:05.721+00:00"
+          "last_seen": "2026-01-20T03:53:04.9+00:00"
         }
       },
       {
         "name": "run_slot_counts",
         "ok": true,
         "sample": {
-          "run_at": "2026-01-19T16:43:05.721+00:00",
+          "run_at": "2026-01-20T03:53:04.9+00:00",
           "location_id": "ef0bad1e-4dd3-4027-9a43-f96354f48e77",
-          "slots_total": 415
+          "slots_total": 402
         }
       },
       {
         "name": "analysis_runs",
         "ok": true,
         "sample": {
-          "id": 5,
+          "id": 6,
           "job_type": "six_hour",
-          "run_at": "2026-01-19T16:35:23.088+00:00",
-          "window_start": "2026-01-19T10:35:23.088+00:00",
-          "window_end": "2026-01-19T16:35:23.088+00:00",
+          "run_at": "2026-01-19T22:26:24.536+00:00",
+          "window_start": "2026-01-19T16:26:24.536+00:00",
+          "window_end": "2026-01-19T22:26:24.536+00:00",
           "metrics_json": {
-            "window_end": "2026-01-19T16:35:23.088Z",
+            "window_end": "2026-01-19T22:26:24.536Z",
             "per_location": [
               {
                 "windows": {
@@ -95,39 +79,39 @@
                     "median_duration_min": null
                   },
                   "3": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
+                    "hit_rate": 0.0056,
+                    "new_count": 1,
+                    "avg_duration_min": 0,
+                    "burstiness_ratio": 6,
+                    "median_duration_min": 0
                   },
                   "7": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
+                    "hit_rate": 0.0056,
+                    "new_count": 1,
+                    "avg_duration_min": 0,
+                    "burstiness_ratio": 6,
+                    "median_duration_min": 0
                   },
                   "14": {
-                    "hit_rate": 0.2321,
+                    "hit_rate": 0.0056,
                     "new_count": 1,
-                    "avg_duration_min": 104.66455,
+                    "avg_duration_min": 0,
                     "burstiness_ratio": 6,
-                    "median_duration_min": 104.66455
+                    "median_duration_min": 0
                   },
                   "30": {
-                    "hit_rate": 0.2321,
+                    "hit_rate": 0.0056,
                     "new_count": 1,
-                    "avg_duration_min": 104.66455,
+                    "avg_duration_min": 0,
                     "burstiness_ratio": 6,
-                    "median_duration_min": 104.66455
+                    "median_duration_min": 0
                   },
                   "60": {
                     "hit_rate": 1,
                     "new_count": 1,
-                    "avg_duration_min": 104.66455,
+                    "avg_duration_min": 0,
                     "burstiness_ratio": 6,
-                    "median_duration_min": 104.66455
+                    "median_duration_min": 0
                   }
                 },
                 "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
@@ -164,18 +148,18 @@
                     "median_duration_min": null
                   },
                   "30": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
+                    "hit_rate": 0.0056,
+                    "new_count": 1,
+                    "avg_duration_min": 0,
+                    "burstiness_ratio": 6,
+                    "median_duration_min": 0
                   },
                   "60": {
                     "hit_rate": 1,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
+                    "new_count": 1,
+                    "avg_duration_min": 0,
+                    "burstiness_ratio": 6,
+                    "median_duration_min": 0
                   }
                 },
                 "location_id": "7fac0628-097d-4c3b-8a58-2f88dd386626",
@@ -198,32 +182,32 @@
                     "median_duration_min": null
                   },
                   "7": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
+                    "hit_rate": 0.0225,
+                    "new_count": 1,
+                    "avg_duration_min": 5.953366666666667,
+                    "burstiness_ratio": 6,
+                    "median_duration_min": 5.953366666666667
                   },
                   "14": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
+                    "hit_rate": 0.0225,
+                    "new_count": 1,
+                    "avg_duration_min": 5.953366666666667,
+                    "burstiness_ratio": 6,
+                    "median_duration_min": 5.953366666666667
                   },
                   "30": {
-                    "hit_rate": 0.1071,
+                    "hit_rate": 0.0225,
                     "new_count": 1,
-                    "avg_duration_min": 41.9788,
+                    "avg_duration_min": 5.953366666666667,
                     "burstiness_ratio": 6,
-                    "median_duration_min": 41.9788
+                    "median_duration_min": 5.953366666666667
                   },
                   "60": {
                     "hit_rate": 1,
-                    "new_count": 16,
-                    "avg_duration_min": 41.97879999999999,
+                    "new_count": 1,
+                    "avg_duration_min": 5.953366666666667,
                     "burstiness_ratio": 6,
-                    "median_duration_min": 41.9788
+                    "median_duration_min": 5.953366666666667
                   }
                 },
                 "location_id": "ef0bad1e-4dd3-4027-9a43-f96354f48e77",
@@ -278,7 +262,7 @@
                 "location_name": "Hawaii Kai Satellite City Hall"
               }
             ],
-            "window_start": "2026-01-19T10:35:23.088Z",
+            "window_start": "2026-01-19T16:26:24.536Z",
             "totals_by_window": {
               "1": {
                 "new_count": 0,
@@ -286,34 +270,34 @@
                 "median_duration_min": null
               },
               "3": {
-                "new_count": 0,
-                "avg_duration_min": null,
-                "median_duration_min": null
+                "new_count": 1,
+                "avg_duration_min": 0,
+                "median_duration_min": 0
               },
               "7": {
-                "new_count": 0,
-                "avg_duration_min": null,
-                "median_duration_min": null
+                "new_count": 2,
+                "avg_duration_min": 2.9766833333333333,
+                "median_duration_min": 0
               },
               "14": {
-                "new_count": 1,
-                "avg_duration_min": 104.66455,
-                "median_duration_min": 104.66455
+                "new_count": 2,
+                "avg_duration_min": 2.9766833333333333,
+                "median_duration_min": 0
               },
               "30": {
-                "new_count": 2,
-                "avg_duration_min": 73.321675,
-                "median_duration_min": 41.9788
+                "new_count": 3,
+                "avg_duration_min": 1.9844555555555556,
+                "median_duration_min": 0
               },
               "60": {
-                "new_count": 17,
-                "avg_duration_min": 45.66619705882351,
-                "median_duration_min": 41.9788
+                "new_count": 3,
+                "avg_duration_min": 1.9844555555555556,
+                "median_duration_min": 0
               }
             }
           },
-          "summary_text": "6-Hour Summary\nWindow: Jan 19, 2026, 12:35 AM HST - Jan 19, 2026, 6:35 AM HST\n\nWithin 1 day:\nNew (all locations): 0\nAverage availability duration: n/a\nMedian availability duration: n/a\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 3 days:\nNew (all locations): 0\nAverage availability duration: n/a\nMedian availability duration: n/a\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 7 days:\nNew (all locations): 0\nAverage availability duration: n/a\nMedian availability duration: n/a\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 14 days:\nNew (all locations): 1\nAverage availability duration: 104.7m\nMedian availability duration: 104.7m\nPearlridge Satellite City Hall: 1 new | avg 104.7m | median 104.7m | hit 23.2% | burst 6.0x\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 30 days:\nNew (all locations): 2\nAverage availability duration: 73.3m\nMedian availability duration: 42.0m\nPearlridge Satellite City Hall: 1 new | avg 104.7m | median 104.7m | hit 23.2% | burst 6.0x\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 1 new | avg 42.0m | median 42.0m | hit 10.7% | burst 6.0x\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 60 days:\nNew (all locations): 17\nAverage availability duration: 45.7m\nMedian availability duration: 42.0m\nPearlridge Satellite City Hall: 1 new | avg 104.7m | median 104.7m | hit 100.0% | burst 6.0x\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 100.0% | burst n/a\nDowntown Satellite City Hall: 16 new | avg 42.0m | median 42.0m | hit 100.0% | burst 6.0x\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nHow to read:\n- Higher new count = higher short-term demand.\n- Shorter median duration = higher competition.\n- Lower hit rate = queue needs faster checks.\n- Burst >2x = spiky availability; prioritize peak windows.",
-          "summary_html": "<h2>6-Hour Summary</h2>\n<p><strong>Window:</strong> Jan 19, 2026, 12:35 AM HST - Jan 19, 2026, 6:35 AM HST</p>\n<h3>Within 1 day</h3>\n<p><strong>New (all locations):</strong> 0</p>\n<p><strong>Average availability duration:</strong> n/a</p>\n<p><strong>Median availability duration:</strong> n/a</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 3 days</h3>\n<p><strong>New (all locations):</strong> 0</p>\n<p><strong>Average availability duration:</strong> n/a</p>\n<p><strong>Median availability duration:</strong> n/a</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 7 days</h3>\n<p><strong>New (all locations):</strong> 0</p>\n<p><strong>Average availability duration:</strong> n/a</p>\n<p><strong>Median availability duration:</strong> n/a</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 14 days</h3>\n<p><strong>New (all locations):</strong> 1</p>\n<p><strong>Average availability duration:</strong> 104.7m</p>\n<p><strong>Median availability duration:</strong> 104.7m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 104.7m | median 104.7m | hit 23.2% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 30 days</h3>\n<p><strong>New (all locations):</strong> 2</p>\n<p><strong>Average availability duration:</strong> 73.3m</p>\n<p><strong>Median availability duration:</strong> 42.0m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 104.7m | median 104.7m | hit 23.2% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 1 new | avg 42.0m | median 42.0m | hit 10.7% | burst 6.0x</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 60 days</h3>\n<p><strong>New (all locations):</strong> 17</p>\n<p><strong>Average availability duration:</strong> 45.7m</p>\n<p><strong>Median availability duration:</strong> 42.0m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 104.7m | median 104.7m | hit 100.0% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 100.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 16 new | avg 42.0m | median 42.0m | hit 100.0% | burst 6.0x</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>How to read</h3><ul>\n<li>Higher new count = higher short-term demand.</li>\n<li>Shorter median duration = higher competition.</li>\n<li>Lower hit rate = queue needs faster checks.</li>\n<li>Burst &gt; 2x = spiky availability; prioritize peak windows.</li>\n</ul>"
+          "summary_text": "6-Hour Summary\nWindow: Jan 19, 2026, 6:26 AM HST - Jan 19, 2026, 12:26 PM HST\n\nWithin 1 day:\nNew (all locations): 0\nAverage availability duration: n/a\nMedian availability duration: n/a\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 3 days:\nNew (all locations): 1\nAverage availability duration: 0.0m\nMedian availability duration: 0.0m\nPearlridge Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 7 days:\nNew (all locations): 2\nAverage availability duration: 3.0m\nMedian availability duration: 0.0m\nPearlridge Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 1 new | avg 6.0m | median 6.0m | hit 2.3% | burst 6.0x\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 14 days:\nNew (all locations): 2\nAverage availability duration: 3.0m\nMedian availability duration: 0.0m\nPearlridge Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 1 new | avg 6.0m | median 6.0m | hit 2.3% | burst 6.0x\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 30 days:\nNew (all locations): 3\nAverage availability duration: 2.0m\nMedian availability duration: 0.0m\nPearlridge Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x\nWindward City Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x\nDowntown Satellite City Hall: 1 new | avg 6.0m | median 6.0m | hit 2.3% | burst 6.0x\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 60 days:\nNew (all locations): 3\nAverage availability duration: 2.0m\nMedian availability duration: 0.0m\nPearlridge Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 100.0% | burst 6.0x\nWindward City Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 100.0% | burst 6.0x\nDowntown Satellite City Hall: 1 new | avg 6.0m | median 6.0m | hit 100.0% | burst 6.0x\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nHow to read:\n- Higher new count = higher short-term demand.\n- Shorter median duration = higher competition.\n- Lower hit rate = queue needs faster checks.\n- Burst >2x = spiky availability; prioritize peak windows.",
+          "summary_html": "<h2>6-Hour Summary</h2>\n<p><strong>Window:</strong> Jan 19, 2026, 6:26 AM HST - Jan 19, 2026, 12:26 PM HST</p>\n<h3>Within 1 day</h3>\n<p><strong>New (all locations):</strong> 0</p>\n<p><strong>Average availability duration:</strong> n/a</p>\n<p><strong>Median availability duration:</strong> n/a</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 3 days</h3>\n<p><strong>New (all locations):</strong> 1</p>\n<p><strong>Average availability duration:</strong> 0.0m</p>\n<p><strong>Median availability duration:</strong> 0.0m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 7 days</h3>\n<p><strong>New (all locations):</strong> 2</p>\n<p><strong>Average availability duration:</strong> 3.0m</p>\n<p><strong>Median availability duration:</strong> 0.0m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 1 new | avg 6.0m | median 6.0m | hit 2.3% | burst 6.0x</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 14 days</h3>\n<p><strong>New (all locations):</strong> 2</p>\n<p><strong>Average availability duration:</strong> 3.0m</p>\n<p><strong>Median availability duration:</strong> 0.0m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 1 new | avg 6.0m | median 6.0m | hit 2.3% | burst 6.0x</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 30 days</h3>\n<p><strong>New (all locations):</strong> 3</p>\n<p><strong>Average availability duration:</strong> 2.0m</p>\n<p><strong>Median availability duration:</strong> 0.0m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x</li>\n<li><strong>Downtown Satellite City Hall</strong>: 1 new | avg 6.0m | median 6.0m | hit 2.3% | burst 6.0x</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 60 days</h3>\n<p><strong>New (all locations):</strong> 3</p>\n<p><strong>Average availability duration:</strong> 2.0m</p>\n<p><strong>Median availability duration:</strong> 0.0m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 100.0% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 100.0% | burst 6.0x</li>\n<li><strong>Downtown Satellite City Hall</strong>: 1 new | avg 6.0m | median 6.0m | hit 100.0% | burst 6.0x</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>How to read</h3><ul>\n<li>Higher new count = higher short-term demand.</li>\n<li>Shorter median duration = higher competition.</li>\n<li>Lower hit rate = queue needs faster checks.</li>\n<li>Burst &gt; 2x = spiky availability; prioritize peak windows.</li>\n</ul>"
         }
       },
       {
@@ -322,19 +306,19 @@
         "sample": {
           "rollup_date": "2026-01-19",
           "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
-          "snapshots_count": 60,
-          "same_week_rate": 0,
-          "lead_days_p10": 8,
+          "snapshots_count": 233,
+          "same_week_rate": 0.0043,
+          "lead_days_p10": 52,
           "lead_days_p50": 52,
           "lead_days_p90": 52,
-          "slots_total": 2,
-          "slots_distinct": 2,
+          "slots_total": 3,
+          "slots_distinct": 3,
           "slot_turnover_ratio": 1,
-          "within_7_new_count": 0,
-          "within_7_avg_duration_min": null,
-          "within_7_median_duration_min": null,
-          "hit_rate": 0,
-          "burstiness_ratio": null,
+          "within_7_new_count": 1,
+          "within_7_avg_duration_min": 0,
+          "within_7_median_duration_min": 0,
+          "hit_rate": 0.0043,
+          "burstiness_ratio": 24,
           "within_windows_json": {
             "1": {
               "hit_rate": 0,
@@ -344,42 +328,43 @@
               "median_duration_min": null
             },
             "3": {
-              "hit_rate": 0,
-              "new_count": 0,
-              "avg_duration_min": null,
-              "burstiness_ratio": null,
-              "median_duration_min": null
+              "hit_rate": 0.0043,
+              "new_count": 1,
+              "avg_duration_min": 0,
+              "burstiness_ratio": 24,
+              "median_duration_min": 0
             },
             "7": {
-              "hit_rate": 0,
-              "new_count": 0,
-              "avg_duration_min": null,
-              "burstiness_ratio": null,
-              "median_duration_min": null
+              "hit_rate": 0.0043,
+              "new_count": 1,
+              "avg_duration_min": 0,
+              "burstiness_ratio": 24,
+              "median_duration_min": 0
             },
             "14": {
-              "hit_rate": 0.2167,
-              "new_count": 1,
-              "avg_duration_min": 104.66455,
-              "burstiness_ratio": 24,
-              "median_duration_min": 104.66455
-            },
-            "30": {
-              "hit_rate": 0.2333,
+              "hit_rate": 0.0601,
               "new_count": 2,
               "avg_duration_min": 52.332275,
               "burstiness_ratio": 12,
+              "median_duration_min": 0
+            },
+            "30": {
+              "hit_rate": 0.0644,
+              "new_count": 3,
+              "avg_duration_min": 34.88818333333334,
+              "burstiness_ratio": 8,
               "median_duration_min": 0
             },
             "60": {
               "hit_rate": 1,
-              "new_count": 2,
-              "avg_duration_min": 52.332275,
-              "burstiness_ratio": 12,
+              "new_count": 3,
+              "avg_duration_min": 34.88818333333334,
+              "burstiness_ratio": 8,
               "median_duration_min": 0
             }
           },
-          "updated_at": "2026-01-19T16:35:23.088+00:00"
+          "updated_at": "2026-01-19T22:26:24.536+00:00",
+          "exclusive_windows_json": null
         }
       },
       {
@@ -399,8 +384,8 @@
         "sample": {
           "subscriber_id": "027143c0-8ea2-4a25-bc5b-70b9b285cab0",
           "location_name": "Windward City Satellite City Hall",
-          "last_data_val": "2026-03-10 09:45:00",
-          "last_notified_at": "2026-01-19T16:42:02.836+00:00"
+          "last_data_val": "2026-02-03 15:00:00",
+          "last_notified_at": "2026-01-20T01:05:11.769+00:00"
         }
       }
     ],
@@ -409,9 +394,9 @@
         "name": "analysis_windows",
         "ok": true,
         "sample": {
-          "run_id": 5,
+          "run_id": 6,
           "job_type": "six_hour",
-          "run_at": "2026-01-19T16:35:23.088+00:00",
+          "run_at": "2026-01-19T22:26:24.536+00:00",
           "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
           "location_name": "Pearlridge Satellite City Hall",
           "window_days": 1,
@@ -422,6 +407,16 @@
           "avg_duration_min": null,
           "median_duration_min": null
         }
+      },
+      {
+        "name": "analysis_windows_exclusive",
+        "ok": true,
+        "sample": null
+      },
+      {
+        "name": "analysis_windows_exclusive_hst",
+        "ok": true,
+        "sample": null
       }
     ],
     "counts": [
@@ -431,19 +426,19 @@
       },
       {
         "table_name": "runs",
-        "row_count": 244
+        "row_count": 577
       },
       {
         "table_name": "day_snapshots",
-        "row_count": 974
+        "row_count": 2305
       },
       {
         "table_name": "slot_states",
-        "row_count": 1653
+        "row_count": 1682
       },
       {
         "table_name": "run_slot_counts",
-        "row_count": 974
+        "row_count": 2305
       },
       {
         "table_name": "analysis_runs",
@@ -459,57 +454,57 @@
       },
       {
         "table_name": "notification_state",
-        "row_count": 2
+        "row_count": 3
       }
     ],
     "latest": [
       {
         "table_name": "day_snapshots",
-        "latest_at": "2026-01-19T16:43:05.721+00:00"
+        "latest_at": "2026-01-20T03:53:04.9+00:00"
       },
       {
         "table_name": "slot_states",
-        "latest_at": "2026-01-19T16:43:05.721+00:00"
+        "latest_at": "2026-01-20T03:53:04.9+00:00"
       },
       {
         "table_name": "run_slot_counts",
-        "latest_at": "2026-01-19T16:43:05.721+00:00"
+        "latest_at": "2026-01-20T03:53:04.9+00:00"
       },
       {
         "table_name": "analysis_runs",
-        "latest_at": "2026-01-19T16:35:23.088+00:00"
+        "latest_at": "2026-01-19T22:26:24.536+00:00"
       }
     ],
     "recent_analysis_runs": [
       {
-        "id": 5,
+        "id": 6,
         "job_type": "six_hour",
-        "run_at": "2026-01-19T16:35:23.088+00:00"
+        "run_at": "2026-01-19T22:26:24.536+00:00"
       }
     ],
     "charts": [
       {
-        "name": "Overall Hit Rate Over Time (by window)",
-        "query": "select run_at, window_days, avg(hit_rate) as hit_rate from public.analysis_windows where job_type = 'six_hour' and run_at >= now() - interval '7 days' group by run_at, window_days order by run_at;",
+        "name": "Overall Hit Rate Over Time (exclusive buckets)",
+        "query": "select run_at, window_range, avg(hit_rate) as hit_rate from public.analysis_windows_exclusive where job_type = 'six_hour' and run_at >= now() - interval '7 days' group by run_at, window_range, window_min order by run_at, window_min;",
         "type": "line",
         "x": "run_at",
         "y": "hit_rate",
-        "series": "window_days"
+        "series": "window_range"
       },
       {
-        "name": "Overall New Slots vs Window (latest run)",
-        "query": "with latest as (select max(run_at) as run_at from public.analysis_windows where job_type = 'six_hour') select window_days, sum(new_count) as new_count from public.analysis_windows aw join latest l on aw.run_at = l.run_at where aw.job_type = 'six_hour' group by window_days order by window_days;",
+        "name": "Overall New Slots vs Window (exclusive, latest run)",
+        "query": "with latest as (select max(run_at) as run_at from public.analysis_windows_exclusive where job_type = 'six_hour') select window_range, sum(new_count) as new_count from public.analysis_windows_exclusive aw join latest l on aw.run_at = l.run_at where aw.job_type = 'six_hour' group by window_range, window_min order by window_min;",
         "type": "bar",
-        "x": "window_days",
+        "x": "window_range",
         "y": "new_count"
       },
       {
-        "name": "Overall Median Duration Over Time (daily summary)",
-        "query": "select run_at, window_days, avg(median_duration_min) as median_duration_min from public.analysis_windows where job_type = 'daily_summary' and run_at >= now() - interval '30 days' group by run_at, window_days order by run_at;",
+        "name": "Overall Median Duration Over Time (exclusive, daily)",
+        "query": "select run_at, window_range, avg(median_duration_min) as median_duration_min from public.analysis_windows_exclusive where job_type = 'daily_summary' and run_at >= now() - interval '30 days' group by run_at, window_range, window_min order by run_at, window_min;",
         "type": "line",
         "x": "run_at",
         "y": "median_duration_min",
-        "series": "window_days"
+        "series": "window_range"
       }
     ]
   }

@@ -69,18 +69,19 @@ function buildCondensedSummary(run, title) {
   const windowEnd = run.window_end ? formatHst(new Date(run.window_end)) : null;
   const windowLabel = windowStart && windowEnd ? `${windowStart} - ${windowEnd}` : null;
   const windows = [1, 7, 30, 60];
+  const exclusiveBuckets = ['0-7', '8-14', '15-30', '31-60'];
 
   if (run.job_type === 'six_hour') {
-    const totals = metrics.totals_by_window || {};
+    const exclusiveTotals = metrics.totals_by_exclusive || {};
     const lines = [];
-    lines.push('6-Hour Summary (condensed)');
-    if (windowLabel) lines.push(`Window: ${windowLabel}`);
-    windows.forEach((days) => {
-      const w = totals[String(days)] || {};
+    lines.push('6-Hour Summary');
+    if (windowLabel) lines.push(`Win: ${windowLabel}`);
+    exclusiveBuckets.forEach((key) => {
+      const w = exclusiveTotals[key] || {};
       lines.push(
-        `Within ${days}d: new ${w.new_count ?? 0} | avg ${formatMinutes(
-          w.avg_duration_min
-        )} | median ${formatMinutes(w.median_duration_min)}`
+        `${key}d: n=${w.new_count ?? 0} avg=${formatMinutes(w.avg_duration_min)} med=${formatMinutes(
+          w.median_duration_min
+        )}`
       );
     });
     return lines.join('\n');
@@ -88,19 +89,18 @@ function buildCondensedSummary(run, title) {
 
   const perLocation = Array.isArray(metrics.per_location) ? metrics.per_location : [];
   const lines = [];
-  lines.push(`${title} (condensed)`);
-  if (windowLabel) lines.push(`Window: ${windowLabel}`);
-
-  windows.forEach((days) => {
-    const values = perLocation.map((loc) => loc.windows && loc.windows[String(days)]);
+  lines.push(title);
+  if (windowLabel) lines.push(`Win: ${windowLabel}`);
+  exclusiveBuckets.forEach((key) => {
+    const values = perLocation.map((loc) => loc.exclusive_windows && loc.exclusive_windows[key]);
     const avgNew = avg(values.map((v) => v && v.avg_new_per_day));
     const medDur = avg(values.map((v) => v && v.median_duration_min));
     const hit = avg(values.map((v) => v && v.hit_rate));
     const burst = avg(values.map((v) => v && v.burstiness_ratio));
     lines.push(
-      `Within ${days}d: new/day ${formatNumber(avgNew)} | median ${formatMinutes(
+      `${key}d: new/d=${formatNumber(avgNew)} med=${formatMinutes(
         medDur
-      )} | hit ${formatPercent(hit)} | burst ${formatNumber(burst)}`
+      )} hit=${formatPercent(hit)} burst=${formatNumber(burst)}`
     );
   });
 
