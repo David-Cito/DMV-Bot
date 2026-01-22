@@ -516,9 +516,10 @@ set status to deposit_required
 
 set deposit_required_at to now
 
-set deposit_expires_at to now plus 30 minutes
+set deposit_expires_at to now plus 120 minutes
 
 send deposit_needed message with dedupe
+dedupe_key = deposit_needed + queue_entry_id
 
 Deposit expiry:
 
@@ -569,7 +570,7 @@ DEPOSIT_RANK_THRESHOLD = 10
 
 OPPORTUNITY_MESSAGE_RANK_THRESHOLD = 20
 
-DEPOSIT_GRACE_MINUTES = 30
+DEPOSIT_GRACE_MINUTES = 120
 
 LOCK_TTL_SECONDS = 120
 
@@ -615,7 +616,7 @@ B Find first eligible user
 
 Load ordered queue entries (or reuse from Step 3)
 
-Scan in order until you find the first eligible user that matches:
+Scan in order until you find the first eligible user that matches (evaluate in this order):
 
 status active
 
@@ -819,41 +820,378 @@ Unique constraint exists on message_log.dedupe_key
 
 Unique constraint exists on target_window_presets(preset_type, key)
 
-Section 2 DB access layer
+Section 2 Implementation Plan: DB Access Layer (Final)
+Overview
 
-Deliverables:
+Implement small single purpose database access functions for the queue and target window system.
 
-Small functions to:
-
-fetch active presets by type
-
-fetch user selection for a customer
-
-fetch user location preferences
-
-fetch watermark and update watermark
-
-fetch opened slots since watermark
-
-fetch queue entries ordered
-
-set deposit required
-
-expire deposit
-
-acquire and release slot locks
-
-insert booking attempts
-
-update booked state
-
-insert message log with dedupe
-
-Acceptance:
+Rules:
 
 No business logic in db helpers
 
-Errors are surfaced and logged
+Use conditional updates to prevent race conditions
+
+Errors are thrown with context
+
+Empty results return null or empty arrays as appropriate
+
+All functions use getSupabaseClient()
+
+Database time is used for concurrency sensitive operations where relevant
+
+Files to Create or Modify
+1. packages/db/watermarks.ts
+
+Functions:
+
+fetchWatermark(key: string): Promise<QueueWatermark | null>
+
+updateWatermark(key: string, lastProcessedAt: Date): Promise<void>
+
+Notes:
+
+Watermarks may use application time
+
+No comparisons or logic beyond simple read write
+
+2. packages/db/presets.ts
+
+Functions:
+
+fetchActivePresetsByType(presetType: PresetType): Promise<TargetWindowPreset[]>
+
+fetchPresetByKey(presetType: PresetType, key: string): Promise<TargetWindowPreset | null>
+
+Notes:
+
+Query target_window_presets table
+
+Filter active = true
+
+Order by sort_order ASC
+
+3. packages/db/selections.ts
+
+Functions:
+
+fetchUserSelection(customerId: string): Promise<UserTargetWindowSelection | null>
+
+upsertUserSelection(selection: Omit<UserTargetWindowSelection, 'updated_at'>): Promise<UserTargetWindowSelection>
+
+Notes:
+
+No validation of selection contents in db layer
+
+updated_at handled automatically by database default
+
+4. packages/db/customers.ts
+
+Functions:
+
+fetchCustomerById(customerId: string): Promise<Customer | null>
+
+fetchCustomerByPhone(phone: string): Promise<Customer | null>
+
+upsertCustomer(params: { phone: string; email?: string }): Promise<Customer>
+
+Notes:
+
+phone is the primary identifier
+
+Upsert behavior must be idempotent
+
+5. packages/db/locations.ts
+
+Functions:
+
+fetchLocationById(locationId: string): Promise<Location | null>
+
+fetchUserLocationPreferences(customerId: string): Promise<UserLocationPreference[]>
+
+fetchUserLocationPreferencesByCustomerIds(customerIds: string[]): Promise<Map<string, UserLocationPreference[]>>
+
+addUserLocationPreference(customerId: string, locationId: string): Promise<UserLocationPreference>
+
+removeUserLocationPreference(customerId: string, locationId: string): Promise<void>
+
+Notes:
+
+Batch fetch returns Map keyed by customerId
+
+Use shared Location type from packages/core/types
+
+6. packages/db/slots.ts
+
+Functions:
+
+fetchOpenedSlotsSinceWatermark(watermark: Date, lookbackMinutes: number): Promise<SlotState[]>
+
+Implementation:
+
+Uses PostgreSQL RPC function fetch_opened_slots_since
+
+RPC logic:
+
+Reads from slot_states table
+
+Filters:
+
+first_seen > watermark
+
+last_seen > now() minus lookbackMinutes
+
+Orders by first_seen ASC
+
+Uses database now() for time comparison
+
+Post processing in slots.ts:
+
+Skip rows with null date or time
+
+Map row.date to slot_date
+
+Map row.time to slot_time
+
+Normalize slot_time to HH:MM:SS format before returning
+
+7. packages/db/queue.ts
+
+Functions:
+
+fetchOrderedQueueEntries(): Promise<QueueEntry[]>
+
+status IN ('queued','deposit_required','active')
+
+order by created_at ASC
+
+setDepositRequired(queueEntryId: string, expiresAt: Date): Promise<void>
+
+Conditional update only if:
+
+deposit_status = 'none'
+
+expireDeposit(queueEntryId: string): Promise<void>
+
+Uses application timestamp (new Date) for expiry guard
+
+Conditional update only if:
+
+deposit_status = 'required'
+
+deposit_expires_at < provided timestamp
+
+updateBookedState(queueEntryId: string, locationId: string, slotDatetime: Date): Promise<void>
+
+fetchQueueEntryByCustomer(customerId: string): Promise<QueueEntry | null>
+
+Notes:
+
+No payment logic
+
+No queue ranking logic
+
+Conditional guards are required to avoid race conditions
+
+8. packages/db/locks.ts
+
+Functions:
+
+acquireLock(lockKey: string, ownerRunId: string, ttlSeconds: number): Promise<boolean>
+
+releaseLock(lockKey: string): Promise<void>
+
+fetchLock(lockKey: string): Promise<BookingLock | null>
+
+Implementation:
+
+Uses PostgreSQL RPC function acquire_booking_lock
+
+RPC rules:
+
+Atomic
+
+Uses database now() for all comparisons
+
+Lock acquired only if:
+
+No row exists OR locked_until < now()
+
+Returns boolean true if acquired, false otherwise
+
+Does not throw on contention
+
+Callable via supabase.rpc
+
+Usable under service role
+
+9. packages/db/attempts.ts
+
+Functions:
+
+insertBookingAttempt(params: InsertBookingAttemptParams): Promise<BookingAttempt>
+
+fetchBookingAttemptsByCustomer(customerId: string, limit?: number): Promise<BookingAttempt[]>
+
+Notes:
+
+No retry or aggregation logic in db layer
+
+10. packages/db/messages.ts
+
+Functions:
+
+insertMessageWithDedupe(params: InsertMessageParams): Promise<MessageLogEntry | null>
+
+fetchMessagesByCustomer(customerId: string, limit?: number): Promise<MessageLogEntry[]>
+
+Implementation:
+
+Attempt INSERT into message_log
+
+If unique constraint violation on dedupe_key occurs, return null
+
+Otherwise return the inserted row
+
+Do not use upsert semantics that overwrite existing rows
+
+11. packages/db/batch.ts
+
+Functions:
+
+fetchUserSelectionsByCustomerIds(customerIds: string[]): Promise<Map<string, UserTargetWindowSelection>>
+
+fetchCustomersByIds(customerIds: string[]): Promise<Map<string, Customer>>
+
+Purpose:
+
+Avoid N plus 1 queries in dispatcher
+
+No business logic
+
+Return Map keyed by customerId
+
+12. packages/core/slot_keys.ts
+
+Functions:
+
+buildSlotKey(locationId: string, slotDate: string, slotTime: string): string
+
+Format:
+
+locationId|YYYY-MM-DD|HH:MM:SS
+
+Notes:
+
+slotTime must be normalized before key creation
+
+13. packages/db/index.ts
+
+Exports:
+
+supabase_client
+
+presets
+
+selections
+
+customers
+
+locations
+
+slots
+
+queue
+
+locks
+
+attempts
+
+messages
+
+watermarks
+
+batch
+
+Purpose:
+
+Single import surface for db layer
+
+14. Migration Update
+
+File:
+
+supabase/migrations/20260120_queue_and_target_windows.sql
+
+Add PostgreSQL functions:
+
+Function 1: acquire_booking_lock
+
+Signature:
+
+acquire_booking_lock(
+p_lock_key TEXT,
+p_owner_run_id UUID,
+p_ttl_seconds INT
+) RETURNS BOOLEAN
+
+Rules:
+
+Atomic
+
+Uses database now() for all comparisons
+
+Inserts new lock or updates existing lock only if expired
+
+Returns true if lock acquired, false otherwise
+
+Function 2: fetch_opened_slots_since
+
+Signature:
+
+fetch_opened_slots_since(
+p_watermark TIMESTAMPTZ,
+p_lookback_minutes INT
+) RETURNS SETOF slot_states
+
+Rules:
+
+Uses database now()
+
+Filters:
+
+first_seen > p_watermark
+
+last_seen > now() minus p_lookback_minutes
+
+Orders by first_seen ASC
+
+Implementation Pattern
+
+All functions follow:
+
+Call getSupabaseClient()
+
+Throw on error with context
+
+Return null for not found
+
+Return [] for empty lists
+
+Do not log or swallow errors
+
+Verification
+
+TypeScript builds clean
+
+No business logic in db layer
+
+No hardcoded time windows
+
+Database time used for locks and slot availability
+
+No N plus 1 query patterns in dispatcher usage
+
+This version is canonical.
 
 Section 3 Target window matcher
 
