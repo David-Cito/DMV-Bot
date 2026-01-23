@@ -1,5 +1,5 @@
 // Database operations for customers
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 5.1
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 5.1
 
 import type { Customer } from '../core/types';
 import { getSupabaseClient } from './supabase_client';
@@ -80,3 +80,4 @@ export async function upsertCustomer(params: {
     created_at: new Date(data.created_at),
   };
 }
+

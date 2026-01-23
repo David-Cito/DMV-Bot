@@ -1,5 +1,5 @@
 // Database operations for booking_attempts
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.2
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.2
 
 import type { BookingAttempt, BookingAttemptResult } from '../core/types';
 import { getSupabaseClient } from './supabase_client';
@@ -90,3 +90,4 @@ export async function fetchBookingAttemptsByCustomer(
     dispatcher_run_id: row.dispatcher_run_id,
   }));
 }
+

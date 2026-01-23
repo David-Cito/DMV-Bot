@@ -1,5 +1,5 @@
 // Database operations for user_target_window_selections
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 5.3
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 5.3
 
 import type { UserTargetWindowSelection } from '../core/types';
 import { getSupabaseClient } from './supabase_client';
@@ -65,3 +65,4 @@ export async function upsertUserSelection(
     updated_at: new Date(data.updated_at),
   };
 }
+

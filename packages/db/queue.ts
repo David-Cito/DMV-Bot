@@ -1,5 +1,5 @@
 // Database operations for queue_entries
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 5 and 8
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 5 and 8
 
 import type { QueueEntry } from '../core/types';
 import { getSupabaseClient } from './supabase_client';
@@ -133,3 +133,4 @@ function mapRowToQueueEntry(row: Record<string, unknown>): QueueEntry {
     booked_slot_datetime: row.booked_slot_datetime ? new Date(row.booked_slot_datetime as string) : null,
   };
 }
+

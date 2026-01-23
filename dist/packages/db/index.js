@@ -1,6 +1,6 @@
 "use strict";
 // Database module exports
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);

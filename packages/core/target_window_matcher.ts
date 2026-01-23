@@ -1,5 +1,5 @@
 // Target window matcher
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 7
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 7
 
 import type {
   DateHorizonPreset,
@@ -163,3 +163,4 @@ function parseTimeToSeconds(value?: string): number | null {
   }
   return toSeconds(hours, minutes, seconds);
 }
+

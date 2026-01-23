@@ -1,5 +1,5 @@
 // Database module exports
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
 
 export * from './supabase_client';
 export * from './presets';
@@ -13,3 +13,4 @@ export * from './attempts';
 export * from './messages';
 export * from './watermarks';
 export * from './batch';
+

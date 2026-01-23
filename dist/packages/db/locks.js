@@ -1,6 +1,6 @@
 "use strict";
 // Database operations for booking_locks
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.3
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.3
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.acquireLock = acquireLock;
 exports.releaseLock = releaseLock;

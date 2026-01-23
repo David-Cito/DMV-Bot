@@ -1,6 +1,6 @@
 "use strict";
 // Supabase client initialization
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 12
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 12
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSupabaseClient = getSupabaseClient;
 const supabase_js_1 = require("@supabase/supabase-js");

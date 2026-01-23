@@ -1,6 +1,6 @@
 "use strict";
 // Database operations for queue_watermarks
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.1
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.1
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchWatermark = fetchWatermark;
 exports.updateWatermark = updateWatermark;

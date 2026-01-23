@@ -1,6 +1,6 @@
 "use strict";
 // Database operations for slot_states (read-only from existing monitoring tables)
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 9
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 9
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchOpenedSlotsSinceWatermark = fetchOpenedSlotsSinceWatermark;
 const supabase_client_1 = require("./supabase_client");

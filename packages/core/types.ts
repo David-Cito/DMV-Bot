@@ -1,5 +1,5 @@
 // Shared types for queue and target window system
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
 
 // Preset types (Section 4)
 export type PresetType = 'date_horizon' | 'time_block' | 'weekday_rule';
@@ -145,3 +145,4 @@ export interface SlotState {
   first_seen: Date;
   last_seen: Date;
 }
+

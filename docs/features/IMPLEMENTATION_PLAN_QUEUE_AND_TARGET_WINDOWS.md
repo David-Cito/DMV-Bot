@@ -1,4 +1,4 @@
-CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
 1. Objective
 
 Build a queue based managed booking system on top of the existing Supabase monitoring backend.
@@ -789,9 +789,9 @@ Uses secrets for SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
 
 Prints the summary logs
 
-14. Implementation sections for Claude
+14. Implementation sections for Planner
 
-Claude must implement in the exact order below and stop at the end of each section.
+Planner must implement in the exact order below and stop at the end of each section.
 
 Section 1 Database migration
 
@@ -1275,7 +1275,7 @@ Booking is a stub until dispatcher stability is proven
 
 Payments integration is out of scope for dispatcher MVP, but the dispatcher respects deposit_status
 
-16. What Claude should not do
+16. What Planner should not do
 
 Do not modify existing monitoring tables
 
@@ -1287,7 +1287,7 @@ Do not add complex scheduling UI logic
 
 Do not include exact slot times in opportunity passed messages
 
-17. How to implement with Claude
+17. How to implement with Planner
 
 Work section by section.
 
@@ -1300,3 +1300,4 @@ confirm acceptance criteria
 commit changes
 
 Only then move to the next section.
+

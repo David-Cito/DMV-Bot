@@ -1,5 +1,5 @@
 // Database operations for booking_locks
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.3
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.3
 
 import type { BookingLock } from '../core/types';
 import { getSupabaseClient } from './supabase_client';
@@ -75,3 +75,4 @@ export async function fetchLock(lockKey: string): Promise<BookingLock | null> {
     owner_run_id: data.owner_run_id,
   };
 }
+

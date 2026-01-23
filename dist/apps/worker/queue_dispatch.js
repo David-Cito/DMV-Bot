@@ -1,6 +1,6 @@
 "use strict";
 // Queue dispatcher implementation
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 10
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 10
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runDispatcher = runDispatcher;
 const crypto_1 = require("crypto");

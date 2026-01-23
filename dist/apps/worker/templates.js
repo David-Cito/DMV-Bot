@@ -1,6 +1,6 @@
 "use strict";
 // Message templates
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 11
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 11
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDepositNeededMessage = getDepositNeededMessage;
 exports.getBookedMessage = getBookedMessage;

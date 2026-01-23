@@ -1,5 +1,5 @@
 // Database operations for user_location_preferences and locations
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 5.4
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 5.4
 
 import type { Location, UserLocationPreference } from '../core/types';
 import { getSupabaseClient } from './supabase_client';
@@ -125,3 +125,4 @@ export async function removeUserLocationPreference(
     throw new Error(`Failed to remove location preference for customer ${customerId}: ${error.message}`);
   }
 }
+

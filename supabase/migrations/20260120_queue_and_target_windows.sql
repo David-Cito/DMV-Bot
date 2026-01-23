@@ -1,5 +1,5 @@
 -- Migration: Queue and Target Windows System
--- See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+-- See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
 -- This migration creates all new tables for the queue-based managed booking system.
 -- It does NOT modify any existing monitoring tables.
 
@@ -264,3 +264,4 @@ AS $$
         AND time IS NOT NULL
     ORDER BY first_seen ASC;
 $$;
+

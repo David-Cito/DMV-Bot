@@ -1,5 +1,5 @@
 // Batch database operations to avoid N+1 queries
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
 
 import type { Customer, UserTargetWindowSelection } from '../core/types';
 import { getSupabaseClient } from './supabase_client';
@@ -76,3 +76,4 @@ export async function fetchCustomersByIds(
 
   return result;
 }
+

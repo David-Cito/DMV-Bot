@@ -1,5 +1,5 @@
 // Supabase client initialization
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 12
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 12
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
@@ -19,3 +19,4 @@ export function getSupabaseClient(): SupabaseClient {
 
   return supabaseClient;
 }
+

@@ -1,6 +1,6 @@
 "use strict";
 // Database operations for target_window_presets
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 4
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 4
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchActivePresetsByType = fetchActivePresetsByType;
 exports.fetchPresetByKey = fetchPresetByKey;

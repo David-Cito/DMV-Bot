@@ -1,6 +1,6 @@
 "use strict";
 // Slot key utilities for building lock keys
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildSlotKey = buildSlotKey;
 /**

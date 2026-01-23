@@ -1,5 +1,5 @@
 // Message templates
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 11
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 11
 
 import type { MessageLogEntry, MessageType } from '../../packages/core';
 import { insertMessageWithDedupe } from '../../packages/db';
@@ -72,3 +72,4 @@ function formatHonoluluDateTime(dateTime: Date): string {
   });
   return `${formatter.format(dateTime)} HST`;
 }
+

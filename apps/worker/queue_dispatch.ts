@@ -1,5 +1,5 @@
 // Queue dispatcher implementation
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 10
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 10
 
 import { randomUUID } from 'crypto';
 
@@ -297,3 +297,4 @@ async function getLocationName(
   cache.set(locationId, name);
   return name;
 }
+

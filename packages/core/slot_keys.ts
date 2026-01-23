@@ -1,5 +1,5 @@
 // Slot key utilities for building lock keys
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
 
 /**
  * Builds a slot key from location ID, date, and time.
@@ -30,3 +30,4 @@ function normalizeTimeToHHMMSS(time: string): string {
 
   return `${hours}:${minutes}:${seconds}`;
 }
+

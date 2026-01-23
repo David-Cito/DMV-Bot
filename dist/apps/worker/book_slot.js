@@ -1,6 +1,6 @@
 "use strict";
 // Booking slot stub
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 10
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 10
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bookSlot = bookSlot;
 async function bookSlot(customerId, locationId, slotDatetimeUtc) {

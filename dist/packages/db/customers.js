@@ -1,6 +1,6 @@
 "use strict";
 // Database operations for customers
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 5.1
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 5.1
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchCustomerById = fetchCustomerById;
 exports.fetchCustomerByPhone = fetchCustomerByPhone;

@@ -1,5 +1,5 @@
 // Database operations for message_log
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.4 and 11
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.4 and 11
 
 import type { MessageLogEntry, MessageType } from '../core/types';
 import { getSupabaseClient } from './supabase_client';
@@ -97,3 +97,4 @@ export async function hasMessageBeenSent(dedupeKey: string): Promise<boolean> {
 
   return data !== null;
 }
+

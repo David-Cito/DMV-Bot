@@ -1,6 +1,6 @@
 "use strict";
 // Batch database operations to avoid N+1 queries
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchUserSelectionsByCustomerIds = fetchUserSelectionsByCustomerIds;
 exports.fetchCustomersByIds = fetchCustomersByIds;

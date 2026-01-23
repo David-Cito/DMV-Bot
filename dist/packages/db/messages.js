@@ -1,6 +1,6 @@
 "use strict";
 // Database operations for message_log
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.4 and 11
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.4 and 11
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertMessageWithDedupe = insertMessageWithDedupe;
 exports.fetchMessagesByCustomer = fetchMessagesByCustomer;

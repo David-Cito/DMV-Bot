@@ -1,6 +1,6 @@
 "use strict";
 // Database operations for booking_attempts
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.2
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.2
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertBookingAttempt = insertBookingAttempt;
 exports.fetchBookingAttemptsByCustomer = fetchBookingAttemptsByCustomer;

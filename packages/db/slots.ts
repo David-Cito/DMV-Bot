@@ -1,5 +1,5 @@
 // Database operations for slot_states (read-only from existing monitoring tables)
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 9
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 9
 
 import type { SlotState } from '../core/types';
 import { getSupabaseClient } from './supabase_client';
@@ -69,3 +69,4 @@ function normalizeTimeToHHMMSS(time: string): string {
 
   return `${hours}:${minutes}:${seconds}`;
 }
+

@@ -1,5 +1,5 @@
 // Database operations for target_window_presets
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 4
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 4
 
 import type { PresetType, TargetWindowPreset } from '../core/types';
 import { getSupabaseClient } from './supabase_client';
@@ -62,3 +62,4 @@ function mapRowToPreset(row: Record<string, unknown>): TargetWindowPreset {
   // Return with proper typing based on preset_type
   return base as TargetWindowPreset;
 }
+

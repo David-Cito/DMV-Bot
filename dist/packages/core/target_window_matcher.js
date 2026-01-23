@@ -1,6 +1,6 @@
 "use strict";
 // Target window matcher
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 7
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 7
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.matchesTargetWindow = matchesTargetWindow;
 function matchesTargetWindow(input) {

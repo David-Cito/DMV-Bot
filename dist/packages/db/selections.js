@@ -1,6 +1,6 @@
 "use strict";
 // Database operations for user_target_window_selections
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 5.3
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 5.3
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchUserSelection = fetchUserSelection;
 exports.upsertUserSelection = upsertUserSelection;

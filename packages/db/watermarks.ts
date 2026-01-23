@@ -1,5 +1,5 @@
 // Database operations for queue_watermarks
-// See CLAUDE_IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.1
+// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md Section 6.1
 
 import type { QueueWatermark } from '../core/types';
 import { getSupabaseClient } from './supabase_client';
@@ -40,3 +40,4 @@ export async function updateWatermark(key: string, lastProcessedAt: Date): Promi
     throw new Error(`Failed to update watermark ${key}: ${error.message}`);
   }
 }
+
