@@ -1,8 +1,6 @@
 name: Queue Dispatch
 
 on:
-  schedule:
-    - cron: "* * * * *"
   workflow_dispatch:
 
 jobs:
