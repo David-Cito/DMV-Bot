@@ -30,4 +30,4 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: node -e "import('./dist/apps/worker/queue_dispatch.js').then(m => m.runDispatcher())"
+        run: npm run dispatch

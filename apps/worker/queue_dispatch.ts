@@ -20,7 +20,13 @@ import {
   fetchLocationById,
 } from '../../packages/db';
 import { buildSlotKey, matchesTargetWindow } from '../../packages/core';
-import type { TimeBlockPreset, UserTargetWindowSelection } from '../../packages/core';
+import type {
+  DateHorizonPreset,
+  TargetWindowPreset,
+  TimeBlockPreset,
+  UserTargetWindowSelection,
+  WeekdayRulePreset,
+} from '../../packages/core';
 import { bookSlot } from './book_slot';
 import {
   getBookedMessage,
@@ -130,9 +136,15 @@ export async function runDispatcher(): Promise<void> {
       const weekdayPreset = weekdayPresetByKey.get(selection.weekday_rule_key);
       const blockPresets = selection.time_block_keys
         .map((key) => timePresetByKey.get(key))
-        .filter(Boolean) as TimeBlockPreset[];
+        .filter(isTimeBlockPreset);
 
-      if (!datePreset || !weekdayPreset || blockPresets.length === 0) {
+      if (
+        !datePreset ||
+        !weekdayPreset ||
+        !isDateHorizonPreset(datePreset) ||
+        !isWeekdayRulePreset(weekdayPreset) ||
+        blockPresets.length === 0
+      ) {
         continue;
       }
 
@@ -239,6 +251,18 @@ export async function runDispatcher(): Promise<void> {
 
 function indexPresets<T extends { key: string }>(presets: T[]): Map<string, T> {
   return new Map(presets.map((preset) => [preset.key, preset]));
+}
+
+function isDateHorizonPreset(preset: TargetWindowPreset): preset is DateHorizonPreset {
+  return preset.preset_type === 'date_horizon';
+}
+
+function isWeekdayRulePreset(preset: TargetWindowPreset): preset is WeekdayRulePreset {
+  return preset.preset_type === 'weekday_rule';
+}
+
+function isTimeBlockPreset(preset: TargetWindowPreset | undefined): preset is TimeBlockPreset {
+  return !!preset && preset.preset_type === 'time_block';
 }
 
 function buildSlotDatetimeUtc(slotDate: string, slotTime: string): Date | null {

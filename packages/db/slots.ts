@@ -34,11 +34,11 @@ export async function fetchOpenedSlotsSinceWatermark(
   }
 
   return (data || [])
-    .filter((row) => row.date && row.time)
-    .map((row) => ({
+    .filter((row: any) => row.slot_date && row.slot_time)
+    .map((row: any) => ({
       location_id: row.location_id,
-      slot_date: row.date,
-      slot_time: normalizeTimeToHHMMSS(row.time),
+      slot_date: row.slot_date,
+      slot_time: normalizeTimeToHHMMSS(row.slot_time),
       first_seen: new Date(row.first_seen),
       last_seen: new Date(row.last_seen),
     }));

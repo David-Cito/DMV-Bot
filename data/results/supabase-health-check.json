@@ -1,424 +1,1963 @@
 {
-  "run_at": "2026-01-20T03:54:39.256Z",
+  "run_at": "2026-01-23T06:00:05.139Z",
   "report": {
     "tables": [
       {
         "name": "locations",
         "ok": true,
-        "sample": {
-          "id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
-          "name": "Pearlridge Satellite City Hall",
-          "created_at": "2026-01-17T17:28:42.57042+00:00"
-        }
+        "samples": [
+          {
+            "id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "name": "Pearlridge Satellite City Hall",
+            "created_at": "2026-01-17T17:28:42.57042+00:00"
+          },
+          {
+            "id": "7fac0628-097d-4c3b-8a58-2f88dd386626",
+            "name": "Windward City Satellite City Hall",
+            "created_at": "2026-01-17T17:28:42.57042+00:00"
+          },
+          {
+            "id": "ef0bad1e-4dd3-4027-9a43-f96354f48e77",
+            "name": "Downtown Satellite City Hall",
+            "created_at": "2026-01-17T17:28:42.57042+00:00"
+          }
+        ]
       },
       {
         "name": "runs",
         "ok": true,
-        "sample": {
-          "id": "0f9eefd2-cd9b-49f1-8e82-6ee955f53933",
-          "run_at": "2026-01-20T03:53:04.9+00:00",
-          "source": "github-actions"
-        }
+        "samples": [
+          {
+            "id": "33afdb3c-1c33-4b64-9218-b93b416ff77e",
+            "run_at": "2026-01-19T02:41:09.196+00:00",
+            "source": "github-actions"
+          },
+          {
+            "id": "d82bf80d-50a1-44c7-95c8-cef3b88e4872",
+            "run_at": "2026-01-19T02:42:20.925+00:00",
+            "source": "github-actions"
+          },
+          {
+            "id": "12efa50f-11d8-4e3f-8abe-f07f3c406550",
+            "run_at": "2026-01-19T02:43:32.55+00:00",
+            "source": "github-actions"
+          }
+        ]
       },
       {
         "name": "day_snapshots",
         "ok": true,
-        "sample": {
-          "id": "50c0eddb-00fe-4a11-b320-6042a823db60",
-          "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
-          "captured_at": "2026-01-20T03:53:04.9+00:00",
-          "date": "2026-02-10",
-          "slots": [
-            {
-              "text": "11:00 AM",
-              "dataVal": "2026-02-10 11:00:00"
-            }
-          ],
-          "created_at": "2026-01-20T03:53:16.123758+00:00"
-        }
+        "samples": [
+          {
+            "id": "6c60c19a-3c35-4f00-93f5-9b9a5da36924",
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "captured_at": "2026-01-19T02:41:09.196+00:00",
+            "date": "2026-03-12",
+            "slots": [
+              {
+                "text": "2:30 PM",
+                "dataVal": "2026-03-12 14:30:00"
+              },
+              {
+                "text": "2:45 PM",
+                "dataVal": "2026-03-12 14:45:00"
+              },
+              {
+                "text": "3:15 PM",
+                "dataVal": "2026-03-12 15:15:00"
+              },
+              {
+                "text": "3:30 PM",
+                "dataVal": "2026-03-12 15:30:00"
+              },
+              {
+                "text": "3:45 PM",
+                "dataVal": "2026-03-12 15:45:00"
+              },
+              {
+                "text": "4:00 PM",
+                "dataVal": "2026-03-12 16:00:00"
+              },
+              {
+                "text": "4:15 PM",
+                "dataVal": "2026-03-12 16:15:00"
+              },
+              {
+                "text": "4:30 PM",
+                "dataVal": "2026-03-12 16:30:00"
+              }
+            ],
+            "created_at": "2026-01-19T02:41:21.167646+00:00"
+          },
+          {
+            "id": "5a1f1cd8-8888-46d8-9d83-d2f7ebb19f2c",
+            "location_id": "7fac0628-097d-4c3b-8a58-2f88dd386626",
+            "captured_at": "2026-01-19T02:41:09.196+00:00",
+            "date": "2026-03-10",
+            "slots": [
+              {
+                "text": "9:45 AM",
+                "dataVal": "2026-03-10 09:45:00"
+              },
+              {
+                "text": "2:15 PM",
+                "dataVal": "2026-03-10 14:15:00"
+              },
+              {
+                "text": "2:30 PM",
+                "dataVal": "2026-03-10 14:30:00"
+              },
+              {
+                "text": "2:45 PM",
+                "dataVal": "2026-03-10 14:45:00"
+              },
+              {
+                "text": "3:00 PM",
+                "dataVal": "2026-03-10 15:00:00"
+              },
+              {
+                "text": "3:15 PM",
+                "dataVal": "2026-03-10 15:15:00"
+              }
+            ],
+            "created_at": "2026-01-19T02:41:21.167646+00:00"
+          },
+          {
+            "id": "f49f4155-856f-460f-a82e-11a220a5caa3",
+            "location_id": "ef0bad1e-4dd3-4027-9a43-f96354f48e77",
+            "captured_at": "2026-01-19T02:41:09.196+00:00",
+            "date": "2026-03-09",
+            "slots": [
+              {
+                "text": "10:30 AM",
+                "dataVal": "2026-03-09 10:30:00"
+              },
+              {
+                "text": "11:15 AM",
+                "dataVal": "2026-03-09 11:15:00"
+              },
+              {
+                "text": "11:45 AM",
+                "dataVal": "2026-03-09 11:45:00"
+              },
+              {
+                "text": "12:00 PM",
+                "dataVal": "2026-03-09 12:00:00"
+              },
+              {
+                "text": "12:15 PM",
+                "dataVal": "2026-03-09 12:15:00"
+              },
+              {
+                "text": "12:45 PM",
+                "dataVal": "2026-03-09 12:45:00"
+              },
+              {
+                "text": "1:00 PM",
+                "dataVal": "2026-03-09 13:00:00"
+              },
+              {
+                "text": "1:30 PM",
+                "dataVal": "2026-03-09 13:30:00"
+              },
+              {
+                "text": "1:45 PM",
+                "dataVal": "2026-03-09 13:45:00"
+              },
+              {
+                "text": "2:00 PM",
+                "dataVal": "2026-03-09 14:00:00"
+              },
+              {
+                "text": "2:15 PM",
+                "dataVal": "2026-03-09 14:15:00"
+              },
+              {
+                "text": "2:30 PM",
+                "dataVal": "2026-03-09 14:30:00"
+              },
+              {
+                "text": "2:45 PM",
+                "dataVal": "2026-03-09 14:45:00"
+              },
+              {
+                "text": "3:15 PM",
+                "dataVal": "2026-03-09 15:15:00"
+              }
+            ],
+            "created_at": "2026-01-19T02:41:21.167646+00:00"
+          }
+        ]
       },
       {
         "name": "slot_states",
         "ok": true,
-        "sample": {
-          "location_id": "b28aa461-a804-4d2a-b9ad-e7a3a6853eb1",
-          "date": "2026-04-30",
-          "time": "14:00:00",
-          "first_seen": "2026-01-19T02:41:09.196+00:00",
-          "last_seen": "2026-01-20T03:53:04.9+00:00"
-        }
+        "samples": [
+          {
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "date": "2026-02-11",
+            "time": "15:30:00",
+            "first_seen": "2026-01-20T23:29:03.942+00:00",
+            "last_seen": "2026-01-20T23:35:04.531+00:00"
+          },
+          {
+            "location_id": "7fac0628-097d-4c3b-8a58-2f88dd386626",
+            "date": "2026-01-21",
+            "time": "09:15:00",
+            "first_seen": "2026-01-21T11:18:49.312+00:00",
+            "last_seen": "2026-01-21T12:36:50.036+00:00"
+          },
+          {
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "date": "2026-02-12",
+            "time": "16:30:00",
+            "first_seen": "2026-01-20T06:29:06.336+00:00",
+            "last_seen": "2026-01-20T07:05:06.009+00:00"
+          }
+        ]
       },
       {
         "name": "run_slot_counts",
         "ok": true,
-        "sample": {
-          "run_at": "2026-01-20T03:53:04.9+00:00",
-          "location_id": "ef0bad1e-4dd3-4027-9a43-f96354f48e77",
-          "slots_total": 402
-        }
+        "samples": [
+          {
+            "run_at": "2026-01-19T02:41:09.196+00:00",
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "slots_total": 275
+          },
+          {
+            "run_at": "2026-01-19T02:41:09.196+00:00",
+            "location_id": "7fac0628-097d-4c3b-8a58-2f88dd386626",
+            "slots_total": 271
+          },
+          {
+            "run_at": "2026-01-19T02:41:09.196+00:00",
+            "location_id": "ef0bad1e-4dd3-4027-9a43-f96354f48e77",
+            "slots_total": 431
+          }
+        ]
       },
       {
         "name": "analysis_runs",
         "ok": true,
-        "sample": {
-          "id": 6,
-          "job_type": "six_hour",
-          "run_at": "2026-01-19T22:26:24.536+00:00",
-          "window_start": "2026-01-19T16:26:24.536+00:00",
-          "window_end": "2026-01-19T22:26:24.536+00:00",
-          "metrics_json": {
-            "window_end": "2026-01-19T22:26:24.536Z",
-            "per_location": [
-              {
-                "windows": {
-                  "1": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
+        "samples": [
+          {
+            "id": 1,
+            "job_type": "six_hour",
+            "run_at": "2026-01-20T04:50:01.655+00:00",
+            "window_start": "2026-01-19T22:50:01.655+00:00",
+            "window_end": "2026-01-20T04:50:01.655+00:00",
+            "metrics_json": {
+              "window_end": "2026-01-20T04:50:01.655Z",
+              "per_location": [
+                {
+                  "windows": {
+                    "1": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "3": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "30": {
+                      "hit_rate": 0.0333,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "60": {
+                      "hit_rate": 1,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
                   },
-                  "3": {
-                    "hit_rate": 0.0056,
-                    "new_count": 1,
-                    "avg_duration_min": 0,
-                    "burstiness_ratio": 6,
-                    "median_duration_min": 0
-                  },
-                  "7": {
-                    "hit_rate": 0.0056,
-                    "new_count": 1,
-                    "avg_duration_min": 0,
-                    "burstiness_ratio": 6,
-                    "median_duration_min": 0
-                  },
-                  "14": {
-                    "hit_rate": 0.0056,
-                    "new_count": 1,
-                    "avg_duration_min": 0,
-                    "burstiness_ratio": 6,
-                    "median_duration_min": 0
-                  },
-                  "30": {
-                    "hit_rate": 0.0056,
-                    "new_count": 1,
-                    "avg_duration_min": 0,
-                    "burstiness_ratio": 6,
-                    "median_duration_min": 0
-                  },
-                  "60": {
-                    "hit_rate": 1,
-                    "new_count": 1,
-                    "avg_duration_min": 0,
-                    "burstiness_ratio": 6,
-                    "median_duration_min": 0
+                  "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+                  "location_name": "Pearlridge Satellite City Hall",
+                  "exclusive_windows": {
+                    "0-7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "8-14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "15-30": {
+                      "hit_rate": 0.0333,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "31-60": {
+                      "hit_rate": 0.9667,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
                   }
                 },
-                "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
-                "location_name": "Pearlridge Satellite City Hall"
+                {
+                  "windows": {
+                    "1": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "3": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "7": {
+                      "hit_rate": 0.0056,
+                      "new_count": 1,
+                      "avg_duration_min": 0,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 0
+                    },
+                    "14": {
+                      "hit_rate": 0.1056,
+                      "new_count": 1,
+                      "avg_duration_min": 0,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 0
+                    },
+                    "30": {
+                      "hit_rate": 0.1778,
+                      "new_count": 1,
+                      "avg_duration_min": 0,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 0
+                    },
+                    "60": {
+                      "hit_rate": 1,
+                      "new_count": 1,
+                      "avg_duration_min": 0,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 0
+                    }
+                  },
+                  "location_id": "7fac0628-097d-4c3b-8a58-2f88dd386626",
+                  "location_name": "Windward City Satellite City Hall",
+                  "exclusive_windows": {
+                    "0-7": {
+                      "hit_rate": 0.0056,
+                      "new_count": 1,
+                      "avg_duration_min": 0,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 0
+                    },
+                    "8-14": {
+                      "hit_rate": 0.1,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "15-30": {
+                      "hit_rate": 0.0722,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "31-60": {
+                      "hit_rate": 0.8222,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  }
+                },
+                {
+                  "windows": {
+                    "1": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "3": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "30": {
+                      "hit_rate": 0.0335,
+                      "new_count": 1,
+                      "avg_duration_min": 9.936916666666667,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 9.936916666666667
+                    },
+                    "60": {
+                      "hit_rate": 1,
+                      "new_count": 1,
+                      "avg_duration_min": 9.936916666666667,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 9.936916666666667
+                    }
+                  },
+                  "location_id": "ef0bad1e-4dd3-4027-9a43-f96354f48e77",
+                  "location_name": "Downtown Satellite City Hall",
+                  "exclusive_windows": {
+                    "0-7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "8-14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "15-30": {
+                      "hit_rate": 0.0335,
+                      "new_count": 1,
+                      "avg_duration_min": 9.936916666666667,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 9.936916666666667
+                    },
+                    "31-60": {
+                      "hit_rate": 0.9665,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  }
+                },
+                {
+                  "windows": {
+                    "1": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "3": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "30": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "60": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  },
+                  "location_id": "b28aa461-a804-4d2a-b9ad-e7a3a6853eb1",
+                  "location_name": "Hawaii Kai Satellite City Hall",
+                  "exclusive_windows": {
+                    "0-7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "8-14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "15-30": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "31-60": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  }
+                }
+              ],
+              "window_start": "2026-01-19T22:50:01.655Z",
+              "totals_by_window": {
+                "1": {
+                  "new_count": 0,
+                  "avg_duration_min": null,
+                  "median_duration_min": null
+                },
+                "3": {
+                  "new_count": 0,
+                  "avg_duration_min": null,
+                  "median_duration_min": null
+                },
+                "7": {
+                  "new_count": 1,
+                  "avg_duration_min": 0,
+                  "median_duration_min": 0
+                },
+                "14": {
+                  "new_count": 1,
+                  "avg_duration_min": 0,
+                  "median_duration_min": 0
+                },
+                "30": {
+                  "new_count": 2,
+                  "avg_duration_min": 4.968458333333333,
+                  "median_duration_min": 0
+                },
+                "60": {
+                  "new_count": 2,
+                  "avg_duration_min": 4.968458333333333,
+                  "median_duration_min": 0
+                }
               },
-              {
-                "windows": {
-                  "1": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
-                  },
-                  "3": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
-                  },
-                  "7": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
-                  },
-                  "14": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
-                  },
-                  "30": {
-                    "hit_rate": 0.0056,
-                    "new_count": 1,
-                    "avg_duration_min": 0,
-                    "burstiness_ratio": 6,
-                    "median_duration_min": 0
-                  },
-                  "60": {
-                    "hit_rate": 1,
-                    "new_count": 1,
-                    "avg_duration_min": 0,
-                    "burstiness_ratio": 6,
-                    "median_duration_min": 0
-                  }
+              "totals_by_exclusive": {
+                "0-7": {
+                  "new_count": 1,
+                  "avg_duration_min": 0,
+                  "median_duration_min": 0
                 },
-                "location_id": "7fac0628-097d-4c3b-8a58-2f88dd386626",
-                "location_name": "Windward City Satellite City Hall"
-              },
-              {
-                "windows": {
-                  "1": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
-                  },
-                  "3": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
-                  },
-                  "7": {
-                    "hit_rate": 0.0225,
-                    "new_count": 1,
-                    "avg_duration_min": 5.953366666666667,
-                    "burstiness_ratio": 6,
-                    "median_duration_min": 5.953366666666667
-                  },
-                  "14": {
-                    "hit_rate": 0.0225,
-                    "new_count": 1,
-                    "avg_duration_min": 5.953366666666667,
-                    "burstiness_ratio": 6,
-                    "median_duration_min": 5.953366666666667
-                  },
-                  "30": {
-                    "hit_rate": 0.0225,
-                    "new_count": 1,
-                    "avg_duration_min": 5.953366666666667,
-                    "burstiness_ratio": 6,
-                    "median_duration_min": 5.953366666666667
-                  },
-                  "60": {
-                    "hit_rate": 1,
-                    "new_count": 1,
-                    "avg_duration_min": 5.953366666666667,
-                    "burstiness_ratio": 6,
-                    "median_duration_min": 5.953366666666667
-                  }
+                "8-14": {
+                  "new_count": 0,
+                  "avg_duration_min": null,
+                  "median_duration_min": null
                 },
-                "location_id": "ef0bad1e-4dd3-4027-9a43-f96354f48e77",
-                "location_name": "Downtown Satellite City Hall"
-              },
-              {
-                "windows": {
-                  "1": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
-                  },
-                  "3": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
-                  },
-                  "7": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
-                  },
-                  "14": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
-                  },
-                  "30": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
-                  },
-                  "60": {
-                    "hit_rate": 0,
-                    "new_count": 0,
-                    "avg_duration_min": null,
-                    "burstiness_ratio": null,
-                    "median_duration_min": null
-                  }
+                "15-30": {
+                  "new_count": 1,
+                  "avg_duration_min": 9.936916666666667,
+                  "median_duration_min": 9.936916666666667
                 },
-                "location_id": "b28aa461-a804-4d2a-b9ad-e7a3a6853eb1",
-                "location_name": "Hawaii Kai Satellite City Hall"
+                "31-60": {
+                  "new_count": 0,
+                  "avg_duration_min": null,
+                  "median_duration_min": null
+                }
               }
-            ],
-            "window_start": "2026-01-19T16:26:24.536Z",
-            "totals_by_window": {
-              "1": {
-                "new_count": 0,
-                "avg_duration_min": null,
-                "median_duration_min": null
-              },
-              "3": {
-                "new_count": 1,
-                "avg_duration_min": 0,
-                "median_duration_min": 0
-              },
-              "7": {
-                "new_count": 2,
-                "avg_duration_min": 2.9766833333333333,
-                "median_duration_min": 0
-              },
-              "14": {
-                "new_count": 2,
-                "avg_duration_min": 2.9766833333333333,
-                "median_duration_min": 0
-              },
-              "30": {
-                "new_count": 3,
-                "avg_duration_min": 1.9844555555555556,
-                "median_duration_min": 0
-              },
-              "60": {
-                "new_count": 3,
-                "avg_duration_min": 1.9844555555555556,
-                "median_duration_min": 0
-              }
-            }
+            },
+            "summary_text": "6-Hour Summary\nWindow: Jan 19, 2026, 12:50 PM HST - Jan 19, 2026, 6:50 PM HST\nExclusive ranges (all locations):\n0-7 days: new 1 | avg 0.0m | median 0.0m\n8-14 days: new 0 | avg n/a | median n/a\n15-30 days: new 1 | avg 9.9m | median 9.9m\n31-60 days: new 0 | avg n/a | median n/a\n\nExclusive ranges (per location):\n\n0-7 days:\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nWindward City Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\n8-14 days:\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 10.0% | burst n/a\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\n15-30 days:\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 3.3% | burst n/a\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 7.2% | burst n/a\nDowntown Satellite City Hall: 1 new | avg 9.9m | median 9.9m | hit 3.4% | burst 6.0x\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\n31-60 days:\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 96.7% | burst n/a\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 82.2% | burst n/a\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 96.7% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nHow to read:\n- Higher new count = higher short-term demand.\n- avg = average availability duration in minutes (last_seen - first_seen).\n- med = median availability duration in minutes.\n- Shorter med = higher competition.\n- Lower hit = queue needs faster checks.\n- burst = max hourly new slots / avg hourly new slots.",
+            "summary_html": "<h2>6-Hour Summary</h2>\n<p><strong>Window:</strong> Jan 19, 2026, 12:50 PM HST - Jan 19, 2026, 6:50 PM HST</p>\n<h3>Exclusive ranges (all locations)</h3>\n<ul>\n<li><strong>0-7 days</strong>: new 1 | avg 0.0m | median 0.0m</li>\n<li><strong>8-14 days</strong>: new 0 | avg n/a | median n/a</li>\n<li><strong>15-30 days</strong>: new 1 | avg 9.9m | median 9.9m</li>\n<li><strong>31-60 days</strong>: new 0 | avg n/a | median n/a</li>\n</ul>\n<h3>Exclusive ranges (per location)</h3>\n<h4>0-7 days</h4>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h4>8-14 days</h4>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 10.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h4>15-30 days</h4>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 3.3% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 7.2% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 1 new | avg 9.9m | median 9.9m | hit 3.4% | burst 6.0x</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h4>31-60 days</h4>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 96.7% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 82.2% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 96.7% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>How to read</h3><ul>\n<li>Higher new count = higher short-term demand.</li>\n<li>avg = average availability duration in minutes (last_seen - first_seen).</li>\n<li>med = median availability duration in minutes.</li>\n<li>Shorter med = higher competition.</li>\n<li>Lower hit = queue needs faster checks.</li>\n<li>burst = max hourly new slots / avg hourly new slots.</li>\n</ul>"
           },
-          "summary_text": "6-Hour Summary\nWindow: Jan 19, 2026, 6:26 AM HST - Jan 19, 2026, 12:26 PM HST\n\nWithin 1 day:\nNew (all locations): 0\nAverage availability duration: n/a\nMedian availability duration: n/a\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 3 days:\nNew (all locations): 1\nAverage availability duration: 0.0m\nMedian availability duration: 0.0m\nPearlridge Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 7 days:\nNew (all locations): 2\nAverage availability duration: 3.0m\nMedian availability duration: 0.0m\nPearlridge Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 1 new | avg 6.0m | median 6.0m | hit 2.3% | burst 6.0x\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 14 days:\nNew (all locations): 2\nAverage availability duration: 3.0m\nMedian availability duration: 0.0m\nPearlridge Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 1 new | avg 6.0m | median 6.0m | hit 2.3% | burst 6.0x\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 30 days:\nNew (all locations): 3\nAverage availability duration: 2.0m\nMedian availability duration: 0.0m\nPearlridge Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x\nWindward City Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x\nDowntown Satellite City Hall: 1 new | avg 6.0m | median 6.0m | hit 2.3% | burst 6.0x\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nWithin 60 days:\nNew (all locations): 3\nAverage availability duration: 2.0m\nMedian availability duration: 0.0m\nPearlridge Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 100.0% | burst 6.0x\nWindward City Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 100.0% | burst 6.0x\nDowntown Satellite City Hall: 1 new | avg 6.0m | median 6.0m | hit 100.0% | burst 6.0x\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nHow to read:\n- Higher new count = higher short-term demand.\n- Shorter median duration = higher competition.\n- Lower hit rate = queue needs faster checks.\n- Burst >2x = spiky availability; prioritize peak windows.",
-          "summary_html": "<h2>6-Hour Summary</h2>\n<p><strong>Window:</strong> Jan 19, 2026, 6:26 AM HST - Jan 19, 2026, 12:26 PM HST</p>\n<h3>Within 1 day</h3>\n<p><strong>New (all locations):</strong> 0</p>\n<p><strong>Average availability duration:</strong> n/a</p>\n<p><strong>Median availability duration:</strong> n/a</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 3 days</h3>\n<p><strong>New (all locations):</strong> 1</p>\n<p><strong>Average availability duration:</strong> 0.0m</p>\n<p><strong>Median availability duration:</strong> 0.0m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 7 days</h3>\n<p><strong>New (all locations):</strong> 2</p>\n<p><strong>Average availability duration:</strong> 3.0m</p>\n<p><strong>Median availability duration:</strong> 0.0m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 1 new | avg 6.0m | median 6.0m | hit 2.3% | burst 6.0x</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 14 days</h3>\n<p><strong>New (all locations):</strong> 2</p>\n<p><strong>Average availability duration:</strong> 3.0m</p>\n<p><strong>Median availability duration:</strong> 0.0m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 1 new | avg 6.0m | median 6.0m | hit 2.3% | burst 6.0x</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 30 days</h3>\n<p><strong>New (all locations):</strong> 3</p>\n<p><strong>Average availability duration:</strong> 2.0m</p>\n<p><strong>Median availability duration:</strong> 0.0m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 0.6% | burst 6.0x</li>\n<li><strong>Downtown Satellite City Hall</strong>: 1 new | avg 6.0m | median 6.0m | hit 2.3% | burst 6.0x</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>Within 60 days</h3>\n<p><strong>New (all locations):</strong> 3</p>\n<p><strong>Average availability duration:</strong> 2.0m</p>\n<p><strong>Median availability duration:</strong> 0.0m</p>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 100.0% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 100.0% | burst 6.0x</li>\n<li><strong>Downtown Satellite City Hall</strong>: 1 new | avg 6.0m | median 6.0m | hit 100.0% | burst 6.0x</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>How to read</h3><ul>\n<li>Higher new count = higher short-term demand.</li>\n<li>Shorter median duration = higher competition.</li>\n<li>Lower hit rate = queue needs faster checks.</li>\n<li>Burst &gt; 2x = spiky availability; prioritize peak windows.</li>\n</ul>"
-        }
+          {
+            "id": 2,
+            "job_type": "six_hour",
+            "run_at": "2026-01-20T10:33:18.962+00:00",
+            "window_start": "2026-01-20T04:33:18.962+00:00",
+            "window_end": "2026-01-20T10:33:18.962+00:00",
+            "metrics_json": {
+              "window_end": "2026-01-20T10:33:18.962Z",
+              "per_location": [
+                {
+                  "windows": {
+                    "1": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "3": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "7": {
+                      "hit_rate": 0.0165,
+                      "new_count": 1,
+                      "avg_duration_min": 9.04305,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 9.04305
+                    },
+                    "14": {
+                      "hit_rate": 0.0909,
+                      "new_count": 2,
+                      "avg_duration_min": 38.979274999999994,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 9.04305
+                    },
+                    "30": {
+                      "hit_rate": 0.2562,
+                      "new_count": 4,
+                      "avg_duration_min": 30.796741666666662,
+                      "burstiness_ratio": 4.5,
+                      "median_duration_min": 9.233866666666666
+                    },
+                    "60": {
+                      "hit_rate": 1,
+                      "new_count": 4,
+                      "avg_duration_min": 30.796741666666662,
+                      "burstiness_ratio": 4.5,
+                      "median_duration_min": 9.233866666666666
+                    }
+                  },
+                  "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+                  "location_name": "Pearlridge Satellite City Hall",
+                  "exclusive_windows": {
+                    "0-7": {
+                      "hit_rate": 0.0165,
+                      "new_count": 1,
+                      "avg_duration_min": 9.04305,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 9.04305
+                    },
+                    "8-14": {
+                      "hit_rate": 0.0744,
+                      "new_count": 1,
+                      "avg_duration_min": 68.9155,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 68.9155
+                    },
+                    "15-30": {
+                      "hit_rate": 0.1653,
+                      "new_count": 2,
+                      "avg_duration_min": 22.61420833333333,
+                      "burstiness_ratio": 3,
+                      "median_duration_min": 9.233866666666666
+                    },
+                    "31-60": {
+                      "hit_rate": 0.7438,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  }
+                },
+                {
+                  "windows": {
+                    "1": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "3": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "30": {
+                      "hit_rate": 0.0744,
+                      "new_count": 1,
+                      "avg_duration_min": 66.63041666666666,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 66.63041666666666
+                    },
+                    "60": {
+                      "hit_rate": 1,
+                      "new_count": 10,
+                      "avg_duration_min": 135.16955666666667,
+                      "burstiness_ratio": 5.4,
+                      "median_duration_min": 142.78501666666668
+                    }
+                  },
+                  "location_id": "7fac0628-097d-4c3b-8a58-2f88dd386626",
+                  "location_name": "Windward City Satellite City Hall",
+                  "exclusive_windows": {
+                    "0-7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "8-14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "15-30": {
+                      "hit_rate": 0.0744,
+                      "new_count": 1,
+                      "avg_duration_min": 66.63041666666666,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 66.63041666666666
+                    },
+                    "31-60": {
+                      "hit_rate": 0.9256,
+                      "new_count": 9,
+                      "avg_duration_min": 142.78501666666668,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 142.78501666666668
+                    }
+                  }
+                },
+                {
+                  "windows": {
+                    "1": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "3": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "30": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "60": {
+                      "hit_rate": 1,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  },
+                  "location_id": "ef0bad1e-4dd3-4027-9a43-f96354f48e77",
+                  "location_name": "Downtown Satellite City Hall",
+                  "exclusive_windows": {
+                    "0-7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "8-14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "15-30": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "31-60": {
+                      "hit_rate": 1,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  }
+                },
+                {
+                  "windows": {
+                    "1": {
+                      "hit_rate": 0.0083,
+                      "new_count": 1,
+                      "avg_duration_min": 0,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 0
+                    },
+                    "3": {
+                      "hit_rate": 0.0083,
+                      "new_count": 1,
+                      "avg_duration_min": 0,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 0
+                    },
+                    "7": {
+                      "hit_rate": 0.0083,
+                      "new_count": 1,
+                      "avg_duration_min": 0,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 0
+                    },
+                    "14": {
+                      "hit_rate": 0.0083,
+                      "new_count": 1,
+                      "avg_duration_min": 0,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 0
+                    },
+                    "30": {
+                      "hit_rate": 0.0083,
+                      "new_count": 1,
+                      "avg_duration_min": 0,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 0
+                    },
+                    "60": {
+                      "hit_rate": 0.0083,
+                      "new_count": 1,
+                      "avg_duration_min": 0,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 0
+                    }
+                  },
+                  "location_id": "b28aa461-a804-4d2a-b9ad-e7a3a6853eb1",
+                  "location_name": "Hawaii Kai Satellite City Hall",
+                  "exclusive_windows": {
+                    "0-7": {
+                      "hit_rate": 0.0083,
+                      "new_count": 1,
+                      "avg_duration_min": 0,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 0
+                    },
+                    "8-14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "15-30": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "31-60": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  }
+                }
+              ],
+              "window_start": "2026-01-20T04:33:18.962Z",
+              "totals_by_window": {
+                "1": {
+                  "new_count": 1,
+                  "avg_duration_min": 0,
+                  "median_duration_min": 0
+                },
+                "3": {
+                  "new_count": 1,
+                  "avg_duration_min": 0,
+                  "median_duration_min": 0
+                },
+                "7": {
+                  "new_count": 2,
+                  "avg_duration_min": 4.521525,
+                  "median_duration_min": 0
+                },
+                "14": {
+                  "new_count": 3,
+                  "avg_duration_min": 25.98618333333333,
+                  "median_duration_min": 9.04305
+                },
+                "30": {
+                  "new_count": 6,
+                  "avg_duration_min": 31.636230555555553,
+                  "median_duration_min": 9.233866666666666
+                },
+                "60": {
+                  "new_count": 15,
+                  "avg_duration_min": 98.32550222222224,
+                  "median_duration_min": 142.78501666666668
+                }
+              },
+              "totals_by_exclusive": {
+                "0-7": {
+                  "new_count": 2,
+                  "avg_duration_min": 4.521525,
+                  "median_duration_min": 0
+                },
+                "8-14": {
+                  "new_count": 1,
+                  "avg_duration_min": 68.9155,
+                  "median_duration_min": 68.9155
+                },
+                "15-30": {
+                  "new_count": 3,
+                  "avg_duration_min": 37.28627777777778,
+                  "median_duration_min": 35.99455
+                },
+                "31-60": {
+                  "new_count": 9,
+                  "avg_duration_min": 142.78501666666668,
+                  "median_duration_min": 142.78501666666668
+                }
+              }
+            },
+            "summary_text": "6-Hour Summary\nWindow: Jan 19, 2026, 6:33 PM HST - Jan 20, 2026, 12:33 AM HST\nExclusive ranges (all locations):\n0-7 days: new 2 | avg 4.5m | median 0.0m\n8-14 days: new 1 | avg 68.9m | median 68.9m\n15-30 days: new 3 | avg 37.3m | median 36.0m\n31-60 days: new 9 | avg 142.8m | median 142.8m\n\nExclusive ranges (per location):\n\n0-7 days:\nPearlridge Satellite City Hall: 1 new | avg 9.0m | median 9.0m | hit 1.7% | burst 6.0x\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 1 new | avg 0.0m | median 0.0m | hit 0.8% | burst 6.0x\n\n8-14 days:\nPearlridge Satellite City Hall: 1 new | avg 68.9m | median 68.9m | hit 7.4% | burst 6.0x\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\n15-30 days:\nPearlridge Satellite City Hall: 2 new | avg 22.6m | median 9.2m | hit 16.5% | burst 3.0x\nWindward City Satellite City Hall: 1 new | avg 66.6m | median 66.6m | hit 7.4% | burst 6.0x\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\n31-60 days:\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 74.4% | burst n/a\nWindward City Satellite City Hall: 9 new | avg 142.8m | median 142.8m | hit 92.6% | burst 6.0x\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 100.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nHow to read:\n- Higher new count = higher short-term demand.\n- avg = average availability duration in minutes (last_seen - first_seen).\n- med = median availability duration in minutes.\n- Shorter med = higher competition.\n- Lower hit = queue needs faster checks.\n- burst = max hourly new slots / avg hourly new slots.",
+            "summary_html": "<h2>6-Hour Summary</h2>\n<p><strong>Window:</strong> Jan 19, 2026, 6:33 PM HST - Jan 20, 2026, 12:33 AM HST</p>\n<h3>Exclusive ranges (all locations)</h3>\n<ul>\n<li><strong>0-7 days</strong>: new 2 | avg 4.5m | median 0.0m</li>\n<li><strong>8-14 days</strong>: new 1 | avg 68.9m | median 68.9m</li>\n<li><strong>15-30 days</strong>: new 3 | avg 37.3m | median 36.0m</li>\n<li><strong>31-60 days</strong>: new 9 | avg 142.8m | median 142.8m</li>\n</ul>\n<h3>Exclusive ranges (per location)</h3>\n<h4>0-7 days</h4>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 9.0m | median 9.0m | hit 1.7% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 1 new | avg 0.0m | median 0.0m | hit 0.8% | burst 6.0x</li>\n</ul>\n<h4>8-14 days</h4>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 1 new | avg 68.9m | median 68.9m | hit 7.4% | burst 6.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h4>15-30 days</h4>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 2 new | avg 22.6m | median 9.2m | hit 16.5% | burst 3.0x</li>\n<li><strong>Windward City Satellite City Hall</strong>: 1 new | avg 66.6m | median 66.6m | hit 7.4% | burst 6.0x</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h4>31-60 days</h4>\n<ul>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 74.4% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 9 new | avg 142.8m | median 142.8m | hit 92.6% | burst 6.0x</li>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 100.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>How to read</h3><ul>\n<li>Higher new count = higher short-term demand.</li>\n<li>avg = average availability duration in minutes (last_seen - first_seen).</li>\n<li>med = median availability duration in minutes.</li>\n<li>Shorter med = higher competition.</li>\n<li>Lower hit = queue needs faster checks.</li>\n<li>burst = max hourly new slots / avg hourly new slots.</li>\n</ul>"
+          },
+          {
+            "id": 3,
+            "job_type": "six_hour",
+            "run_at": "2026-01-20T16:41:04.68+00:00",
+            "window_start": "2026-01-20T10:41:04.68+00:00",
+            "window_end": "2026-01-20T16:41:04.68+00:00",
+            "metrics_json": {
+              "window_end": "2026-01-20T16:41:04.680Z",
+              "per_location": [
+                {
+                  "windows": {
+                    "1": {
+                      "hit_rate": 0.2456,
+                      "new_count": 1,
+                      "avg_duration_min": 27.881933333333333,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 27.881933333333333
+                    },
+                    "3": {
+                      "hit_rate": 0.2456,
+                      "new_count": 1,
+                      "avg_duration_min": 27.881933333333333,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 27.881933333333333
+                    },
+                    "7": {
+                      "hit_rate": 0.2456,
+                      "new_count": 1,
+                      "avg_duration_min": 27.881933333333333,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 27.881933333333333
+                    },
+                    "14": {
+                      "hit_rate": 0.2456,
+                      "new_count": 1,
+                      "avg_duration_min": 27.881933333333333,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 27.881933333333333
+                    },
+                    "30": {
+                      "hit_rate": 0.2456,
+                      "new_count": 1,
+                      "avg_duration_min": 27.881933333333333,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 27.881933333333333
+                    },
+                    "60": {
+                      "hit_rate": 1,
+                      "new_count": 1,
+                      "avg_duration_min": 27.881933333333333,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 27.881933333333333
+                    }
+                  },
+                  "location_id": "ef0bad1e-4dd3-4027-9a43-f96354f48e77",
+                  "location_name": "Downtown Satellite City Hall",
+                  "exclusive_windows": {
+                    "0-7": {
+                      "hit_rate": 0.2456,
+                      "new_count": 1,
+                      "avg_duration_min": 27.881933333333333,
+                      "burstiness_ratio": 6,
+                      "median_duration_min": 27.881933333333333
+                    },
+                    "8-14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "15-30": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "31-60": {
+                      "hit_rate": 0.7544,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  }
+                },
+                {
+                  "windows": {
+                    "1": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "3": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "30": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "60": {
+                      "hit_rate": 1,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  },
+                  "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+                  "location_name": "Pearlridge Satellite City Hall",
+                  "exclusive_windows": {
+                    "0-7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "8-14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "15-30": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "31-60": {
+                      "hit_rate": 1,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  }
+                },
+                {
+                  "windows": {
+                    "1": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "3": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "30": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "60": {
+                      "hit_rate": 1,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  },
+                  "location_id": "7fac0628-097d-4c3b-8a58-2f88dd386626",
+                  "location_name": "Windward City Satellite City Hall",
+                  "exclusive_windows": {
+                    "0-7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "8-14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "15-30": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "31-60": {
+                      "hit_rate": 1,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  }
+                },
+                {
+                  "windows": {
+                    "1": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "3": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "30": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "60": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  },
+                  "location_id": "b28aa461-a804-4d2a-b9ad-e7a3a6853eb1",
+                  "location_name": "Hawaii Kai Satellite City Hall",
+                  "exclusive_windows": {
+                    "0-7": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "8-14": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "15-30": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    },
+                    "31-60": {
+                      "hit_rate": 0,
+                      "new_count": 0,
+                      "avg_duration_min": null,
+                      "burstiness_ratio": null,
+                      "median_duration_min": null
+                    }
+                  }
+                }
+              ],
+              "window_start": "2026-01-20T10:41:04.680Z",
+              "totals_by_window": {
+                "1": {
+                  "new_count": 1,
+                  "avg_duration_min": 27.881933333333333,
+                  "median_duration_min": 27.881933333333333
+                },
+                "3": {
+                  "new_count": 1,
+                  "avg_duration_min": 27.881933333333333,
+                  "median_duration_min": 27.881933333333333
+                },
+                "7": {
+                  "new_count": 1,
+                  "avg_duration_min": 27.881933333333333,
+                  "median_duration_min": 27.881933333333333
+                },
+                "14": {
+                  "new_count": 1,
+                  "avg_duration_min": 27.881933333333333,
+                  "median_duration_min": 27.881933333333333
+                },
+                "30": {
+                  "new_count": 1,
+                  "avg_duration_min": 27.881933333333333,
+                  "median_duration_min": 27.881933333333333
+                },
+                "60": {
+                  "new_count": 1,
+                  "avg_duration_min": 27.881933333333333,
+                  "median_duration_min": 27.881933333333333
+                }
+              },
+              "totals_by_exclusive": {
+                "0-7": {
+                  "new_count": 1,
+                  "avg_duration_min": 27.881933333333333,
+                  "median_duration_min": 27.881933333333333
+                },
+                "8-14": {
+                  "new_count": 0,
+                  "avg_duration_min": null,
+                  "median_duration_min": null
+                },
+                "15-30": {
+                  "new_count": 0,
+                  "avg_duration_min": null,
+                  "median_duration_min": null
+                },
+                "31-60": {
+                  "new_count": 0,
+                  "avg_duration_min": null,
+                  "median_duration_min": null
+                }
+              }
+            },
+            "summary_text": "6-Hour Summary\nWindow: Jan 20, 2026, 12:41 AM HST - Jan 20, 2026, 6:41 AM HST\nExclusive ranges (all locations):\n0-7 days: new 1 | avg 27.9m | median 27.9m\n8-14 days: new 0 | avg n/a | median n/a\n15-30 days: new 0 | avg n/a | median n/a\n31-60 days: new 0 | avg n/a | median n/a\n\nExclusive ranges (per location):\n\n0-7 days:\nDowntown Satellite City Hall: 1 new | avg 27.9m | median 27.9m | hit 24.6% | burst 6.0x\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\n8-14 days:\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\n15-30 days:\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\n31-60 days:\nDowntown Satellite City Hall: 0 new | avg n/a | median n/a | hit 75.4% | burst n/a\nPearlridge Satellite City Hall: 0 new | avg n/a | median n/a | hit 100.0% | burst n/a\nWindward City Satellite City Hall: 0 new | avg n/a | median n/a | hit 100.0% | burst n/a\nHawaii Kai Satellite City Hall: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a\n\nHow to read:\n- Higher new count = higher short-term demand.\n- avg = average availability duration in minutes (last_seen - first_seen).\n- med = median availability duration in minutes.\n- Shorter med = higher competition.\n- Lower hit = queue needs faster checks.\n- burst = max hourly new slots / avg hourly new slots.",
+            "summary_html": "<h2>6-Hour Summary</h2>\n<p><strong>Window:</strong> Jan 20, 2026, 12:41 AM HST - Jan 20, 2026, 6:41 AM HST</p>\n<h3>Exclusive ranges (all locations)</h3>\n<ul>\n<li><strong>0-7 days</strong>: new 1 | avg 27.9m | median 27.9m</li>\n<li><strong>8-14 days</strong>: new 0 | avg n/a | median n/a</li>\n<li><strong>15-30 days</strong>: new 0 | avg n/a | median n/a</li>\n<li><strong>31-60 days</strong>: new 0 | avg n/a | median n/a</li>\n</ul>\n<h3>Exclusive ranges (per location)</h3>\n<h4>0-7 days</h4>\n<ul>\n<li><strong>Downtown Satellite City Hall</strong>: 1 new | avg 27.9m | median 27.9m | hit 24.6% | burst 6.0x</li>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h4>8-14 days</h4>\n<ul>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h4>15-30 days</h4>\n<ul>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h4>31-60 days</h4>\n<ul>\n<li><strong>Downtown Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 75.4% | burst n/a</li>\n<li><strong>Pearlridge Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 100.0% | burst n/a</li>\n<li><strong>Windward City Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 100.0% | burst n/a</li>\n<li><strong>Hawaii Kai Satellite City Hall</strong>: 0 new | avg n/a | median n/a | hit 0.0% | burst n/a</li>\n</ul>\n<h3>How to read</h3><ul>\n<li>Higher new count = higher short-term demand.</li>\n<li>avg = average availability duration in minutes (last_seen - first_seen).</li>\n<li>med = median availability duration in minutes.</li>\n<li>Shorter med = higher competition.</li>\n<li>Lower hit = queue needs faster checks.</li>\n<li>burst = max hourly new slots / avg hourly new slots.</li>\n</ul>"
+          }
+        ]
       },
       {
         "name": "analysis_rollups_daily",
         "ok": true,
-        "sample": {
-          "rollup_date": "2026-01-19",
-          "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
-          "snapshots_count": 233,
-          "same_week_rate": 0.0043,
-          "lead_days_p10": 52,
-          "lead_days_p50": 52,
-          "lead_days_p90": 52,
-          "slots_total": 3,
-          "slots_distinct": 3,
-          "slot_turnover_ratio": 1,
-          "within_7_new_count": 1,
-          "within_7_avg_duration_min": 0,
-          "within_7_median_duration_min": 0,
-          "hit_rate": 0.0043,
-          "burstiness_ratio": 24,
-          "within_windows_json": {
-            "1": {
-              "hit_rate": 0,
-              "new_count": 0,
-              "avg_duration_min": null,
-              "burstiness_ratio": null,
-              "median_duration_min": null
+        "samples": [
+          {
+            "rollup_date": "2026-01-19",
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "snapshots_count": 425,
+            "same_week_rate": 0.0024,
+            "lead_days_p10": 52,
+            "lead_days_p50": 52,
+            "lead_days_p90": 53,
+            "slots_total": 3,
+            "slots_distinct": 3,
+            "slot_turnover_ratio": 1,
+            "within_7_new_count": 1,
+            "within_7_avg_duration_min": 0,
+            "within_7_median_duration_min": 0,
+            "hit_rate": 0.0024,
+            "burstiness_ratio": 24,
+            "within_windows_json": {
+              "1": {
+                "hit_rate": 0,
+                "new_count": 0,
+                "avg_duration_min": null,
+                "burstiness_ratio": null,
+                "median_duration_min": null
+              },
+              "3": {
+                "hit_rate": 0.0024,
+                "new_count": 1,
+                "avg_duration_min": 0,
+                "burstiness_ratio": 24,
+                "median_duration_min": 0
+              },
+              "7": {
+                "hit_rate": 0.0024,
+                "new_count": 1,
+                "avg_duration_min": 0,
+                "burstiness_ratio": 24,
+                "median_duration_min": 0
+              },
+              "14": {
+                "hit_rate": 0.0329,
+                "new_count": 2,
+                "avg_duration_min": 52.332275,
+                "burstiness_ratio": 12,
+                "median_duration_min": 0
+              },
+              "30": {
+                "hit_rate": 0.0494,
+                "new_count": 3,
+                "avg_duration_min": 389.6855166666667,
+                "burstiness_ratio": 8,
+                "median_duration_min": 104.66455
+              },
+              "60": {
+                "hit_rate": 1,
+                "new_count": 3,
+                "avg_duration_min": 389.6855166666667,
+                "burstiness_ratio": 8,
+                "median_duration_min": 104.66455
+              }
             },
-            "3": {
-              "hit_rate": 0.0043,
-              "new_count": 1,
-              "avg_duration_min": 0,
-              "burstiness_ratio": 24,
-              "median_duration_min": 0
-            },
-            "7": {
-              "hit_rate": 0.0043,
-              "new_count": 1,
-              "avg_duration_min": 0,
-              "burstiness_ratio": 24,
-              "median_duration_min": 0
-            },
-            "14": {
-              "hit_rate": 0.0601,
-              "new_count": 2,
-              "avg_duration_min": 52.332275,
-              "burstiness_ratio": 12,
-              "median_duration_min": 0
-            },
-            "30": {
-              "hit_rate": 0.0644,
-              "new_count": 3,
-              "avg_duration_min": 34.88818333333334,
-              "burstiness_ratio": 8,
-              "median_duration_min": 0
-            },
-            "60": {
-              "hit_rate": 1,
-              "new_count": 3,
-              "avg_duration_min": 34.88818333333334,
-              "burstiness_ratio": 8,
-              "median_duration_min": 0
+            "updated_at": "2026-01-20T04:50:01.655+00:00",
+            "exclusive_windows_json": {
+              "0-7": {
+                "hit_rate": 0.0024,
+                "new_count": 1,
+                "avg_duration_min": 0,
+                "burstiness_ratio": 24,
+                "median_duration_min": 0
+              },
+              "8-14": {
+                "hit_rate": 0.0306,
+                "new_count": 1,
+                "avg_duration_min": 104.66455,
+                "burstiness_ratio": 24,
+                "median_duration_min": 104.66455
+              },
+              "15-30": {
+                "hit_rate": 0.0165,
+                "new_count": 1,
+                "avg_duration_min": 1064.392,
+                "burstiness_ratio": 24,
+                "median_duration_min": 1064.392
+              },
+              "31-60": {
+                "hit_rate": 0.9506,
+                "new_count": 0,
+                "avg_duration_min": null,
+                "burstiness_ratio": null,
+                "median_duration_min": null
+              }
             }
           },
-          "updated_at": "2026-01-19T22:26:24.536+00:00",
-          "exclusive_windows_json": null
-        }
+          {
+            "rollup_date": "2026-01-19",
+            "location_id": "7fac0628-097d-4c3b-8a58-2f88dd386626",
+            "snapshots_count": 425,
+            "same_week_rate": 0.0024,
+            "lead_days_p10": 50,
+            "lead_days_p50": 50,
+            "lead_days_p90": 50,
+            "slots_total": 3,
+            "slots_distinct": 3,
+            "slot_turnover_ratio": 1,
+            "within_7_new_count": 1,
+            "within_7_avg_duration_min": 0,
+            "within_7_median_duration_min": 0,
+            "hit_rate": 0.0024,
+            "burstiness_ratio": 24,
+            "within_windows_json": {
+              "1": {
+                "hit_rate": 0,
+                "new_count": 0,
+                "avg_duration_min": null,
+                "burstiness_ratio": null,
+                "median_duration_min": null
+              },
+              "3": {
+                "hit_rate": 0,
+                "new_count": 0,
+                "avg_duration_min": null,
+                "burstiness_ratio": null,
+                "median_duration_min": null
+              },
+              "7": {
+                "hit_rate": 0.0024,
+                "new_count": 1,
+                "avg_duration_min": 0,
+                "burstiness_ratio": 24,
+                "median_duration_min": 0
+              },
+              "14": {
+                "hit_rate": 0.0541,
+                "new_count": 1,
+                "avg_duration_min": 0,
+                "burstiness_ratio": 24,
+                "median_duration_min": 0
+              },
+              "30": {
+                "hit_rate": 0.0871,
+                "new_count": 2,
+                "avg_duration_min": 0,
+                "burstiness_ratio": 12,
+                "median_duration_min": 0
+              },
+              "60": {
+                "hit_rate": 1,
+                "new_count": 2,
+                "avg_duration_min": 0,
+                "burstiness_ratio": 12,
+                "median_duration_min": 0
+              }
+            },
+            "updated_at": "2026-01-20T04:50:01.655+00:00",
+            "exclusive_windows_json": {
+              "0-7": {
+                "hit_rate": 0.0024,
+                "new_count": 1,
+                "avg_duration_min": 0,
+                "burstiness_ratio": 24,
+                "median_duration_min": 0
+              },
+              "8-14": {
+                "hit_rate": 0.0518,
+                "new_count": 0,
+                "avg_duration_min": null,
+                "burstiness_ratio": null,
+                "median_duration_min": null
+              },
+              "15-30": {
+                "hit_rate": 0.0329,
+                "new_count": 1,
+                "avg_duration_min": 0,
+                "burstiness_ratio": 24,
+                "median_duration_min": 0
+              },
+              "31-60": {
+                "hit_rate": 0.9129,
+                "new_count": 0,
+                "avg_duration_min": null,
+                "burstiness_ratio": null,
+                "median_duration_min": null
+              }
+            }
+          },
+          {
+            "rollup_date": "2026-01-19",
+            "location_id": "ef0bad1e-4dd3-4027-9a43-f96354f48e77",
+            "snapshots_count": 424,
+            "same_week_rate": 0.0094,
+            "lead_days_p10": 49,
+            "lead_days_p50": 49,
+            "lead_days_p90": 49,
+            "slots_total": 21,
+            "slots_distinct": 21,
+            "slot_turnover_ratio": 1,
+            "within_7_new_count": 1,
+            "within_7_avg_duration_min": 5.953366666666667,
+            "within_7_median_duration_min": 5.953366666666667,
+            "hit_rate": 0.0094,
+            "burstiness_ratio": 24,
+            "within_windows_json": {
+              "1": {
+                "hit_rate": 0,
+                "new_count": 0,
+                "avg_duration_min": null,
+                "burstiness_ratio": null,
+                "median_duration_min": null
+              },
+              "3": {
+                "hit_rate": 0,
+                "new_count": 0,
+                "avg_duration_min": null,
+                "burstiness_ratio": null,
+                "median_duration_min": null
+              },
+              "7": {
+                "hit_rate": 0.0094,
+                "new_count": 1,
+                "avg_duration_min": 5.953366666666667,
+                "burstiness_ratio": 24,
+                "median_duration_min": 5.953366666666667
+              },
+              "14": {
+                "hit_rate": 0.0094,
+                "new_count": 1,
+                "avg_duration_min": 5.953366666666667,
+                "burstiness_ratio": 24,
+                "median_duration_min": 5.953366666666667
+              },
+              "30": {
+                "hit_rate": 0.0377,
+                "new_count": 3,
+                "avg_duration_min": 19.289694444444446,
+                "burstiness_ratio": 8,
+                "median_duration_min": 9.936916666666667
+              },
+              "60": {
+                "hit_rate": 1,
+                "new_count": 18,
+                "avg_duration_min": 38.1972824074074,
+                "burstiness_ratio": 21.33,
+                "median_duration_min": 41.9788
+              }
+            },
+            "updated_at": "2026-01-20T04:50:01.655+00:00",
+            "exclusive_windows_json": {
+              "0-7": {
+                "hit_rate": 0.0094,
+                "new_count": 1,
+                "avg_duration_min": 5.953366666666667,
+                "burstiness_ratio": 24,
+                "median_duration_min": 5.953366666666667
+              },
+              "8-14": {
+                "hit_rate": 0,
+                "new_count": 0,
+                "avg_duration_min": null,
+                "burstiness_ratio": null,
+                "median_duration_min": null
+              },
+              "15-30": {
+                "hit_rate": 0.0283,
+                "new_count": 2,
+                "avg_duration_min": 25.957858333333334,
+                "burstiness_ratio": 12,
+                "median_duration_min": 9.936916666666667
+              },
+              "31-60": {
+                "hit_rate": 0.9623,
+                "new_count": 15,
+                "avg_duration_min": 41.97879999999999,
+                "burstiness_ratio": 24,
+                "median_duration_min": 41.9788
+              }
+            }
+          }
+        ]
       },
       {
         "name": "notification_subscribers",
         "ok": true,
-        "sample": {
-          "id": "027143c0-8ea2-4a25-bc5b-70b9b285cab0",
-          "email": "david.cito808@gmail.com",
-          "locations": [],
-          "active": true,
-          "created_at": "2026-01-17T23:18:39.800246+00:00"
-        }
+        "samples": [
+          {
+            "id": "027143c0-8ea2-4a25-bc5b-70b9b285cab0",
+            "email": "david.cito808@gmail.com",
+            "locations": [],
+            "active": true,
+            "created_at": "2026-01-17T23:18:39.800246+00:00"
+          }
+        ]
       },
       {
         "name": "notification_state",
         "ok": true,
-        "sample": {
-          "subscriber_id": "027143c0-8ea2-4a25-bc5b-70b9b285cab0",
-          "location_name": "Windward City Satellite City Hall",
-          "last_data_val": "2026-02-03 15:00:00",
-          "last_notified_at": "2026-01-20T01:05:11.769+00:00"
-        }
+        "samples": [
+          {
+            "subscriber_id": "027143c0-8ea2-4a25-bc5b-70b9b285cab0",
+            "location_name": "Downtown Satellite City Hall",
+            "last_data_val": "2026-01-21 09:00:00",
+            "last_notified_at": "2026-01-20T21:07:18.327+00:00"
+          },
+          {
+            "subscriber_id": "027143c0-8ea2-4a25-bc5b-70b9b285cab0",
+            "location_name": "Hawaii Kai Satellite City Hall",
+            "last_data_val": "2026-01-28 15:00:00",
+            "last_notified_at": "2026-01-22T01:03:18.351+00:00"
+          },
+          {
+            "subscriber_id": "027143c0-8ea2-4a25-bc5b-70b9b285cab0",
+            "location_name": "Windward City Satellite City Hall",
+            "last_data_val": "2026-02-02 15:15:00",
+            "last_notified_at": "2026-01-23T00:23:13.924+00:00"
+          }
+        ]
+      },
+      {
+        "name": "customers",
+        "ok": true,
+        "samples": []
+      },
+      {
+        "name": "queue_entries",
+        "ok": true,
+        "samples": []
+      },
+      {
+        "name": "target_window_presets",
+        "ok": true,
+        "samples": [
+          {
+            "id": "2bcb20fe-9e57-43c7-a333-b01bfe2114a2",
+            "preset_type": "date_horizon",
+            "key": "w1",
+            "label": "Within 1 Week",
+            "rules_json": {
+              "days_ahead": 7
+            },
+            "active": true,
+            "sort_order": 1,
+            "created_at": "2026-01-22T07:37:10.753323+00:00",
+            "updated_at": "2026-01-22T07:37:10.753323+00:00"
+          },
+          {
+            "id": "ebf153ac-e2dd-46ee-b141-3cad29fe4e5c",
+            "preset_type": "date_horizon",
+            "key": "w2",
+            "label": "Within 2 Weeks",
+            "rules_json": {
+              "days_ahead": 14
+            },
+            "active": true,
+            "sort_order": 2,
+            "created_at": "2026-01-22T07:37:10.753323+00:00",
+            "updated_at": "2026-01-22T07:37:10.753323+00:00"
+          },
+          {
+            "id": "9fcab2af-f328-4237-aa50-6355be818290",
+            "preset_type": "date_horizon",
+            "key": "w3",
+            "label": "Within 3 Weeks",
+            "rules_json": {
+              "days_ahead": 21
+            },
+            "active": true,
+            "sort_order": 3,
+            "created_at": "2026-01-22T07:37:10.753323+00:00",
+            "updated_at": "2026-01-22T07:37:10.753323+00:00"
+          }
+        ]
+      },
+      {
+        "name": "user_target_window_selections",
+        "ok": true,
+        "samples": []
+      },
+      {
+        "name": "user_location_preferences",
+        "ok": true,
+        "samples": []
+      },
+      {
+        "name": "queue_watermarks",
+        "ok": true,
+        "samples": [
+          {
+            "key": "slot_opened",
+            "last_processed_at": "2026-01-22T07:27:10.753323+00:00"
+          }
+        ]
+      },
+      {
+        "name": "booking_attempts",
+        "ok": true,
+        "samples": []
+      },
+      {
+        "name": "booking_locks",
+        "ok": true,
+        "samples": []
+      },
+      {
+        "name": "message_log",
+        "ok": true,
+        "samples": []
       }
     ],
     "views": [
       {
         "name": "analysis_windows",
         "ok": true,
-        "sample": {
-          "run_id": 6,
-          "job_type": "six_hour",
-          "run_at": "2026-01-19T22:26:24.536+00:00",
-          "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
-          "location_name": "Pearlridge Satellite City Hall",
-          "window_days": 1,
-          "new_count": 0,
-          "avg_new_per_day": null,
-          "hit_rate": 0,
-          "burstiness_ratio": null,
-          "avg_duration_min": null,
-          "median_duration_min": null
-        }
+        "samples": [
+          {
+            "run_id": 1,
+            "job_type": "six_hour",
+            "run_at": "2026-01-20T04:50:01.655+00:00",
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "location_name": "Pearlridge Satellite City Hall",
+            "window_days": 1,
+            "new_count": 0,
+            "avg_new_per_day": null,
+            "hit_rate": 0,
+            "burstiness_ratio": null,
+            "avg_duration_min": null,
+            "median_duration_min": null
+          },
+          {
+            "run_id": 1,
+            "job_type": "six_hour",
+            "run_at": "2026-01-20T04:50:01.655+00:00",
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "location_name": "Pearlridge Satellite City Hall",
+            "window_days": 3,
+            "new_count": 0,
+            "avg_new_per_day": null,
+            "hit_rate": 0,
+            "burstiness_ratio": null,
+            "avg_duration_min": null,
+            "median_duration_min": null
+          },
+          {
+            "run_id": 1,
+            "job_type": "six_hour",
+            "run_at": "2026-01-20T04:50:01.655+00:00",
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "location_name": "Pearlridge Satellite City Hall",
+            "window_days": 7,
+            "new_count": 0,
+            "avg_new_per_day": null,
+            "hit_rate": 0,
+            "burstiness_ratio": null,
+            "avg_duration_min": null,
+            "median_duration_min": null
+          }
+        ]
       },
       {
         "name": "analysis_windows_exclusive",
         "ok": true,
-        "sample": null
+        "samples": [
+          {
+            "run_id": 1,
+            "job_type": "six_hour",
+            "run_at": "2026-01-20T04:50:01.655+00:00",
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "location_name": "Pearlridge Satellite City Hall",
+            "window_range": "0-7",
+            "window_min": 0,
+            "window_max": 7,
+            "new_count": 0,
+            "avg_new_per_day": null,
+            "hit_rate": 0,
+            "burstiness_ratio": null,
+            "avg_duration_min": null,
+            "median_duration_min": null
+          },
+          {
+            "run_id": 1,
+            "job_type": "six_hour",
+            "run_at": "2026-01-20T04:50:01.655+00:00",
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "location_name": "Pearlridge Satellite City Hall",
+            "window_range": "8-14",
+            "window_min": 8,
+            "window_max": 14,
+            "new_count": 0,
+            "avg_new_per_day": null,
+            "hit_rate": 0,
+            "burstiness_ratio": null,
+            "avg_duration_min": null,
+            "median_duration_min": null
+          },
+          {
+            "run_id": 1,
+            "job_type": "six_hour",
+            "run_at": "2026-01-20T04:50:01.655+00:00",
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "location_name": "Pearlridge Satellite City Hall",
+            "window_range": "15-30",
+            "window_min": 15,
+            "window_max": 30,
+            "new_count": 0,
+            "avg_new_per_day": null,
+            "hit_rate": 0.0333,
+            "burstiness_ratio": null,
+            "avg_duration_min": null,
+            "median_duration_min": null
+          }
+        ]
       },
       {
         "name": "analysis_windows_exclusive_hst",
         "ok": true,
-        "sample": null
+        "samples": [
+          {
+            "run_id": 1,
+            "job_type": "six_hour",
+            "run_at": "2026-01-20T04:50:01.655+00:00",
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "location_name": "Pearlridge Satellite City Hall",
+            "window_range": "0-7",
+            "window_min": 0,
+            "window_max": 7,
+            "new_count": 0,
+            "avg_new_per_day": null,
+            "hit_rate": 0,
+            "burstiness_ratio": null,
+            "avg_duration_min": null,
+            "median_duration_min": null,
+            "run_at_hst": "2026-01-19T18:50:01.655"
+          },
+          {
+            "run_id": 1,
+            "job_type": "six_hour",
+            "run_at": "2026-01-20T04:50:01.655+00:00",
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "location_name": "Pearlridge Satellite City Hall",
+            "window_range": "8-14",
+            "window_min": 8,
+            "window_max": 14,
+            "new_count": 0,
+            "avg_new_per_day": null,
+            "hit_rate": 0,
+            "burstiness_ratio": null,
+            "avg_duration_min": null,
+            "median_duration_min": null,
+            "run_at_hst": "2026-01-19T18:50:01.655"
+          },
+          {
+            "run_id": 1,
+            "job_type": "six_hour",
+            "run_at": "2026-01-20T04:50:01.655+00:00",
+            "location_id": "3c5b777a-a38a-4b8b-bf6d-da1775d05d4a",
+            "location_name": "Pearlridge Satellite City Hall",
+            "window_range": "15-30",
+            "window_min": 15,
+            "window_max": 30,
+            "new_count": 0,
+            "avg_new_per_day": null,
+            "hit_rate": 0.0333,
+            "burstiness_ratio": null,
+            "avg_duration_min": null,
+            "median_duration_min": null,
+            "run_at_hst": "2026-01-19T18:50:01.655"
+          }
+        ]
       }
     ],
+    "functions": [],
     "counts": [
       {
         "table_name": "locations",
@@ -426,27 +1965,27 @@
       },
       {
         "table_name": "runs",
-        "row_count": 577
+        "row_count": 2231
       },
       {
         "table_name": "day_snapshots",
-        "row_count": 2305
+        "row_count": 8895
       },
       {
         "table_name": "slot_states",
-        "row_count": 1682
+        "row_count": 2051
       },
       {
         "table_name": "run_slot_counts",
-        "row_count": 2305
+        "row_count": 8895
       },
       {
         "table_name": "analysis_runs",
-        "row_count": 1
+        "row_count": 16
       },
       {
         "table_name": "analysis_rollups_daily",
-        "row_count": 4
+        "row_count": 16
       },
       {
         "table_name": "notification_subscribers",
@@ -454,34 +1993,175 @@
       },
       {
         "table_name": "notification_state",
-        "row_count": 3
+        "row_count": 4
+      },
+      {
+        "table_name": "customers",
+        "row_count": 0
+      },
+      {
+        "table_name": "queue_entries",
+        "row_count": 0
+      },
+      {
+        "table_name": "target_window_presets",
+        "row_count": 11
+      },
+      {
+        "table_name": "user_target_window_selections",
+        "row_count": 0
+      },
+      {
+        "table_name": "user_location_preferences",
+        "row_count": 0
+      },
+      {
+        "table_name": "queue_watermarks",
+        "row_count": 1
+      },
+      {
+        "table_name": "booking_attempts",
+        "row_count": 0
+      },
+      {
+        "table_name": "booking_locks",
+        "row_count": 0
+      },
+      {
+        "table_name": "message_log",
+        "row_count": 0
       }
     ],
     "latest": [
       {
+        "table_name": "locations",
+        "latest_at": null
+      },
+      {
+        "table_name": "runs",
+        "latest_at": null
+      },
+      {
         "table_name": "day_snapshots",
-        "latest_at": "2026-01-20T03:53:04.9+00:00"
+        "latest_at": null
       },
       {
         "table_name": "slot_states",
-        "latest_at": "2026-01-20T03:53:04.9+00:00"
+        "latest_at": null
       },
       {
         "table_name": "run_slot_counts",
-        "latest_at": "2026-01-20T03:53:04.9+00:00"
+        "latest_at": null
       },
       {
         "table_name": "analysis_runs",
-        "latest_at": "2026-01-19T22:26:24.536+00:00"
+        "latest_at": null
+      },
+      {
+        "table_name": "analysis_rollups_daily",
+        "latest_at": null
+      },
+      {
+        "table_name": "notification_subscribers",
+        "latest_at": null
+      },
+      {
+        "table_name": "notification_state",
+        "latest_at": null
+      },
+      {
+        "table_name": "customers",
+        "latest_at": null
+      },
+      {
+        "table_name": "queue_entries",
+        "latest_at": null
+      },
+      {
+        "table_name": "target_window_presets",
+        "latest_at": null
+      },
+      {
+        "table_name": "user_target_window_selections",
+        "latest_at": null
+      },
+      {
+        "table_name": "user_location_preferences",
+        "latest_at": null
+      },
+      {
+        "table_name": "queue_watermarks",
+        "latest_at": null
+      },
+      {
+        "table_name": "booking_attempts",
+        "latest_at": null
+      },
+      {
+        "table_name": "booking_locks",
+        "latest_at": null
+      },
+      {
+        "table_name": "message_log",
+        "latest_at": null
       }
     ],
     "recent_analysis_runs": [
       {
-        "id": 6,
+        "id": 16,
         "job_type": "six_hour",
-        "run_at": "2026-01-19T22:26:24.536+00:00"
+        "run_at": "2026-01-23T04:48:06.836+00:00"
+      },
+      {
+        "id": 15,
+        "job_type": "six_hour",
+        "run_at": "2026-01-22T22:28:00.906+00:00"
+      },
+      {
+        "id": 14,
+        "job_type": "daily_summary",
+        "run_at": "2026-01-22T17:50:49.693+00:00"
+      },
+      {
+        "id": 13,
+        "job_type": "six_hour",
+        "run_at": "2026-01-22T16:40:29.925+00:00"
+      },
+      {
+        "id": 12,
+        "job_type": "six_hour",
+        "run_at": "2026-01-22T10:33:33.249+00:00"
+      },
+      {
+        "id": 11,
+        "job_type": "six_hour",
+        "run_at": "2026-01-22T04:52:11.393+00:00"
+      },
+      {
+        "id": 10,
+        "job_type": "six_hour",
+        "run_at": "2026-01-21T22:29:59.741+00:00"
+      },
+      {
+        "id": 9,
+        "job_type": "daily_summary",
+        "run_at": "2026-01-21T18:07:57.544+00:00"
+      },
+      {
+        "id": 8,
+        "job_type": "six_hour",
+        "run_at": "2026-01-21T16:59:05.042+00:00"
+      },
+      {
+        "id": 7,
+        "job_type": "six_hour",
+        "run_at": "2026-01-21T10:34:40.269+00:00"
       }
     ],
+    "schema": {
+      "source": "fallback",
+      "tables": []
+    },
     "charts": [
       {
         "name": "Overall Hit Rate Over Time (exclusive buckets)",
