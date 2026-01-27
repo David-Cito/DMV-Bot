@@ -38,14 +38,30 @@ if (!fs.existsSync(RESULTS_PATH)) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+function toHstDateString(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Pacific/Honolulu',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d);
+}
+
+function parseDate(dateStr) {
+  if (!dateStr) return NaN;
+  return Date.parse(`${dateStr}T00:00:00Z`);
+}
+
 function daysBetween(fromIso, toDateStr) {
   if (!fromIso || !toDateStr) return null;
-  const fromDate = new Date(fromIso);
-  if (Number.isNaN(fromDate.getTime())) return null;
-  const toDate = new Date(`${toDateStr}T00:00:00Z`);
-  if (Number.isNaN(toDate.getTime())) return null;
-  const diffMs = toDate.getTime() - fromDate.getTime();
-  return Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  const fromDateStr = toHstDateString(fromIso);
+  const fromMs = parseDate(fromDateStr);
+  const toMs = parseDate(toDateStr);
+  if (Number.isNaN(fromMs) || Number.isNaN(toMs)) return null;
+  return Math.floor((toMs - fromMs) / (24 * 60 * 60 * 1000));
 }
 
 function formatHst(iso) {

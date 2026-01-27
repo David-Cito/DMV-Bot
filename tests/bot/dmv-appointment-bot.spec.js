@@ -23,6 +23,8 @@ const LOG_BOOKING_URL = (process.env.DMV_LOG_BOOKING_URL || '').toLowerCase() ==
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const HST_TIME_ZONE = 'Pacific/Honolulu';
+const SCAN_WINDOW_DAYS = 90;
 
 function ordinalSuffix(n) {
   const s = ['th', 'st', 'nd', 'rd'];
@@ -134,6 +136,55 @@ function todayPlus(days) {
   d.setUTCDate(d.getUTCDate() + days);
   const iso = d.toISOString().slice(0, 10); // YYYY-MM-DD
   return iso;
+}
+
+function formatHstDate(date) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: HST_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+function getHstToday() {
+  return formatHstDate(new Date());
+}
+
+function addDays(dateStr, days) {
+  const base = new Date(`${dateStr}T00:00:00Z`);
+  if (Number.isNaN(base.getTime())) return dateStr;
+  base.setUTCDate(base.getUTCDate() + days);
+  return base.toISOString().slice(0, 10);
+}
+
+function isWeekendDate(dateStr) {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return false;
+  const day = d.getUTCDay();
+  return day === 0 || day === 6;
+}
+
+function isWithinRange(dateStr, start, end) {
+  if (!dateStr || !start || !end) return false;
+  return dateStr >= start && dateStr <= end;
+}
+
+function monthKeyFromTitle(title) {
+  const parts = (title || '').split(' ');
+  if (parts.length < 2) return '';
+  const monthName = parts[0];
+  const year = parts[1];
+  const shortIndex = MONTH_NAMES.findIndex(
+    (m) => m.toLowerCase() === monthName.toLowerCase()
+  );
+  if (shortIndex >= 0 && year) {
+    return `${year}-${String(shortIndex + 1).padStart(2, '0')}`;
+  }
+  const parsed = Date.parse(`${monthName} 1, ${year}`);
+  if (Number.isNaN(parsed)) return '';
+  const date = new Date(parsed);
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
 }
 
 function loadHistory() {
@@ -435,7 +486,8 @@ async function advanceToNextMonth(page) {
   );
 }
 
-async function scanVisibleMonth(page, gear, locationName) {
+async function scanVisibleMonth(page, gear, locationName, options = {}) {
+  const { rangeStart, rangeEnd, skipWeekends = true } = options;
   const dayCells = await page.$$eval('#datepicker td[data-handler="selectDay"]', (els) =>
     els
       .map((el) => {
@@ -450,7 +502,16 @@ async function scanVisibleMonth(page, gear, locationName) {
   );
 
   const monthSlots = [];
+  let eligibleDays = 0;
   for (const d of dayCells) {
+    const dateStr = `${d.year}-${String(Number(d.month) + 1).padStart(2, '0')}-${d.day.padStart(
+      2,
+      '0'
+    )}`;
+    if (!isWithinRange(dateStr, rangeStart, rangeEnd)) continue;
+    if (skipWeekends && isWeekendDate(dateStr)) continue;
+    eligibleDays += 1;
+
     const dayLocator = page
       .locator(
         `#datepicker td[data-handler="selectDay"][data-month="${d.month}"][data-year="${d.year}"] a.ui-state-default`
@@ -479,14 +540,15 @@ async function scanVisibleMonth(page, gear, locationName) {
       }))
     );
 
-    const dateStr = `${d.year}-${String(Number(d.month) + 1).padStart(2, '0')}-${d.day.padStart(
-      2,
-      '0'
-    )}`;
     monthSlots.push({ date: dateStr, slots: daySlots });
   }
 
-  return { monthSlots, totalAppointments: countMonthAppointments(monthSlots) };
+  return {
+    monthSlots,
+    totalAppointments: countMonthAppointments(monthSlots),
+    eligibleDays,
+    totalSelectableDays: dayCells.length,
+  };
 }
 
 async function enableRequestBlocking(page) {
@@ -647,18 +709,40 @@ async function getSoonestAppointmentForLocation(page, locationName, opts = {}) {
   const sorted = [...slots].sort((a, b) => a.dataVal.localeCompare(b.dataVal));
   const candidate = sorted[0];
 
-  const combinedMonthSlots = [];
-  const scanCurrent = await scanVisibleMonth(page, gear, locationName);
-  combinedMonthSlots.push(...scanCurrent.monthSlots);
-  console.log(`[${locationName}] month appts: ${scanCurrent.totalAppointments}`);
+  const hstToday = getHstToday();
+  const windowStart = dateStr;
+  const windowEnd = addDays(hstToday, SCAN_WINDOW_DAYS);
+  console.log(
+    `[${locationName}] window hstToday=${hstToday} start=${windowStart} end=${windowEnd}`
+  );
 
-  if (scanCurrent.totalAppointments < 10) {
-    console.log(`[${locationName}] month appts < 10, scanning next`);
+  const combinedMonthSlots = [];
+  let totalEligibleDays = 0;
+  let totalSlots = 0;
+  const endMonthKey = windowEnd.slice(0, 7);
+
+  while (true) {
+    const monthTitle = await readDatepickerMonthYear(page);
+    const monthKey = monthKeyFromTitle(monthTitle);
+    const scan = await scanVisibleMonth(page, gear, locationName, {
+      rangeStart: windowStart,
+      rangeEnd: windowEnd,
+      skipWeekends: true,
+    });
+    combinedMonthSlots.push(...scan.monthSlots);
+    totalEligibleDays += scan.eligibleDays;
+    totalSlots += scan.totalAppointments;
+    console.log(
+      `[${locationName}] scan ${monthTitle} (${monthKey}) eligibleDays=${scan.eligibleDays}/${scan.totalSelectableDays} appts=${scan.totalAppointments}`
+    );
+
+    if (!monthKey || monthKey >= endMonthKey) break;
     await advanceToNextMonth(page);
-    const scanNext = await scanVisibleMonth(page, gear, locationName);
-    combinedMonthSlots.push(...scanNext.monthSlots);
-    console.log(`[${locationName}] next month appts: ${scanNext.totalAppointments}`);
   }
+
+  console.log(
+    `[${locationName}] window summary scannedDays=${totalEligibleDays} slots=${totalSlots}`
+  );
 
   const earliestFromMonths = findEarliestSlot(combinedMonthSlots);
   const earliestDateText = earliestFromMonths?.dateStr || dateStr;
