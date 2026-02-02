@@ -1,0 +1,138 @@
+{
+  "runAt": "2026-02-02T06:19:03.956Z",
+  "completedAt": "2026-02-02T06:19:23.979Z",
+  "durationMs": 20023,
+  "totalLocations": 1,
+  "totalServices": 11,
+  "successfulScans": 0,
+  "failedScans": 11,
+  "locations": [
+    {
+      "locationName": "Kapalama Driver License, State ID",
+      "services": [
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Hawaii License Duplicate",
+          "ok": false,
+          "error": "Location code KAPA not found. Available: ",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:19:04.303Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Hawaii License Renewal",
+          "ok": false,
+          "error": "Location code KAPA not found. Available: ",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:19:06.238Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Hawaii Provisional to a Full License (Not a Road Test Appointment)",
+          "ok": false,
+          "error": "Location code KAPA not found. Available: ",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:19:08.003Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Instruction Permit (Online Test Follow-up)",
+          "ok": false,
+          "error": "Location code KAPA not found. Available: ",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:19:09.772Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Instruction Permit Duplicate",
+          "ok": false,
+          "error": "Location code KAPA not found. Available: ",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:19:11.515Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Instruction Permit Initial (In-person Written Test)",
+          "ok": false,
+          "error": "Location code KAPA not found. Available: ",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:19:13.279Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Instruction Permit Renewal",
+          "ok": false,
+          "error": "Location code KAPA not found. Available: ",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:19:15.054Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Out Of State Transfer",
+          "ok": false,
+          "error": "Location code KAPA not found. Available: ",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:19:16.816Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "State ID Duplicate",
+          "ok": false,
+          "error": "Location code KAPA not found. Available: ",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:19:18.599Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "State ID Initial",
+          "ok": false,
+          "error": "Location code KAPA not found. Available: ",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:19:20.331Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "State ID Renewal",
+          "ok": false,
+          "error": "Location code KAPA not found. Available: ",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:19:22.081Z"
+        }
+      ],
+      "scannedAt": "2026-02-02T06:19:23.979Z"
+    }
+  ]
+}

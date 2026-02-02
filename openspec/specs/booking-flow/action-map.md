@@ -20,19 +20,106 @@ Notes: Fallback: `#newAppointment >> text=Make Appointment` after scrolling into
 
 ### Location Selection
 
-**Choose location**
-Action: `.location.button-look.next` filtered by location name  
-Purpose: Select a specific DMV location (e.g., Hawaii Kai).  
-Notes: Fallback: scroll into view, then force click.
+**Wait for location tiles to load**
+Action: `page.waitForSelector('.location.button-look.next[data-loc-val]', { state: 'visible' })`
+Purpose: Ensure location tiles have loaded (not just the container).
+Notes: The `#location` container may be visible while still showing "Loading locations..." spinner.
+
+**Select location by code**
+Action: `.location.button-look.next[data-loc-val="${CODE}"]`
+Purpose: Select a specific DMV location using its unique code.
+Notes: Each location has a unique `data-loc-val` code (e.g., "KAPA", "FSCH").
+
+**Verify location before clicking**
+Action: `element.getAttribute('data-loc-nam-val')`
+Purpose: Confirm the correct location is selected before clicking.
+Notes: The `data-loc-nam-val` attribute contains the full location name.
+
+**Location codes reference:**
+```
+Driver License Locations (green):
+  CCDL - Commercial Drivers License (CDL)
+  KAPA - Kapālama Driver License, State ID
+  KAPO - Kapolei Driver License, State ID
+  KOOL - Koolau Driver License, State ID
+  WADL - Wahiawa Driver License, State ID
+  WAIA - Waianae Driver License, State ID
+
+Satellite City Halls - DL Renewals (blue):
+  FSCH - Downtown Satellite City Hall
+  HKAI - Hawaii Kai Satellite City Hall
+  PEAR - Pearlridge Satellite City Hall
+  WIND - Windward City Satellite City Hall
+
+Satellite City Halls - Other Services (dark blue):
+  ALAM - Ala Moana Satellite City Hall
+  KSCH - Kapālama Satellite City Hall
+  KAPS - Kapolei Satellite City Hall
+  WAHI - Wahiawa Satellite City Hall
+  WAIS - Waianae Satellite City Hall
+```
+
+**Example location tile HTML:**
+```html
+<div class="location button-look next"
+     data-loc-val="KAPA"
+     data-val-next="location"
+     data-loc-nam-val="Kapālama Driver License, State ID"
+     id="location_1">
+  <span><strong>Kapālama Driver License, State ID</strong></span>
+</div>
+```
 
 ---
 
-### Service Selection
+### Service Selection (Transaction)
 
-**Choose service type**
-Action: `page.getByText('DRIVER LICENSE & STATE ID Renewals')`  
-Purpose: Select the service category for appointment type.  
-Notes: Waits for step UI before click.
+**Wait for services to load**
+Action: `page.waitForSelector('#transaction', { state: 'visible' })`
+Purpose: Ensure service/transaction container has loaded.
+Notes: Container is `#transaction`, not `#service`.
+
+**Select service by value**
+Action: `.transaction.button-look[data-trans-val="${VAL}"]`
+Purpose: Select a specific service using its unique transaction value.
+Notes: Each service has a unique `data-trans-val` (e.g., "195" for Hawaii License Renewal).
+
+**Select service by name**
+Action: `.transaction.button-look[data-trans-name="${NAME}"]`
+Purpose: Select a service using its exact name.
+Notes: The `data-trans-name` contains the full service name.
+
+**Check if service is available**
+Action: Check for `btn-disabled` class
+Purpose: Disabled services have `btn-disabled` class and cannot be clicked.
+Notes: Some services redirect to external sites (shown in `btn-subtext`).
+
+**Service attributes:**
+- `data-trans-val` - Unique ID (e.g., "195")
+- `data-trans-name` - Service name (e.g., "Hawaii License Renewal")
+- `data-trans-type` - Category: "DL", "IPT", "RT", "CASHIER"
+
+**Example service HTML:**
+```html
+<div class="transaction button-look"
+     data-trans-type="DL"
+     data-trans-name="Hawaii License Renewal"
+     data-trans-val="195"
+     id="transaction_3">
+  Hawaii License Renewal
+</div>
+```
+
+**Disabled service example:**
+```html
+<div class="transaction button-look btn-disabled btn-contains-subtext"
+     data-trans-type="IPT"
+     data-trans-name="Instruction Permit Online"
+     data-trans-val="290">
+  Instruction Permit Online
+  <div class="btn-subtext">Please visit https://knowtodrive.com/hawaii</div>
+</div>
+```
 
 ---
 

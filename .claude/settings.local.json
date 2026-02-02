@@ -10,7 +10,11 @@
       "Bash(npx playwright test:*)",
       "Bash(npx playwright install:*)",
       "Bash(npm run monitor:*)",
-      "Bash(npm run forecast:*)"
+      "Bash(npm run forecast:*)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ]
   }
 }

@@ -2,13 +2,16 @@
 // User Service for Queue System V2
 // See openspec/specs/database/spec.md
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.userService = void 0;
 exports.createUser = createUser;
 exports.getUser = getUser;
+exports.getUsersByIds = getUsersByIds;
 exports.getUserByPhone = getUserByPhone;
 exports.getOrCreateUser = getOrCreateUser;
 exports.updateUser = updateUser;
 exports.setStripeCustomerId = setStripeCustomerId;
 exports.getUserWithQueueInfo = getUserWithQueueInfo;
+exports.createUserService = createUserService;
 const supabase_client_1 = require("../db/supabase_client");
 /**
  * Create a new user
@@ -44,6 +47,28 @@ async function getUser(userId) {
         return null;
     }
     return mapUser(data);
+}
+/**
+ * Get multiple users by IDs in a single query (batch fetch)
+ * Returns a Map for O(1) lookups
+ */
+async function getUsersByIds(userIds) {
+    if (userIds.length === 0) {
+        return new Map();
+    }
+    const supabase = (0, supabase_client_1.getSupabaseClient)();
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .in('id', userIds);
+    if (error) {
+        throw new Error(`Failed to fetch users: ${error.message}`);
+    }
+    const userMap = new Map();
+    for (const row of data || []) {
+        userMap.set(row.id, mapUser(row));
+    }
+    return userMap;
 }
 /**
  * Get a user by phone number
@@ -186,4 +211,146 @@ function mapUser(row) {
         updated_at: new Date(row.updated_at),
     };
 }
+/**
+ * Create a user service with a custom Supabase client
+ * Useful for testing with mocked clients
+ *
+ * @example
+ * // In tests:
+ * const mockSupabase = createMockSupabaseClient();
+ * const userService = createUserService(mockSupabase);
+ * const user = await userService.getUser('123');
+ */
+function createUserService(supabase) {
+    return {
+        async createUser(params) {
+            const { data, error } = await supabase
+                .from('users')
+                .insert({
+                phone: params.phone,
+                email: params.email || null,
+                name: params.name || null,
+                stripe_customer_id: params.stripe_customer_id || null,
+            })
+                .select()
+                .single();
+            if (error) {
+                throw new Error(`Failed to create user: ${error.message}`);
+            }
+            return mapUser(data);
+        },
+        async getUser(userId) {
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', userId)
+                .single();
+            if (error || !data) {
+                return null;
+            }
+            return mapUser(data);
+        },
+        async getUsersByIds(userIds) {
+            if (userIds.length === 0) {
+                return new Map();
+            }
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .in('id', userIds);
+            if (error) {
+                throw new Error(`Failed to fetch users: ${error.message}`);
+            }
+            const userMap = new Map();
+            for (const row of data || []) {
+                userMap.set(row.id, mapUser(row));
+            }
+            return userMap;
+        },
+        async getUserByPhone(phone) {
+            const normalizedPhone = normalizePhone(phone);
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('phone', normalizedPhone)
+                .single();
+            if (error || !data) {
+                return null;
+            }
+            return mapUser(data);
+        },
+        async getOrCreateUser(phone, name) {
+            const normalizedPhone = normalizePhone(phone);
+            const existing = await this.getUserByPhone(normalizedPhone);
+            if (existing) {
+                return existing;
+            }
+            return this.createUser({ phone: normalizedPhone, name });
+        },
+        async updateUser(userId, updates) {
+            const { data, error } = await supabase
+                .from('users')
+                .update({
+                ...updates,
+                updated_at: new Date().toISOString(),
+            })
+                .eq('id', userId)
+                .select()
+                .single();
+            if (error) {
+                throw new Error(`Failed to update user: ${error.message}`);
+            }
+            return mapUser(data);
+        },
+        async setStripeCustomerId(userId, stripeCustomerId) {
+            const { error } = await supabase
+                .from('users')
+                .update({
+                stripe_customer_id: stripeCustomerId,
+                updated_at: new Date().toISOString(),
+            })
+                .eq('id', userId);
+            if (error) {
+                throw new Error(`Failed to set Stripe customer ID: ${error.message}`);
+            }
+        },
+        async getUserWithQueueInfo(userId) {
+            const { data: user, error: userError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', userId)
+                .single();
+            if (userError || !user) {
+                return null;
+            }
+            const { data: queueEntry } = await supabase
+                .from('queue_entries')
+                .select(`
+          id,
+          location_id,
+          tier,
+          state,
+          locations (name)
+        `)
+                .eq('user_id', userId)
+                .not('state', 'in', '("completed","canceled","expired")')
+                .single();
+            const result = mapUser(user);
+            if (queueEntry) {
+                result.queue_entry = {
+                    id: queueEntry.id,
+                    location_id: queueEntry.location_id,
+                    location_name: queueEntry.locations?.name || '',
+                    tier: queueEntry.tier,
+                    state: queueEntry.state,
+                };
+            }
+            return result;
+        },
+    };
+}
+/**
+ * Default user service instance using the default Supabase client
+ */
+exports.userService = createUserService((0, supabase_client_1.getSupabaseClient)());
 //# sourceMappingURL=user_service.js.map

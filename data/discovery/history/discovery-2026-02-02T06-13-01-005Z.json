@@ -1,0 +1,138 @@
+{
+  "runAt": "2026-02-02T06:13:01.005Z",
+  "completedAt": "2026-02-02T06:13:58.300Z",
+  "durationMs": 57295,
+  "totalLocations": 1,
+  "totalServices": 11,
+  "successfulScans": 0,
+  "failedScans": 11,
+  "locations": [
+    {
+      "locationName": "Kapālama Driver License, State ID",
+      "services": [
+        {
+          "locationName": "Kapālama Driver License, State ID",
+          "serviceName": "Hawaii License Duplicate",
+          "ok": false,
+          "error": "Service not found at location",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:13:01.335Z"
+        },
+        {
+          "locationName": "Kapālama Driver License, State ID",
+          "serviceName": "Hawaii License Renewal",
+          "ok": false,
+          "error": "Service not found at location",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:13:06.639Z"
+        },
+        {
+          "locationName": "Kapālama Driver License, State ID",
+          "serviceName": "Hawaii Provisional to a Full License (Not a Road Test Appointment)",
+          "ok": false,
+          "error": "Service not found at location",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:13:11.813Z"
+        },
+        {
+          "locationName": "Kapālama Driver License, State ID",
+          "serviceName": "Instruction Permit (Online Test Follow-up)",
+          "ok": false,
+          "error": "Invalid regular expression: /Instruction Permit (Online Tes/i: Unterminated group",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:13:16.944Z"
+        },
+        {
+          "locationName": "Kapālama Driver License, State ID",
+          "serviceName": "Instruction Permit Duplicate",
+          "ok": false,
+          "error": "Service not found at location",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:13:22.021Z"
+        },
+        {
+          "locationName": "Kapālama Driver License, State ID",
+          "serviceName": "Instruction Permit Initial (In-person Written Test)",
+          "ok": false,
+          "error": "Invalid regular expression: /Instruction Permit Initial (In/i: Unterminated group",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:13:27.158Z"
+        },
+        {
+          "locationName": "Kapālama Driver License, State ID",
+          "serviceName": "Instruction Permit Renewal",
+          "ok": false,
+          "error": "Service not found at location",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:13:32.293Z"
+        },
+        {
+          "locationName": "Kapālama Driver License, State ID",
+          "serviceName": "Out Of State Transfer",
+          "ok": false,
+          "error": "Service not found at location",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:13:37.468Z"
+        },
+        {
+          "locationName": "Kapālama Driver License, State ID",
+          "serviceName": "State ID Duplicate",
+          "ok": false,
+          "error": "Service not found at location",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:13:42.643Z"
+        },
+        {
+          "locationName": "Kapālama Driver License, State ID",
+          "serviceName": "State ID Initial",
+          "ok": false,
+          "error": "Service not found at location",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:13:47.788Z"
+        },
+        {
+          "locationName": "Kapālama Driver License, State ID",
+          "serviceName": "State ID Renewal",
+          "ok": false,
+          "error": "Service not found at location",
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:13:52.996Z"
+        }
+      ],
+      "scannedAt": "2026-02-02T06:13:58.300Z"
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "runAt": "2026-02-02T06:19:53.669Z",
+  "completedAt": "2026-02-02T06:24:43.239Z",
+  "durationMs": 289570,
+  "totalLocations": 1,
+  "totalServices": 11,
+  "successfulScans": 11,
+  "failedScans": 0,
+  "locations": [
+    {
+      "locationName": "Kapalama Driver License, State ID",
+      "services": [
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Hawaii License Duplicate",
+          "ok": true,
+          "totalSlots": 47,
+          "daysWithSlots": 2,
+          "soonestDate": "2026-03-02",
+          "soonestSlotCount": 13,
+          "scannedAt": "2026-02-02T06:19:54.012Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Hawaii License Renewal",
+          "ok": true,
+          "totalSlots": 47,
+          "daysWithSlots": 2,
+          "soonestDate": "2026-03-02",
+          "soonestSlotCount": 13,
+          "scannedAt": "2026-02-02T06:20:20.637Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Hawaii Provisional to a Full License (Not a Road Test Appointment)",
+          "ok": true,
+          "totalSlots": 47,
+          "daysWithSlots": 2,
+          "soonestDate": "2026-03-02",
+          "soonestSlotCount": 13,
+          "scannedAt": "2026-02-02T06:20:47.343Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Instruction Permit (Online Test Follow-up)",
+          "ok": true,
+          "totalSlots": 47,
+          "daysWithSlots": 2,
+          "soonestDate": "2026-03-02",
+          "soonestSlotCount": 13,
+          "scannedAt": "2026-02-02T06:21:14.041Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Instruction Permit Duplicate",
+          "ok": true,
+          "totalSlots": 47,
+          "daysWithSlots": 2,
+          "soonestDate": "2026-03-02",
+          "soonestSlotCount": 13,
+          "scannedAt": "2026-02-02T06:21:40.698Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Instruction Permit Initial (In-person Written Test)",
+          "ok": true,
+          "totalSlots": 0,
+          "daysWithSlots": 0,
+          "soonestDate": null,
+          "soonestSlotCount": 0,
+          "scannedAt": "2026-02-02T06:22:07.528Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Instruction Permit Renewal",
+          "ok": true,
+          "totalSlots": 47,
+          "daysWithSlots": 2,
+          "soonestDate": "2026-03-02",
+          "soonestSlotCount": 13,
+          "scannedAt": "2026-02-02T06:22:30.079Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "Out Of State Transfer",
+          "ok": true,
+          "totalSlots": 26,
+          "daysWithSlots": 2,
+          "soonestDate": "2026-03-02",
+          "soonestSlotCount": 13,
+          "scannedAt": "2026-02-02T06:22:56.787Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "State ID Duplicate",
+          "ok": true,
+          "totalSlots": 47,
+          "daysWithSlots": 2,
+          "soonestDate": "2026-03-02",
+          "soonestSlotCount": 13,
+          "scannedAt": "2026-02-02T06:23:23.296Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "State ID Initial",
+          "ok": true,
+          "totalSlots": 47,
+          "daysWithSlots": 2,
+          "soonestDate": "2026-03-02",
+          "soonestSlotCount": 13,
+          "scannedAt": "2026-02-02T06:23:49.769Z"
+        },
+        {
+          "locationName": "Kapalama Driver License, State ID",
+          "serviceName": "State ID Renewal",
+          "ok": true,
+          "totalSlots": 47,
+          "daysWithSlots": 2,
+          "soonestDate": "2026-03-02",
+          "soonestSlotCount": 13,
+          "scannedAt": "2026-02-02T06:24:16.391Z"
+        }
+      ],
+      "scannedAt": "2026-02-02T06:24:43.239Z"
+    }
+  ]
+}

@@ -173,6 +173,23 @@ async function sendSms(userId, phone, messageType, body, dedupeKey, metadata) {
     }
     catch (error) {
         console.error(`Failed to send SMS: ${error.message}`);
+        // Log failed notification to database for retry/monitoring
+        try {
+            await supabase.from('failed_notifications').insert({
+                user_id: userId,
+                phone: normalizedPhone,
+                message_type: messageType,
+                message_body: body,
+                error: error.message || 'Unknown error',
+                error_code: error.code || null,
+                retry_count: 0,
+                created_at: new Date().toISOString(),
+            });
+        }
+        catch (logError) {
+            // Don't fail the whole operation if logging fails
+            console.error(`Failed to log notification failure: ${logError.message}`);
+        }
         return {
             success: false,
             error: error.message || 'Failed to send SMS',
