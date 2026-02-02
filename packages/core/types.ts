@@ -59,6 +59,7 @@ export type PricingTier = 'standard' | 'high_traffic';
 export interface Location {
   id: string;
   name: string;
+  code: string;
   pricing_tier: PricingTier;
   queue_size_limit: number;
   is_active: boolean;

@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getSupabaseClient } from '../../packages/db/supabase_client';
 import { fetchRecentOpenSlots } from '../../packages/db/slots';
 import { bookSlot, type SlotInfo, type BookingResult } from './booking-bot';
-import { acquireSlotLock, isSlotLocked, getActiveLocations, getLocationCode } from '../../packages/queue';
+import { acquireSlotLock, isSlotLocked, getActiveLocations } from '../../packages/queue';
 import { loadBotConfig } from './bot-config';
 
 // ============================================================================
@@ -92,9 +92,9 @@ export async function runBookingBot(): Promise<BotRunResult> {
           continue;
         }
 
-        const locationCode = getLocationCode(location.name);
+        const locationCode = location.code;
         if (!locationCode) {
-          console.log(`[BookingBot] Unknown location name: ${location.name}`);
+          console.log(`[BookingBot] Location missing code: ${location.name}`);
           continue;
         }
 

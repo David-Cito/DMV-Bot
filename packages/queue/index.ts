@@ -49,10 +49,9 @@ export {
 
 // Location Service
 export {
-  LOCATION_CODES,
-  LOCATION_NAMES,
   getLocationCode,
   getLocationName,
+  getLocationByCode,
   getLocation,
   getLocationByName,
   getActiveLocations,

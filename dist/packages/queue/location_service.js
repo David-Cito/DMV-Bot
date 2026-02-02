@@ -2,6 +2,9 @@
 // Location Service for Queue System V2
 // See openspec/specs/database/spec.md
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getLocationCode = getLocationCode;
+exports.getLocationName = getLocationName;
+exports.getLocationByCode = getLocationByCode;
 exports.getLocation = getLocation;
 exports.getLocationByName = getLocationByName;
 exports.getActiveLocations = getActiveLocations;
@@ -10,6 +13,56 @@ exports.updateLocation = updateLocation;
 exports.getPricing = getPricing;
 exports.getLocationPricing = getLocationPricing;
 const supabase_client_1 = require("../db/supabase_client");
+// ============================================================================
+// LOCATION CODE LOOKUPS (Database-backed)
+// ============================================================================
+/**
+ * Get location code from display name (database lookup)
+ * @returns Location code or null if not found
+ */
+async function getLocationCode(name) {
+    const supabase = (0, supabase_client_1.getSupabaseClient)();
+    const { data, error } = await supabase
+        .from('locations')
+        .select('code')
+        .ilike('name', name)
+        .single();
+    if (error || !data) {
+        return null;
+    }
+    return data.code;
+}
+/**
+ * Get location display name from code (database lookup)
+ * @returns Location name or null if not found
+ */
+async function getLocationName(code) {
+    const supabase = (0, supabase_client_1.getSupabaseClient)();
+    const { data, error } = await supabase
+        .from('locations')
+        .select('name')
+        .eq('code', code)
+        .single();
+    if (error || !data) {
+        return null;
+    }
+    return data.name;
+}
+/**
+ * Get a location by its code
+ */
+async function getLocationByCode(code) {
+    const supabase = (0, supabase_client_1.getSupabaseClient)();
+    const { data, error } = await supabase
+        .from('locations')
+        .select('*')
+        .eq('code', code)
+        .single();
+    if (error || !data) {
+        return null;
+    }
+    return mapLocation(data);
+}
 // ============================================================================
 // LOCATION OPERATIONS
 // ============================================================================
@@ -147,6 +200,7 @@ function mapLocation(row) {
     return {
         id: row.id,
         name: row.name,
+        code: row.code,
         pricing_tier: row.pricing_tier,
         queue_size_limit: row.queue_size_limit,
         is_active: row.is_active,

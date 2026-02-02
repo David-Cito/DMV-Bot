@@ -51,10 +51,10 @@ CREATE TABLE locations (
 
 -- Seed data
 INSERT INTO locations (name, code, pricing_tier, queue_size_limit) VALUES
-  ('Downtown', 'downtown', 'high_traffic', 8),
-  ('Hawaii Kai', 'hawaii_kai', 'standard', 6),
-  ('Pearlridge', 'pearlridge', 'high_traffic', 8),
-  ('Windward City', 'windward', 'standard', 4);
+  ('Downtown Satellite City Hall', 'downtown', 'high_traffic', 8),
+  ('Hawaii Kai Satellite City Hall', 'hawaii_kai', 'standard', 6),
+  ('Pearlridge Satellite City Hall', 'pearlridge', 'high_traffic', 8),
+  ('Windward City Satellite City Hall', 'windward', 'standard', 4);
 ```
 
 ### queue_entries
@@ -398,6 +398,62 @@ CREATE TABLE message_log (
 
 CREATE INDEX idx_message_log_user ON message_log (user_id, sent_at DESC);
 CREATE INDEX idx_message_log_dedupe ON message_log (dedupe_key);
+```
+
+### failed_notifications
+
+Failed SMS delivery attempts for monitoring and retry. Tracks Twilio errors to enable:
+- Monitoring: Identify systematic delivery issues
+- Retry: Implement retry queue for transient failures
+- Debugging: Analyze error patterns by error code
+- Audit: Which messages failed to reach which users
+
+```sql
+CREATE TABLE failed_notifications (
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id           UUID REFERENCES users(id) NOT NULL,
+  phone             TEXT NOT NULL,           -- E.164 normalized number
+  message_type      TEXT NOT NULL,           -- 'invite', 'booked', 'payment_failed', etc.
+  message_body      TEXT NOT NULL,           -- Full SMS body for potential retry
+
+  -- Error details
+  error             TEXT NOT NULL,           -- Twilio error message
+  error_code        TEXT,                    -- Twilio error code (e.g., 21211, 21408)
+
+  -- Retry tracking
+  retry_count       INTEGER DEFAULT 0,
+  last_retry_at     TIMESTAMP,
+
+  created_at        TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_failed_notifications_user ON failed_notifications (user_id, created_at DESC);
+CREATE INDEX idx_failed_notifications_phone ON failed_notifications (phone, created_at DESC);
+CREATE INDEX idx_failed_notifications_error_code ON failed_notifications (error_code)
+  WHERE error_code IS NOT NULL;
+```
+
+**Query Examples:**
+```sql
+-- All failures for a user
+SELECT * FROM failed_notifications
+WHERE user_id = $1
+ORDER BY created_at DESC;
+
+-- Failures by error code (to detect patterns)
+SELECT error_code, COUNT(*) as count
+FROM failed_notifications
+WHERE created_at > NOW() - INTERVAL '1 hour'
+GROUP BY error_code
+ORDER BY count DESC;
+
+-- Phone numbers with repeated failures
+SELECT phone, COUNT(*) as failures, MAX(created_at) as latest
+FROM failed_notifications
+WHERE created_at > NOW() - INTERVAL '24 hours'
+GROUP BY phone
+HAVING COUNT(*) > 3
+ORDER BY failures DESC;
 ```
 
 ---

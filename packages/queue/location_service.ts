@@ -5,41 +5,66 @@ import type { Location, PricingTier, PricingConfig } from '../core/types';
 import { getSupabaseClient } from '../db/supabase_client';
 
 // ============================================================================
-// LOCATION CODE MAPPINGS
+// LOCATION CODE LOOKUPS (Database-backed)
 // ============================================================================
 
 /**
- * Canonical mapping of location codes to display names
- * This is the single source of truth for location identifiers
- */
-export const LOCATION_CODES: Record<string, string> = {
-  downtown: 'Downtown Satellite City Hall',
-  hawaii_kai: 'Hawaii Kai Satellite City Hall',
-  pearlridge: 'Pearlridge Satellite City Hall',
-  windward: 'Windward City Satellite City Hall',
-};
-
-/**
- * Inverse mapping: display name to code
- */
-export const LOCATION_NAMES: Record<string, string> = Object.fromEntries(
-  Object.entries(LOCATION_CODES).map(([code, name]) => [name, code])
-);
-
-/**
- * Get location code from display name
+ * Get location code from display name (database lookup)
  * @returns Location code or null if not found
  */
-export function getLocationCode(name: string): string | null {
-  return LOCATION_NAMES[name] || null;
+export async function getLocationCode(name: string): Promise<string | null> {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase
+    .from('locations')
+    .select('code')
+    .ilike('name', name)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data.code;
 }
 
 /**
- * Get location display name from code
+ * Get location display name from code (database lookup)
  * @returns Location name or null if not found
  */
-export function getLocationName(code: string): string | null {
-  return LOCATION_CODES[code] || null;
+export async function getLocationName(code: string): Promise<string | null> {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase
+    .from('locations')
+    .select('name')
+    .eq('code', code)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data.name;
+}
+
+/**
+ * Get a location by its code
+ */
+export async function getLocationByCode(code: string): Promise<Location | null> {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase
+    .from('locations')
+    .select('*')
+    .eq('code', code)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return mapLocation(data);
 }
 
 // ============================================================================
@@ -221,6 +246,7 @@ function mapLocation(row: any): Location {
   return {
     id: row.id,
     name: row.name,
+    code: row.code,
     pricing_tier: row.pricing_tier as PricingTier,
     queue_size_limit: row.queue_size_limit,
     is_active: row.is_active,

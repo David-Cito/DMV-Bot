@@ -6,16 +6,11 @@ exports.bookSlot = bookSlot;
 const playwright_1 = require("playwright");
 const supabase_client_1 = require("../../packages/db/supabase_client");
 const queue_1 = require("../../packages/queue");
+const bot_config_1 = require("./bot-config");
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 const START_URL = 'https://alohaq.honolulu.gov/';
-const LOCATIONS = {
-    downtown: 'Downtown Satellite City Hall',
-    hawaii_kai: 'Hawaii Kai Satellite City Hall',
-    pearlridge: 'Pearlridge Satellite City Hall',
-    windward: 'Windward City Satellite City Hall',
-};
 // ============================================================================
 // MAIN BOOKING FUNCTION
 // ============================================================================
@@ -51,10 +46,12 @@ async function bookSlot(slot, botId) {
             result.error_code = 'no_users';
             return result;
         }
-        // Get full user info for selected users
+        // Get full user info for selected users (batch fetch - single query)
+        const userIds = selectedUsers.map(su => su.user_id);
+        const usersMap = await (0, queue_1.getUsersByIds)(userIds);
         const userInfos = [];
         for (const su of selectedUsers) {
-            const user = await (0, queue_1.getUser)(su.user_id);
+            const user = usersMap.get(su.user_id);
             if (user) {
                 userInfos.push({
                     user_id: su.user_id,
@@ -72,8 +69,8 @@ async function bookSlot(slot, botId) {
             return result;
         }
         // Get location info
-        const location = await (0, queue_1.getLocation)(slot.location_id);
-        const locationName = location?.name || LOCATIONS[slot.location_code] || 'Unknown Location';
+        const location = await (0, queue_1.getLocation)(slot.location_id) || await (0, queue_1.getLocationByCode)(slot.location_code);
+        const locationName = location?.name || 'Unknown Location';
         // 3. Launch browser and navigate to booking page
         browser = await playwright_1.chromium.launch({
             headless: process.env.CI === 'true',
@@ -84,7 +81,7 @@ async function bookSlot(slot, botId) {
         // Block unnecessary requests
         await enableRequestBlocking(page);
         // 4. Navigate to DMV and select the slot (with retry on failure)
-        let navResult = await navigateToSlot(page, slot.location_code, slot.slot_date, slot.slot_time, false);
+        let navResult = await navigateToSlot(page, locationName, slot.slot_date, slot.slot_time, false);
         // If first attempt fails, retry with force reload
         if (!navResult.success) {
             console.log(`[BookingBot] First navigation attempt failed: ${navResult.error}`);
@@ -95,7 +92,7 @@ async function bookSlot(slot, botId) {
             context = await browser.newContext();
             page = await context.newPage();
             await enableRequestBlocking(page);
-            navResult = await navigateToSlot(page, slot.location_code, slot.slot_date, slot.slot_time, true);
+            navResult = await navigateToSlot(page, locationName, slot.slot_date, slot.slot_time, true);
         }
         if (!navResult.success) {
             result.error = navResult.error || 'Failed to navigate to slot';
@@ -207,10 +204,26 @@ async function bookSlot(slot, botId) {
             if (cancelEnabled) {
                 const cancelSeconds = await (0, queue_1.getCancelWindowSeconds)();
                 console.log(`[BookingBot] Cancel window enabled, waiting ${cancelSeconds}s`);
-                // Stay on confirmation page for cancel window duration
-                // In a real implementation, we'd poll for user cancel requests
-                await page.waitForTimeout(cancelSeconds * 1000);
-                // After cancel window, transition to CONFIRMED
+                // Poll for cancel requests during cancel window
+                const cancelResult = await pollForCancelRequest(page, userInfo.queue_entry_id, cancelSeconds);
+                if (cancelResult.canceled) {
+                    console.log(`[BookingBot] User requested cancel, processing...`);
+                    // Refund the booking fee
+                    if (chargeResult.charge_id) {
+                        const refundResult = await (0, queue_1.refundBookingFeeByChargeId)(userInfo.user_id, chargeResult.charge_id, userInfo.queue_entry_id, 'user_cancel_during_window');
+                        console.log(`[BookingBot] Refund result: ${refundResult.success ? 'success' : refundResult.error}`);
+                    }
+                    // Transition to canceled state
+                    await (0, queue_1.transitionState)(userInfo.queue_entry_id, 'canceled', {
+                        trigger_type: 'user_action',
+                        trigger_details: { reason: 'user_cancel_during_window' },
+                    });
+                    result.success = false;
+                    result.error = 'User canceled during cancel window';
+                    result.error_code = 'user_canceled';
+                    return result;
+                }
+                // Cancel window expired without cancel request - confirm
                 await (0, queue_1.transitionState)(userInfo.queue_entry_id, 'confirmed', {
                     trigger_type: 'system',
                     trigger_details: { reason: 'cancel_window_expired' },
@@ -255,13 +268,23 @@ async function bookSlot(slot, botId) {
         return result;
     }
     finally {
-        // Cleanup
-        if (page)
-            await page.close().catch(() => { });
-        if (context)
-            await context.close().catch(() => { });
-        if (browser)
-            await browser.close().catch(() => { });
+        // Cleanup with timeout protection to prevent resource leaks
+        const closeWithTimeout = async (resource, name, timeoutMs = 5000) => {
+            if (!resource)
+                return;
+            try {
+                await Promise.race([
+                    resource.close(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error(`${name} close timeout`)), timeoutMs)),
+                ]);
+            }
+            catch (e) {
+                console.error(`[BookingBot] Failed to close ${name}: ${e.message}`);
+            }
+        };
+        await closeWithTimeout(page, 'page');
+        await closeWithTimeout(context, 'context');
+        await closeWithTimeout(browser, 'browser');
         // Release slot lock
         await (0, queue_1.releaseSlotLock)(slot.location_id, slot.slot_date, slot.slot_time, botId);
     }
@@ -312,13 +335,13 @@ async function captureFailureScreenshot(page, botId, errorCode, context = {}) {
 // ============================================================================
 // RETRY HELPERS
 // ============================================================================
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 1000;
+// Retry config loaded from bot-config.ts (uses getBotConfig())
 /**
  * Retry a function with exponential backoff
  */
 async function withRetry(fn, options = {}) {
-    const { maxRetries = MAX_RETRIES, delayMs = RETRY_DELAY_MS, onRetry, description = 'operation' } = options;
+    const config = (0, bot_config_1.getBotConfig)();
+    const { maxRetries = config.maxRetries, delayMs = config.retryDelayMs, onRetry, description = 'operation' } = options;
     let lastError = null;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
@@ -341,10 +364,11 @@ async function withRetry(fn, options = {}) {
  * Wait for element with retry
  */
 async function waitForElementWithRetry(page, selector, options = {}) {
+    const config = (0, bot_config_1.getBotConfig)();
     const { timeout = 30_000, state = 'visible' } = options;
     try {
         await withRetry(async () => {
-            await page.locator(selector).waitFor({ state, timeout: timeout / MAX_RETRIES });
+            await page.locator(selector).waitFor({ state, timeout: timeout / config.maxRetries });
         }, { description: `waiting for ${selector}` });
         return true;
     }
@@ -356,11 +380,12 @@ async function waitForElementWithRetry(page, selector, options = {}) {
  * Click element with retry
  */
 async function clickWithRetry(page, selector, options = {}) {
+    const config = (0, bot_config_1.getBotConfig)();
     const { timeout = 10_000 } = options;
     await withRetry(async () => {
         const element = page.locator(selector).first();
-        await element.waitFor({ state: 'visible', timeout: timeout / MAX_RETRIES });
-        await element.click({ timeout: timeout / MAX_RETRIES });
+        await element.waitFor({ state: 'visible', timeout: timeout / config.maxRetries });
+        await element.click({ timeout: timeout / config.maxRetries });
     }, { description: `clicking ${selector}` });
 }
 // ============================================================================
@@ -380,11 +405,10 @@ async function enableRequestBlocking(page) {
         return route.continue();
     });
 }
-async function navigateToSlot(page, locationCode, slotDate, slotTime, forceReload = false) {
+async function navigateToSlot(page, locationName, slotDate, slotTime, forceReload = false) {
     try {
-        const locationName = LOCATIONS[locationCode];
         if (!locationName) {
-            return { success: false, error: `Unknown location code: ${locationCode}` };
+            return { success: false, error: 'Location name is required' };
         }
         // Navigate to start page with retry
         await withRetry(async () => {
@@ -566,6 +590,88 @@ async function clearUserForm(page) {
     await page.locator('#user_sign_up_form #number').click();
     await page.keyboard.press('Control+A');
     await page.keyboard.press('Backspace');
+}
+// ============================================================================
+// CANCEL WINDOW POLLING
+// ============================================================================
+// Cancel poll interval loaded from bot-config.ts
+/**
+ * Poll for cancel request during cancel window
+ * Checks database for cancel_requested flag on queue entry
+ * If found, clicks the cancel button on DMV page
+ */
+async function pollForCancelRequest(page, queueEntryId, cancelWindowSeconds) {
+    const supabase = (0, supabase_client_1.getSupabaseClient)();
+    const config = (0, bot_config_1.getBotConfig)();
+    const pollIntervalMs = config.cancelPollIntervalMs;
+    const endTime = Date.now() + (cancelWindowSeconds * 1000);
+    console.log(`[BookingBot] Starting cancel window poll for ${cancelWindowSeconds}s`);
+    while (Date.now() < endTime) {
+        try {
+            // Check if user requested cancel
+            const entry = await (0, queue_1.getQueueEntry)(queueEntryId);
+            if (!entry) {
+                console.log(`[BookingBot] Queue entry not found during cancel poll`);
+                return { canceled: false, error: 'Queue entry not found' };
+            }
+            // Check for cancel_requested field (set by SMS webhook when user texts CANCEL)
+            const { data: entryData } = await supabase
+                .from('queue_entries')
+                .select('cancel_requested')
+                .eq('id', queueEntryId)
+                .single();
+            if (entryData?.cancel_requested) {
+                console.log(`[BookingBot] Cancel requested by user`);
+                // Try to click the cancel button on DMV page
+                const cancelResult = await clickCancelButton(page);
+                if (!cancelResult.success) {
+                    console.log(`[BookingBot] Warning: Could not click cancel button: ${cancelResult.error}`);
+                    // Still proceed with cancel even if button click fails
+                    // The appointment might already be in a state that can't be canceled on DMV side
+                }
+                return { canceled: true };
+            }
+            // Wait before next poll
+            await page.waitForTimeout(pollIntervalMs);
+        }
+        catch (error) {
+            console.log(`[BookingBot] Error during cancel poll: ${error.message}`);
+            // Continue polling despite errors
+            await page.waitForTimeout(pollIntervalMs);
+        }
+    }
+    console.log(`[BookingBot] Cancel window expired, no cancel request received`);
+    return { canceled: false };
+}
+/**
+ * Click the cancel button on DMV confirmation page
+ * The button may be labeled "Cancel" or similar
+ */
+async function clickCancelButton(page) {
+    try {
+        // Look for common cancel button patterns on DMV confirmation page
+        const cancelSelectors = [
+            'button:has-text("Cancel")',
+            'a:has-text("Cancel")',
+            '.cancel-button',
+            '#cancelButton',
+            '[data-action="cancel"]',
+        ];
+        for (const selector of cancelSelectors) {
+            const button = page.locator(selector).first();
+            if (await button.isVisible()) {
+                await button.click();
+                console.log(`[BookingBot] Clicked cancel button: ${selector}`);
+                // Wait for cancellation to process
+                await page.waitForLoadState('domcontentloaded', { timeout: 10_000 });
+                return { success: true };
+            }
+        }
+        return { success: false, error: 'No cancel button found on page' };
+    }
+    catch (error) {
+        return { success: false, error: error.message };
+    }
 }
 async function submitBookingForm(page) {
     try {

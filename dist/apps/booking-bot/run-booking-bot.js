@@ -8,10 +8,13 @@ const supabase_client_1 = require("../../packages/db/supabase_client");
 const slots_1 = require("../../packages/db/slots");
 const booking_bot_1 = require("./booking-bot");
 const queue_1 = require("../../packages/queue");
+const bot_config_1 = require("./bot-config");
 // ============================================================================
 // MAIN RUNNER
 // ============================================================================
 async function runBookingBot() {
+    // Load configuration at startup
+    await (0, bot_config_1.loadBotConfig)();
     const supabase = (0, supabase_client_1.getSupabaseClient)();
     const botId = (0, uuid_1.v4)();
     const startTime = Date.now();
@@ -42,13 +45,6 @@ async function runBookingBot() {
         // Get active locations
         const locations = await (0, queue_1.getActiveLocations)();
         console.log(`[BookingBot] Found ${locations.length} active locations`);
-        // Location code mapping (name to code)
-        const locationCodes = {
-            'Downtown Satellite City Hall': 'downtown',
-            'Hawaii Kai Satellite City Hall': 'hawaii_kai',
-            'Pearlridge Satellite City Hall': 'pearlridge',
-            'Windward City Satellite City Hall': 'windward',
-        };
         // Check each location for new slots
         for (const location of locations) {
             console.log(`[BookingBot] Checking location: ${location.name}`);
@@ -68,9 +64,9 @@ async function runBookingBot() {
                     console.log(`[BookingBot] Slot ${slot.slot_date} ${slot.slot_time} already locked, skipping`);
                     continue;
                 }
-                const locationCode = locationCodes[location.name];
+                const locationCode = location.code;
                 if (!locationCode) {
-                    console.log(`[BookingBot] Unknown location name: ${location.name}`);
+                    console.log(`[BookingBot] Location missing code: ${location.name}`);
                     continue;
                 }
                 const slotInfo = {

@@ -14,8 +14,7 @@ import {
   getQueueEntry,
   getUsersByIds,
   getLocation,
-  getLocationName,
-  LOCATION_CODES,
+  getLocationByCode,
   sendBookedMessage,
   sendPaymentFailedMessage,
   sendBookingSubmitFailedMessage,
@@ -140,8 +139,8 @@ export async function bookSlot(slot: SlotInfo, botId: string): Promise<BookingRe
     }
 
     // Get location info
-    const location = await getLocation(slot.location_id);
-    const locationName = location?.name || getLocationName(slot.location_code) || 'Unknown Location';
+    const location = await getLocation(slot.location_id) || await getLocationByCode(slot.location_code);
+    const locationName = location?.name || 'Unknown Location';
 
     // 3. Launch browser and navigate to booking page
     browser = await chromium.launch({
@@ -155,7 +154,7 @@ export async function bookSlot(slot: SlotInfo, botId: string): Promise<BookingRe
     await enableRequestBlocking(page);
 
     // 4. Navigate to DMV and select the slot (with retry on failure)
-    let navResult = await navigateToSlot(page, slot.location_code, slot.slot_date, slot.slot_time, false);
+    let navResult = await navigateToSlot(page, locationName, slot.slot_date, slot.slot_time, false);
 
     // If first attempt fails, retry with force reload
     if (!navResult.success) {
@@ -169,7 +168,7 @@ export async function bookSlot(slot: SlotInfo, botId: string): Promise<BookingRe
       page = await context.newPage();
       await enableRequestBlocking(page);
 
-      navResult = await navigateToSlot(page, slot.location_code, slot.slot_date, slot.slot_time, true);
+      navResult = await navigateToSlot(page, locationName, slot.slot_date, slot.slot_time, true);
     }
 
     if (!navResult.success) {
@@ -609,15 +608,14 @@ async function enableRequestBlocking(page: Page): Promise<void> {
 
 async function navigateToSlot(
   page: Page,
-  locationCode: string,
+  locationName: string,
   slotDate: string,
   slotTime: string,
   forceReload: boolean = false
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const locationName = LOCATION_CODES[locationCode];
     if (!locationName) {
-      return { success: false, error: `Unknown location code: ${locationCode}` };
+      return { success: false, error: 'Location name is required' };
     }
 
     // Navigate to start page with retry
