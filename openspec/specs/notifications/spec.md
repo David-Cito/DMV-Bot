@@ -36,7 +36,20 @@ USER                                    SYSTEM
 
 "Hi"
         ───────────────────────────────▶
-                                        "Welcome to DMV Bot! 🚗
+                                        "Welcome to DMV Bot!
+
+                                         What do you need help with?
+
+                                         1. License/ID Renewal
+                                         2. License/ID Duplicate
+                                         3. Instruction Permit
+                                         4. Out of State Transfer
+                                         5. Motor Vehicle Services
+                                         6. Something else"
+        ◀───────────────────────────────
+"1"
+        ───────────────────────────────▶
+                                        "Great! We can help with renewals.
 
                                          Which location do you need?
                                          1. Downtown
@@ -79,7 +92,9 @@ USER                                    SYSTEM
 
 | Message | Trigger | Content |
 |---------|---------|---------|
-| **Welcome** | User texts in | Location selection prompt |
+| **Welcome** | User texts in | Service selection prompt |
+| **Service Confirmed** | User selects renewal | Location selection prompt |
+| **Service Unsupported** | User selects other service | Vote recorded, notify opt-in prompt |
 | **Location Confirmed** | User selects location | Tier selection prompt |
 | **Tier Confirmed** | User selects tier | Waitlist confirmation |
 | **Time Preference** | User replies TIME | Time selection (with warning) |
@@ -183,7 +198,7 @@ Each user has a conversation state tracked in the database:
 
 ```sql
 -- Conversation state stored on user or separate table
-conversation_state TEXT  -- 'idle', 'selecting_location', 'selecting_tier', etc.
+conversation_state TEXT  -- 'idle', 'selecting_service', 'selecting_location', 'selecting_tier', etc.
 conversation_data JSONB  -- Temporary data during multi-step flows
 ```
 
@@ -194,20 +209,31 @@ IDLE
   │
   │ user texts anything
   ▼
-SELECTING_LOCATION
+SELECTING_SERVICE
   │
-  │ user selects location
-  ▼
-SELECTING_TIER
+  ├─── selects renewal (supported)
+  │         │
+  │         ▼
+  │    SELECTING_LOCATION
+  │         │
+  │         │ user selects location
+  │         ▼
+  │    SELECTING_TIER
+  │         │
+  │         │ user selects tier
+  │         ▼
+  │    IDLE (user now on waitlist)
   │
-  │ user selects tier
-  ▼
-CONFIRMING_SIGNUP
-  │
-  │ user confirms
-  ▼
-IDLE (user now on waitlist)
+  └─── selects other service (unsupported)
+            │
+            ▼
+       ASKING_NOTIFY_PREFERENCE
+            │
+            ▼
+       IDLE (vote recorded)
 ```
+
+See [Service Selection](../service-selection/spec.md) for full service selection flow.
 
 ---
 

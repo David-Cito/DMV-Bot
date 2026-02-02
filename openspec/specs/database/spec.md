@@ -426,8 +426,44 @@ CREATE INDEX idx_admin_actions_type ON admin_actions (action_type, created_at DE
 
 ---
 
+## Interest Tracking
+
+### service_votes
+
+Track user interest in services we don't yet support. Used to inform expansion decisions.
+
+Phone is always captured so we can notify voters when we launch a service - even if they didn't explicitly opt in.
+
+```sql
+CREATE TABLE service_votes (
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  phone             TEXT NOT NULL,           -- Always captured for launch notifications
+  service_type      TEXT NOT NULL,
+  description       TEXT,                    -- Free-text if 'other'
+  notify_when_available BOOLEAN DEFAULT FALSE, -- User explicitly opted in
+  notified_at       TIMESTAMP,               -- When we texted them about launch
+  created_at        TIMESTAMP DEFAULT NOW()
+);
+
+-- service_type values:
+-- 'license_id_duplicate'      (easy - same locations)
+-- 'permit_renewal'            (easy - same locations)
+-- 'motor_vehicle_services'    (easy - same locations)
+-- 'instruction_permit'        (hard - DL offices only)
+-- 'out_of_state_transfer'     (hard - DL offices only)
+-- 'state_id_initial'          (hard - DL offices only)
+-- 'other'                     (free-text in description)
+
+CREATE INDEX idx_service_votes_type ON service_votes (service_type);
+CREATE INDEX idx_service_votes_notify ON service_votes (service_type, notify_when_available)
+  WHERE notify_when_available = TRUE AND notified_at IS NULL;
+```
+
+---
+
 ## Related Specs
 
+- [Service Selection](../service-selection/spec.md) - Service voting flow
 - [User States](../user-states/spec.md) - State enum values
 - [Queue Mechanics](../queue-mechanics/spec.md) - Queue query patterns
 - [Analytics](../analytics/spec.md) - How analytics tables are used

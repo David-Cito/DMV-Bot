@@ -97,13 +97,15 @@ Optional restriction (with warning):
 
 ## State Machine
 
+Note: Service selection happens before this flow. Users who select unsupported services are recorded in `service_votes` and don't enter this state machine. See [Service Selection](../service-selection/spec.md).
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         USER STATE MACHINE                                  │
 └─────────────────────────────────────────────────────────────────────────────┘
 
                          ┌──────────────┐
-                         │  REGISTERED  │
+                         │  REGISTERED  │  (selected License/ID Renewal)
                          └──────┬───────┘
                                 │ picks location + tier + time pref
                                 ▼
@@ -220,5 +222,6 @@ Optional restriction (with warning):
 
 ## Related Specs
 
+- [Service Selection](../service-selection/spec.md) - Service type selection before signup
 - [Queue Mechanics](../queue-mechanics/spec.md) - How users move through the queue
 - [Payment & Pricing](../payment-pricing/spec.md) - Deposit and booking fee handling

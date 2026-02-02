@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Handle service type selection during onboarding. Currently only driver's license/state ID renewal is supported. When users need other services, collect their interest as demand signals for future development.
+Handle service type selection during onboarding. Currently only driver's license/state ID renewal is supported at Satellite City Hall locations. When users need other services, collect their interest as demand signals for future development.
 
 ### Goals
 
@@ -18,25 +18,70 @@ Handle service type selection during onboarding. Currently only driver's license
 
 ---
 
+## Location Types
+
+Hawaii has two types of DMV locations with different services:
+
+### Satellite City Halls (Currently Tracked)
+
+Limited services, but convenient locations:
+
+| Location | Services Available |
+|----------|-------------------|
+| Downtown | Renewals, Duplicates, Motor Vehicles, Holo Card, Disability Permits |
+| Hawaii Kai | Renewals, Duplicates, Motor Vehicles, Holo Card, Disability Permits |
+| Pearlridge | Renewals, Duplicates, Motor Vehicles, Holo Card, Disability Permits |
+| Windward City | Renewals, Duplicates, Motor Vehicles, Holo Card, Disability Permits |
+
+### Driver License Offices (Not Yet Tracked)
+
+Full services including tests and new issuance:
+
+| Location | Notable Services |
+|----------|-----------------|
+| Kapālama | All DL/ID services, permits, transfers |
+| Kapolei | All DL/ID services, permits, transfers |
+| Koʻolau | All DL/ID services, permits, transfers |
+| Wahiawā | All DL/ID services, permits, transfers |
+| Waiʻanae | All DL/ID services, permits, transfers |
+
+---
+
 ## Supported vs Unsupported Services
 
-### Currently Supported
+### Currently Supported (Satellite City Halls)
 
-| Service | Description |
-|---------|-------------|
-| **Driver's License Renewal** | Renew existing driver's license |
-| **State ID Renewal** | Renew existing state ID |
+| Service | DMV Category |
+|---------|--------------|
+| **Driver License Renewal** | "Driver License & State ID Renewals" |
+| **State ID Renewal** | "Driver License & State ID Renewals" |
 
-### Not Yet Supported (Collect Votes)
+### Could Support (Same Locations)
 
-| Service | Description |
-|---------|-------------|
-| Road Test | Behind-the-wheel driving test |
-| Permit Test | Written test for learner's permit |
-| New License | First-time license (not renewal) |
-| Title Transfer | Vehicle title services |
-| Registration | Vehicle registration services |
-| Other | Catch-all for unlisted services |
+| Service | DMV Category | Notes |
+|---------|--------------|-------|
+| License/ID Duplicate | "Driver License or State ID Duplicates & Instruction Permit Renewals" | Same appointment type |
+| Instruction Permit Renewal | "Driver License or State ID Duplicates & Instruction Permit Renewals" | Same appointment type |
+| Motor Vehicle Services | "Motor Vehicles & Other Services" | Registration, title, etc. |
+| Holo Card | "Motor Vehicles & Other Services / Holo Card & Disability Parking Permits" | Transit card |
+| Disability Parking Permit | "Motor Vehicles & Other Services / Holo Card & Disability Parking Permits" | Placard services |
+
+### Requires New Locations (Driver License Offices)
+
+| Service | DMV Category | Notes |
+|---------|--------------|-------|
+| Instruction Permit Initial | "Instruction Permit Initial (In-person Written Test)" | Written test required |
+| Instruction Permit (Online Follow-up) | "Instruction Permit (Online Test Follow-up)" | After passing online test |
+| Out Of State Transfer | "Out Of State Transfer" | Moving to Hawaii |
+| State ID Initial | "State ID Initial" | First-time ID |
+| Provisional to Full License | "Hawaii Provisional to a Full License" | Not a road test |
+
+### Not Available Online
+
+| Service | Notes |
+|---------|-------|
+| Road Test | Scheduled separately, not through appointment system |
+| U.S. Passport | Only at select locations (Ala Moana, Kapolei, Wahiawā) |
 
 ---
 
@@ -53,10 +98,10 @@ USER                                    SYSTEM
                                          What do you need help with?
 
                                          1. License/ID Renewal
-                                         2. Road Test
-                                         3. Permit Test
-                                         4. New License
-                                         5. Title/Registration
+                                         2. License/ID Duplicate
+                                         3. Instruction Permit
+                                         4. Out of State Transfer
+                                         5. Motor Vehicle Services
                                          6. Something else"
         ◀───────────────────────────────
 
@@ -76,27 +121,45 @@ USER                                    SYSTEM
         [Continues to normal signup flow...]
 
 
-[If user selects 2-5 - UNSUPPORTED]
+[If user selects 2 - COULD SUPPORT (same locations)]
 
 "2"
         ───────────────────────────────▶
-                                        "We don't track Road Test appointments
-                                         yet, but we're considering adding it!
+                                        "We don't track License/ID Duplicates
+                                         yet, but it's on our radar!
 
                                          Your interest has been noted.
 
-                                         Want us to text you when we add
-                                         Road Test tracking?
+                                         Want us to text you when we add it?
 
                                          Reply YES or NO"
         ◀───────────────────────────────
 "yes"
         ───────────────────────────────▶
-                                        "Got it! We'll notify you when Road Test
-                                         tracking becomes available.
+                                        "Got it! We'll notify you when
+                                         Duplicate tracking is available.
 
                                          Need help with anything else?
                                          Reply MENU to see options."
+        ◀───────────────────────────────
+
+
+[If user selects 3 or 4 - REQUIRES NEW LOCATIONS]
+
+"3"
+        ───────────────────────────────▶
+                                        "Instruction Permits require an
+                                         appointment at a Driver License office
+                                         (Kapālama, Kapolei, etc.) - not at
+                                         the Satellite City Halls we track.
+
+                                         We're considering adding those
+                                         locations. Your interest has been noted.
+
+                                         Want us to text you when we add
+                                         Driver License office tracking?
+
+                                         Reply YES or NO"
         ◀───────────────────────────────
 
 
@@ -108,17 +171,15 @@ USER                                    SYSTEM
 
                                          Reply with a brief description."
         ◀───────────────────────────────
-"motorcycle endorsement"
+"road test"
         ───────────────────────────────▶
-                                        "Thanks! We've noted your interest in
-                                         'motorcycle endorsement'.
+                                        "Road tests are scheduled separately
+                                         from the online appointment system.
 
-                                         We'll use this feedback to decide
-                                         what to add next.
+                                         Is there another service we can
+                                         help you with?
 
-                                         Want us to text you if we add this?
-
-                                         Reply YES or NO"
+                                         Reply MENU to see options."
         ◀───────────────────────────────
 ```
 
@@ -168,60 +229,31 @@ SELECTING_SERVICE  ◄──── NEW STATE
 
 ## Database Schema
 
-### service_votes
+See [Database Spec](../database/spec.md) for full schema. The `service_votes` table is defined there.
 
-Track interest in services we don't yet support.
-
-```sql
-CREATE TABLE service_votes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    -- What service they wanted
-    service_type TEXT NOT NULL,          -- 'road_test', 'permit_test', 'new_license', 'title_transfer', 'registration', 'other'
-    service_description TEXT,            -- Free-text if they chose "other"
-
-    -- Who voted (optional - can be anonymous)
-    phone_number TEXT,                   -- For notification signup
-    notify_when_available BOOLEAN DEFAULT FALSE,
-
-    -- Metadata
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    notified_at TIMESTAMPTZ             -- When we texted them about availability
-);
-
--- Index for counting votes by service
-CREATE INDEX idx_service_votes_type ON service_votes(service_type);
-
--- Index for notification queries
-CREATE INDEX idx_service_votes_notify ON service_votes(service_type, notify_when_available)
-    WHERE notify_when_available = TRUE AND notified_at IS NULL;
-```
-
-### Example Queries
+### Quick Reference
 
 ```sql
--- Get vote counts by service type
-SELECT
-    service_type,
-    COUNT(*) as vote_count,
-    COUNT(*) FILTER (WHERE notify_when_available) as want_notification
+-- Record a vote (phone always captured for future launch notifications)
+INSERT INTO service_votes (phone, service_type, description, notify_when_available)
+VALUES ('+18081234567', 'instruction_permit', NULL, TRUE);
+
+-- Get vote counts
+SELECT service_type, COUNT(*) as votes
 FROM service_votes
 GROUP BY service_type
-ORDER BY vote_count DESC;
+ORDER BY votes DESC;
 
--- Get "other" descriptions for analysis
-SELECT
-    service_description,
-    COUNT(*) as mentions
+-- Get ALL users who voted for a service (for launch announcement)
+SELECT phone
 FROM service_votes
-WHERE service_type = 'other'
-GROUP BY service_description
-ORDER BY mentions DESC;
+WHERE service_type = 'license_id_duplicate'
+  AND notified_at IS NULL;
 
--- Get users to notify when we launch a service
-SELECT phone_number
+-- Get only users who explicitly opted in to notifications
+SELECT phone
 FROM service_votes
-WHERE service_type = 'road_test'
+WHERE service_type = 'license_id_duplicate'
   AND notify_when_available = TRUE
   AND notified_at IS NULL;
 ```
@@ -232,60 +264,12 @@ WHERE service_type = 'road_test'
 
 | User Input | service_type Value |
 |------------|-------------------|
-| 1, "renewal", "license renewal" | *(supported - no vote)* |
-| 2, "road test", "driving test" | `road_test` |
-| 3, "permit", "permit test", "written test" | `permit_test` |
-| 4, "new license", "first license" | `new_license` |
-| 5, "title", "registration" | `title_registration` |
-| 6, "other", anything else | `other` |
-
----
-
-## Notification When Service Launches
-
-When we add support for a new service:
-
-```sql
--- 1. Find users who wanted notification
-SELECT phone_number
-FROM service_votes
-WHERE service_type = 'road_test'
-  AND notify_when_available = TRUE
-  AND notified_at IS NULL;
-
--- 2. Send notification (via Twilio)
--- "Great news! We now track Road Test appointments.
---  Text us to get started!"
-
--- 3. Mark as notified
-UPDATE service_votes
-SET notified_at = NOW()
-WHERE service_type = 'road_test'
-  AND notify_when_available = TRUE
-  AND notified_at IS NULL;
-```
-
----
-
-## Analytics & Reporting
-
-### Demand Dashboard
-
-Track these metrics to inform roadmap:
-
-| Metric | Query |
-|--------|-------|
-| Total votes by service | `COUNT(*) GROUP BY service_type` |
-| Notification signup rate | `AVG(notify_when_available::int)` |
-| Votes this week | `WHERE created_at > NOW() - INTERVAL '7 days'` |
-| Unique "other" descriptions | `COUNT(DISTINCT service_description)` |
-
-### When to Add a Service
-
-Consider adding a service when:
-- Vote count exceeds threshold (e.g., 50+ votes)
-- High notification signup rate (>70% want to be notified)
-- Technical feasibility confirmed (DMV site supports it)
+| 1, "renewal" | *(supported - no vote)* |
+| 2, "duplicate" | `license_id_duplicate` |
+| 3, "permit" | `instruction_permit` |
+| 4, "transfer", "out of state" | `out_of_state_transfer` |
+| 5, "motor vehicle", "registration", "title" | `motor_vehicle_services` |
+| 6, "other" + free text | `other` |
 
 ---
 
@@ -302,10 +286,9 @@ Consider adding a service when:
 
 ## Future Considerations
 
-- **Multiple service selection** - User might need both renewal AND road test
-- **Priority voting** - Let users indicate urgency of need
-- **Location-specific demand** - Track which locations have demand for which services
-- **Conversion tracking** - When we add a service, track if voters convert to paying users
+- **Easy expansion** - Add Duplicates/Permit Renewals (same Satellite City Hall locations)
+- **Hard expansion** - Add Driver License offices (Kapālama, Kapolei, Koʻolau, Wahiawā, Waiʻanae)
+- **Passport tracking** - Only at Ala Moana, Kapolei, Wahiawā Satellite City Halls
 
 ---
 
