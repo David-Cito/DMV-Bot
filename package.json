@@ -1,11 +1,16 @@
 {
   "name": "dmv-appointment-bot",
   "version": "1.0.0",
-  "description": "Basic Playwright automation template",
+  "description": "DMV Appointment Monitoring and Booking System",
   "main": "index.js",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "dispatch": "node -e \"Promise.resolve(require('./dist/apps/worker/queue_dispatch.js').runDispatcher()).catch((e) => { console.error(e); process.exit(1); })\"",
+    "monitor": "node dist/apps/monitoring-bot/run-monitoring-bot.js",
+    "monitor:dev": "npx ts-node apps/monitoring-bot/run-monitoring-bot.ts",
+    "forecast": "node dist/apps/forecasting-bot/run-forecasting-bot.js",
+    "forecast:dev": "npx ts-node apps/forecasting-bot/run-forecasting-bot.ts",
+    "book": "node dist/apps/booking-bot/run-booking-bot.js",
+    "book:dev": "npx ts-node apps/booking-bot/run-booking-bot.ts",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
@@ -20,10 +25,15 @@
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.40.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.90.1",
-    "nodemailer": "^6.9.14"
+    "@types/uuid": "^10.0.0",
+    "nodemailer": "^6.9.14",
+    "stripe": "^14.0.0",
+    "twilio": "^4.23.0",
+    "uuid": "^13.0.0"
   }
 }

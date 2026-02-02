@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npx openspec new change \"state-machine-service\")",
+      "Bash(npx openspec:*)",
+      "Bash(npm install)",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(npm run monitor:*)",
+      "Bash(npm run forecast:*)"
+    ]
+  }
+}

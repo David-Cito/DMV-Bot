@@ -1,7 +1,7 @@
 // Core module exports
-// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+// Queue System V2 - See openspec/specs/ for documentation
 
 export * from './types';
 export * from './slot_keys';
-export * from './target_window_matcher';
-
+export * from './constants';
+export * from './metrics';

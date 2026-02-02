@@ -1,0 +1,58 @@
+name: DMV Forecasting Bot
+
+on:
+  workflow_dispatch:
+  # Run less frequently than monitoring bot since forecast data changes slower
+  # schedule:
+  #   - cron: '0 */6 * * *'  # Every 6 hours
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-jammy
+    permissions:
+      contents: read
+    concurrency:
+      group: dmv-forecasting-bot
+      cancel-in-progress: false
+
+    steps:
+      - name: Night jitter (HST)
+        run: |
+          hour=$(TZ=Pacific/Honolulu date +%H)
+          if [ "$hour" -ge 0 ] && [ "$hour" -lt 6 ]; then
+            delay=$((RANDOM % 121))
+            echo "Night hours (HST). Sleeping ${delay}s for jitter."
+            sleep "$delay"
+          else
+            echo "Daytime hours (HST). No jitter."
+          fi
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Run DMV forecasting bot
+        run: npm run forecast
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dmv-forecast-screenshots
+          path: screenshots/
+
+      # - name: Upload forecast results to Supabase
+      #   if: always()
+      #   env:
+      #     SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      #     SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      #   run: node scripts/supabase/upload-latest-run.js

@@ -1,0 +1,60 @@
+{
+  "locations": {
+    "Windward City Satellite City Hall": {
+      "changes": [
+        {
+          "changedAt": "2026-02-02T04:29:22.781Z",
+          "fromDataVal": "",
+          "fromDateText": "",
+          "fromTimeText": "",
+          "toDataVal": "2026-04-01 13:45:00",
+          "toDateText": "2026-04-01",
+          "toTimeText": "1:45 PM",
+          "deltaMs": null,
+          "direction": "new",
+          "deltaDays": null
+        }
+      ],
+      "lastDataVal": "2026-04-01 13:45:00",
+      "lastDateText": "2026-04-01",
+      "lastTimeText": "1:45 PM",
+      "lastSeenAt": "2026-02-02T04:41:10.274Z"
+    },
+    "Downtown Satellite City Hall": {
+      "changes": [
+        {
+          "changedAt": "2026-02-02T04:29:22.781Z",
+          "fromDataVal": "",
+          "fromDateText": "",
+          "fromTimeText": "",
+          "toDataVal": "2026-03-31 14:00:00",
+          "toDateText": "2026-03-31",
+          "toTimeText": "2:00 PM",
+          "deltaMs": null,
+          "direction": "new",
+          "deltaDays": null
+        }
+      ],
+      "lastDataVal": "2026-03-31 14:00:00",
+      "lastDateText": "2026-03-31",
+      "lastTimeText": "2:00 PM",
+      "lastSeenAt": "2026-02-02T04:41:10.274Z"
+    }
+  },
+  "overall": {
+    "changes": [
+      {
+        "changedAt": "2026-02-02T04:29:22.781Z",
+        "fromDataVal": "",
+        "toDataVal": "2026-03-31 14:00:00",
+        "deltaMs": null,
+        "direction": "new",
+        "deltaDays": null
+      }
+    ],
+    "lastDataVal": "2026-03-31 14:00:00",
+    "lastLocation": "Downtown Satellite City Hall",
+    "lastSeenAt": "2026-02-02T04:41:10.274Z"
+  },
+  "lastRunAt": "2026-02-02T04:41:10.274Z"
+}

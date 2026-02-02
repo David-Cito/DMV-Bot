@@ -1,6 +1,6 @@
 "use strict";
 // Database module exports
-// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+// Queue System V2 - See openspec/specs/ for documentation
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -17,15 +17,5 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./supabase_client"), exports);
-__exportStar(require("./presets"), exports);
-__exportStar(require("./selections"), exports);
-__exportStar(require("./customers"), exports);
-__exportStar(require("./locations"), exports);
 __exportStar(require("./slots"), exports);
-__exportStar(require("./queue"), exports);
-__exportStar(require("./locks"), exports);
-__exportStar(require("./attempts"), exports);
-__exportStar(require("./messages"), exports);
-__exportStar(require("./watermarks"), exports);
-__exportStar(require("./batch"), exports);
 //# sourceMappingURL=index.js.map

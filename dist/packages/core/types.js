@@ -1,5 +1,5 @@
 "use strict";
-// Shared types for queue and target window system
-// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+// Shared types for Queue System V2
+// See openspec/specs/ for documentation
 Object.defineProperty(exports, "__esModule", { value: true });
 //# sourceMappingURL=types.js.map

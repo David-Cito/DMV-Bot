@@ -1,6 +1,6 @@
 "use strict";
 // Core module exports
-// See IMPLEMENTATION_PLAN_QUEUE_AND_TARGET_WINDOWS.md
+// Queue System V2 - See openspec/specs/ for documentation
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -18,5 +18,4 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./types"), exports);
 __exportStar(require("./slot_keys"), exports);
-__exportStar(require("./target_window_matcher"), exports);
 //# sourceMappingURL=index.js.map

@@ -46,8 +46,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run DMV appointment bot
-        run: npm test
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Run DMV monitoring bot
+        run: npm run monitor
 
       - name: Upload screenshots
         if: always()
