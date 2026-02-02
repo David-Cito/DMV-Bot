@@ -550,12 +550,13 @@ async function waitForElementWithRetry(
   selector: string,
   options: { timeout?: number; state?: 'visible' | 'hidden' | 'attached' } = {}
 ): Promise<boolean> {
+  const config = getBotConfig();
   const { timeout = 30_000, state = 'visible' } = options;
 
   try {
     await withRetry(
       async () => {
-        await page.locator(selector).waitFor({ state, timeout: timeout / MAX_RETRIES });
+        await page.locator(selector).waitFor({ state, timeout: timeout / config.maxRetries });
       },
       { description: `waiting for ${selector}` }
     );
@@ -573,13 +574,14 @@ async function clickWithRetry(
   selector: string,
   options: { timeout?: number } = {}
 ): Promise<void> {
+  const config = getBotConfig();
   const { timeout = 10_000 } = options;
 
   await withRetry(
     async () => {
       const element = page.locator(selector).first();
-      await element.waitFor({ state: 'visible', timeout: timeout / MAX_RETRIES });
-      await element.click({ timeout: timeout / MAX_RETRIES });
+      await element.waitFor({ state: 'visible', timeout: timeout / config.maxRetries });
+      await element.click({ timeout: timeout / config.maxRetries });
     },
     { description: `clicking ${selector}` }
   );
