@@ -1,0 +1,49 @@
+name: DMV Health Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run health check
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/supabase/run-health-check.js
+
+      - name: Display summary
+        run: |
+          echo "=== Health Check Summary ==="
+          jq -r '.run_at as $run | "Run at: \($run)"' data/results/supabase-health-check.json
+          echo ""
+          echo "=== Row Counts ==="
+          jq -r '.report.counts[] | "\(.table_name): \(.row_count)"' data/results/supabase-health-check.json
+          echo ""
+          echo "=== Recent Analysis Runs ==="
+          jq -r '.report.recent_analysis_runs[:5][] | "\(.id) | \(.job_type) | \(.run_at)"' data/results/supabase-health-check.json
+          echo ""
+          echo "=== Table Status ==="
+          jq -r '.report.tables[] | "\(.name): \(if .ok then "OK" else "ERROR: \(.error)" end)"' data/results/supabase-health-check.json
+
+      - name: Upload health check results
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-check-results
+          path: data/results/supabase-health-check.json
