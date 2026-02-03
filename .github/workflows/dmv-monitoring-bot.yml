@@ -1,4 +1,4 @@
-name: DMV Appointment Bot
+name: DMV Monitoring Bot
 
 on:
   workflow_dispatch:
@@ -13,14 +13,14 @@ on:
         default: "14"
 
 jobs:
-  run-bot:
+  monitor:
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.57.0-jammy
     permissions:
       contents: read
     concurrency:
-      group: dmv-appointment-bot
+      group: dmv-monitoring-bot
       cancel-in-progress: false
     env:
       DMV_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}

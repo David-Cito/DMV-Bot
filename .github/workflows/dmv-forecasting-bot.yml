@@ -7,7 +7,7 @@ on:
   #   - cron: '0 */6 * * *'  # Every 6 hours
 
 jobs:
-  run-bot:
+  forecast:
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.57.0-jammy
