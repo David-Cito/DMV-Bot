@@ -53,10 +53,12 @@ function clearHistoryFiles() {
 async function getLocationId(name) {
   const { data, error } = await supabase
     .from('locations')
-    .upsert({ name }, { onConflict: 'name' })
     .select('id')
+    .ilike('name', name)
     .single();
-  if (error) throw error;
+  if (error) {
+    throw new Error(`Location not found: ${name}. Error: ${error.message}`);
+  }
   return data.id;
 }
 
