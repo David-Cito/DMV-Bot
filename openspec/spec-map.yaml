@@ -1,0 +1,128 @@
+# OpenSpec Source Mapping
+# Maps source files to their governing specifications
+# Used for change impact analysis and verification
+
+version: "1.0"
+
+specs:
+  system-overview:
+    description: "High-level architecture and system design"
+    sources:
+      - path: "apps/**/*"
+        reason: "Application layer - all bot implementations"
+      - path: "packages/**/*"
+        reason: "Core packages - shared services and utilities"
+      - path: "package.json"
+        reason: "Project dependencies and scripts"
+      - path: "tsconfig.json"
+        reason: "TypeScript configuration"
+      - path: "scripts/verify-spec-map.js"
+        reason: "Spec verification tooling"
+
+  user-states:
+    description: "User lifecycle and state transitions"
+    sources:
+      - path: "packages/queue/state_machine.ts"
+        reason: "State transition logic and validation"
+      - path: "packages/queue/queue_service.ts"
+        reason: "Queue state management for users"
+      - path: "packages/queue/user_service.ts"
+        reason: "User record management and state queries"
+
+  queue-mechanics:
+    description: "Queue position, slot locking, and assignment"
+    sources:
+      - path: "packages/queue/queue_service.ts"
+        reason: "Core queue operations and position management"
+      - path: "packages/queue/slot_lock_service.ts"
+        reason: "Slot locking and lock lifecycle"
+
+  booking-flow:
+    description: "End-to-end booking process via Playwright"
+    sources:
+      - path: "apps/booking-bot/**/*"
+        reason: "Booking automation implementation"
+
+  cancel-window:
+    description: "Cancellation timing and eligibility rules"
+    sources:
+      - path: "apps/booking-bot/booking-bot.ts"
+        reason: "Cancellation logic during booking"
+      - path: "packages/queue/config_service.ts"
+        reason: "Cancellation window configuration"
+
+  payment-pricing:
+    description: "Stripe integration and pricing tiers"
+    sources:
+      - path: "packages/queue/payment_service.ts"
+        reason: "Stripe payment processing"
+      - path: "packages/queue/location_service.ts"
+        reason: "Location-based pricing data"
+
+  notifications:
+    description: "SMS, email, and Discord notifications"
+    sources:
+      - path: "packages/queue/notification_service.ts"
+        reason: "Core notification dispatch logic"
+      - path: "scripts/notifications/**/*"
+        reason: "Notification scripts and integrations"
+
+  service-selection:
+    description: "DMV service types and user preferences"
+    sources:
+      - path: "packages/queue/user_service.ts"
+        reason: "User service preferences management"
+
+  dmv-locations-and-services:
+    description: "Location discovery and service availability"
+    sources:
+      - path: "apps/monitoring-bot/**/*"
+        reason: "Location monitoring implementation"
+      - path: "apps/discovery-bot/**/*"
+        reason: "Location and service discovery"
+      - path: "packages/queue/location_service.ts"
+        reason: "Location data management"
+
+  database:
+    description: "Supabase schema, queries, and migrations"
+    sources:
+      - path: "packages/db/**/*"
+        reason: "Database client and slot operations"
+      - path: "packages/core/types.ts"
+        reason: "Shared type definitions for DB entities"
+      - path: "supabase/migrations/**/*"
+        reason: "Database migration files"
+
+  analytics:
+    description: "Metrics collection and analysis"
+    sources:
+      - path: "packages/core/metrics.ts"
+        reason: "Metrics tracking utilities"
+      - path: "scripts/analysis/**/*"
+        reason: "Analysis scripts and reports"
+      - path: "scripts/supabase/**/*"
+        reason: "Database analysis and health checks"
+
+  admin-operations:
+    description: "Configuration and cleanup operations"
+    sources:
+      - path: "packages/queue/config_service.ts"
+        reason: "System configuration management"
+      - path: "packages/queue/cleanup_service.ts"
+        reason: "Data cleanup and maintenance"
+
+  testing:
+    description: "Test infrastructure and Playwright tests"
+    sources:
+      - path: "tests/**/*"
+        reason: "Test files and fixtures"
+      - path: "playwright.config.js"
+        reason: "Playwright test configuration"
+
+global:
+  excluded_paths:
+    - "node_modules/**"
+    - "dist/**"
+    - ".git/**"
+    - "*.log"
+    - ".env*"

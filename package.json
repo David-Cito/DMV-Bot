@@ -14,7 +14,8 @@
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
-    "test:ui": "playwright test --ui"
+    "test:ui": "playwright test --ui",
+    "verify:specs": "node scripts/verify-spec-map.js"
   },
   "keywords": [
     "playwright",
