@@ -41,7 +41,7 @@ const path = __importStar(require("path"));
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
-const PARALLEL_WORKERS = parseInt(process.env.DISCOVERY_PARALLEL_WORKERS || '2', 10);
+const PARALLEL_WORKERS = parseInt(process.env.DISCOVERY_PARALLEL_WORKERS || '6', 10);
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DISCOVERY_DIR = path.join(DATA_DIR, 'discovery');
 // ============================================================================

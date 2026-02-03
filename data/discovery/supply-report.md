@@ -1,40 +1,64 @@
-# DMV Service Demand Discovery Report
+# DMV Service Supply Discovery Report
 
-Generated: 2026-02-02T07:20:46.066Z
-Duration: 403s
-Scanned: 1 locations, 11 service combinations
-Success rate: 11/11 (100%)
+Generated: 2026-02-02T08:47:43.965Z
+Duration: 26s | Locations: 1 | Services: 11 | Success: 100%
 
-## Demand Analysis by Service
+## Kapolei Driver License, State ID (KAPO)
 
-Services with NO availability in 30 days indicate HIGH DEMAND.
+| Service | 30-Day | 31-60d | Soonest | Status |
+|---------|--------|--------|---------|--------|
+| Hawaii License Duplicate | 0 | 0 | NONE | SCARCE |
+| Hawaii License Renewal | 0 | 0 | NONE | SCARCE |
+| Hawaii Provisional to a Full License | 0 | 0 | NONE | SCARCE |
+| Instruction Permit (Online Test Follow-up) | 0 | 0 | NONE | SCARCE |
+| Instruction Permit Duplicate | 0 | 0 | NONE | SCARCE |
+| Instruction Permit Initial (In-person Writ... | 1 | 0 | 2026-02-02 | LOW |
+| Instruction Permit Renewal | 0 | 0 | NONE | SCARCE |
+| Out Of State Transfer | 0 | 0 | NONE | SCARCE |
+| State ID Duplicate | 0 | 0 | NONE | SCARCE |
+| State ID Initial | 0 | 0 | NONE | SCARCE |
+| State ID Renewal | 0 | 0 | NONE | SCARCE |
 
-| Service | No 30d | 30-Day | 31-60d | Soonest | Demand |
-|---------|--------|--------|--------|---------|--------|
-| Instruction Permit Initial | 1/1 | 0 | 0 | NONE | 🔴 HIGH |
-| Instruction Permit Renewal | 0/1 | 26 | 830 | 2026-03-02 | 🟠 MED |
-| State ID Renewal | 0/1 | 26 | 830 | 2026-03-02 | 🟠 MED |
-| Hawaii License Duplicate | 0/1 | 47 | 830 | 2026-03-02 | 🟡 LOW |
-| Hawaii License Renewal | 0/1 | 47 | 830 | 2026-03-02 | 🟡 LOW |
-| Hawaii Provisional to a Full Licens | 0/1 | 47 | 830 | 2026-03-02 | 🟡 LOW |
-| Instruction Permit | 0/1 | 47 | 830 | 2026-03-02 | 🟡 LOW |
-| Instruction Permit Duplicate | 0/1 | 47 | 830 | 2026-03-02 | 🟡 LOW |
-| Out Of State Transfer | 0/1 | 47 | 830 | 2026-03-02 | 🟡 LOW |
-| State ID Duplicate | 0/1 | 47 | 830 | 2026-03-02 | 🟡 LOW |
-| State ID Initial | 0/1 | 47 | 830 | 2026-03-02 | 🟡 LOW |
+**Summary:** 1/11 services available. No slots: Hawaii, Hawaii, Hawaii, Instruction, Instruction, Instruction, Out, State, State, State
+
+---
+
+## Service Overview (All Locations)
+
+| Service | Locations w/ Supply | Total 30d | Demand |
+|---------|---------------------|-----------|--------|
+| Hawaii License Duplicate | 0/1 | 0 | HIGH |
+| Hawaii License Renewal | 0/1 | 0 | HIGH |
+| Hawaii Provisional to a Full Lic... | 0/1 | 0 | HIGH |
+| Instruction Permit | 0/1 | 0 | HIGH |
+| Instruction Permit Duplicate | 0/1 | 0 | HIGH |
+| Instruction Permit Renewal | 0/1 | 0 | HIGH |
+| Out Of State Transfer | 0/1 | 0 | HIGH |
+| State ID Duplicate | 0/1 | 0 | HIGH |
+| State ID Initial | 0/1 | 0 | HIGH |
+| State ID Renewal | 0/1 | 0 | HIGH |
+| Instruction Permit Initial | 1/1 | 1 | MED |
 
 ## Recommendations
 
-### 🔴 High Demand - Start Frequent Monitoring
+### HIGH Demand - Start Frequent Monitoring
 These services have NO or very few appointments available. Users need our queue/booking system.
 
-- **Instruction Permit Initial**: 1/1 locations have NO availability
+- **Hawaii License Duplicate**: 1/1 locations have NO availability
+- **Hawaii License Renewal**: 1/1 locations have NO availability
+- **Hawaii Provisional to a Full License**: 1/1 locations have NO availability
+- **Instruction Permit**: 1/1 locations have NO availability
+- **Instruction Permit Duplicate**: 1/1 locations have NO availability
+- **Instruction Permit Renewal**: 1/1 locations have NO availability
+- **Out Of State Transfer**: 1/1 locations have NO availability
+- **State ID Duplicate**: 1/1 locations have NO availability
+- **State ID Initial**: 1/1 locations have NO availability
+- **State ID Renewal**: 1/1 locations have NO availability
 
-### 🟠 Medium Demand - Monitor Weekly
+### MEDIUM Demand - Monitor Weekly
 Limited availability. Worth tracking to see if demand increases.
 
-- **Instruction Permit Renewal**: 856 slots across 1 locations
-- **State ID Renewal**: 856 slots across 1 locations
+- **Instruction Permit Initial**: 1 slots across 1 locations
 
 ## Next Steps
 

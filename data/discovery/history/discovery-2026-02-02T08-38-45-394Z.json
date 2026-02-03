@@ -1,7 +1,7 @@
 {
-  "runAt": "2026-02-02T08:47:17.843Z",
-  "completedAt": "2026-02-02T08:47:43.965Z",
-  "durationMs": 26122,
+  "runAt": "2026-02-02T08:38:45.394Z",
+  "completedAt": "2026-02-02T08:42:23.193Z",
+  "durationMs": 217799,
   "totalLocations": 1,
   "totalServices": 11,
   "successfulScans": 11,
@@ -23,7 +23,7 @@
           "soonestSlotCount": 0,
           "verifiedLocation": true,
           "verificationMethod": "data-loc-nam-val_match",
-          "scannedAt": "2026-02-02T08:47:22.382Z"
+          "scannedAt": "2026-02-02T08:38:49.813Z"
         },
         {
           "locationName": "Kapolei Driver License, State ID",
@@ -38,7 +38,7 @@
           "soonestSlotCount": 0,
           "verifiedLocation": true,
           "verificationMethod": "data-loc-nam-val_match",
-          "scannedAt": "2026-02-02T08:47:24.406Z"
+          "scannedAt": "2026-02-02T08:39:10.717Z"
         },
         {
           "locationName": "Kapolei Driver License, State ID",
@@ -53,7 +53,7 @@
           "soonestSlotCount": 0,
           "verifiedLocation": true,
           "verificationMethod": "data-loc-nam-val_match",
-          "scannedAt": "2026-02-02T08:47:26.387Z"
+          "scannedAt": "2026-02-02T08:39:31.673Z"
         },
         {
           "locationName": "Kapolei Driver License, State ID",
@@ -68,7 +68,7 @@
           "soonestSlotCount": 0,
           "verifiedLocation": true,
           "verificationMethod": "data-loc-nam-val_match",
-          "scannedAt": "2026-02-02T08:47:28.427Z"
+          "scannedAt": "2026-02-02T08:39:52.607Z"
         },
         {
           "locationName": "Kapolei Driver License, State ID",
@@ -83,7 +83,7 @@
           "soonestSlotCount": 0,
           "verifiedLocation": true,
           "verificationMethod": "data-loc-nam-val_match",
-          "scannedAt": "2026-02-02T08:47:30.422Z"
+          "scannedAt": "2026-02-02T08:40:13.544Z"
         },
         {
           "locationName": "Kapolei Driver License, State ID",
@@ -98,7 +98,7 @@
           "soonestSlotCount": 1,
           "verifiedLocation": true,
           "verificationMethod": "data-loc-nam-val_match",
-          "scannedAt": "2026-02-02T08:47:32.406Z"
+          "scannedAt": "2026-02-02T08:40:34.511Z"
         },
         {
           "locationName": "Kapolei Driver License, State ID",
@@ -113,7 +113,7 @@
           "soonestSlotCount": 0,
           "verifiedLocation": true,
           "verificationMethod": "data-loc-nam-val_match",
-          "scannedAt": "2026-02-02T08:47:34.472Z"
+          "scannedAt": "2026-02-02T08:40:57.326Z"
         },
         {
           "locationName": "Kapolei Driver License, State ID",
@@ -128,7 +128,7 @@
           "soonestSlotCount": 0,
           "verifiedLocation": true,
           "verificationMethod": "data-loc-nam-val_match",
-          "scannedAt": "2026-02-02T08:47:36.439Z"
+          "scannedAt": "2026-02-02T08:41:18.286Z"
         },
         {
           "locationName": "Kapolei Driver License, State ID",
@@ -143,7 +143,7 @@
           "soonestSlotCount": 0,
           "verifiedLocation": true,
           "verificationMethod": "data-loc-nam-val_match",
-          "scannedAt": "2026-02-02T08:47:38.443Z"
+          "scannedAt": "2026-02-02T08:41:39.211Z"
         },
         {
           "locationName": "Kapolei Driver License, State ID",
@@ -158,7 +158,7 @@
           "soonestSlotCount": 0,
           "verifiedLocation": true,
           "verificationMethod": "data-loc-nam-val_match",
-          "scannedAt": "2026-02-02T08:47:39.922Z"
+          "scannedAt": "2026-02-02T08:42:00.161Z"
         },
         {
           "locationName": "Kapolei Driver License, State ID",
@@ -173,10 +173,10 @@
           "soonestSlotCount": 0,
           "verifiedLocation": true,
           "verificationMethod": "data-loc-nam-val_match",
-          "scannedAt": "2026-02-02T08:47:41.890Z"
+          "scannedAt": "2026-02-02T08:42:21.132Z"
         }
       ],
-      "scannedAt": "2026-02-02T08:47:43.965Z"
+      "scannedAt": "2026-02-02T08:42:23.193Z"
     }
   ]
 }

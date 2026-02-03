@@ -435,123 +435,170 @@ async function advanceToNextMonth(page: Page): Promise<void> {
 // SERVICE SCANNING
 // ============================================================================
 
-async function countSlotsForService(
+interface LocationNavResult {
+  ok: boolean;
+  error?: string;
+  verifiedLocation: boolean;
+  verificationMethod?: string;
+  actualLocationName?: string;
+}
+
+/**
+ * Navigate from START_URL to the service list for a given location.
+ * Returns navigation result with verification info.
+ */
+async function navigateToLocationServiceList(
   page: Page,
   locationCode: string,
-  locationName: string,
-  serviceName: string,
-  serviceTransVal: string
-): Promise<ServiceSupplyResult> {
-  const scannedAt = new Date().toISOString();
+  locationName: string
+): Promise<LocationNavResult> {
+  // Navigate to start
+  await page.goto(START_URL, { waitUntil: 'domcontentloaded' });
 
-  try {
-    // Navigate to start
-    await page.goto(START_URL, { waitUntil: 'domcontentloaded' });
+  // Click Driver Licensing
+  const driverLicensingLink = page.getByText('Driver Licensing and');
+  await driverLicensingLink.waitFor({ state: 'visible', timeout: 30_000 });
+  await driverLicensingLink.click();
 
-    // Click Driver Licensing
-    const driverLicensingLink = page.getByText('Driver Licensing and');
-    await driverLicensingLink.waitFor({ state: 'visible', timeout: 30_000 });
-    await driverLicensingLink.click();
+  const makeApptButton = page.locator('#newAppointment');
+  const makeApptText = page.locator('#newAppointment >> text=Make Appointment');
+  const header = page.getByText('Select location to schedule ticket at');
+  const gear = page.locator('.fa-cog, .fa-gear').first();
 
-    const makeApptButton = page.locator('#newAppointment');
-    const makeApptText = page.locator('#newAppointment >> text=Make Appointment');
-    const header = page.getByText('Select location to schedule ticket at');
-    const gear = page.locator('.fa-cog, .fa-gear').first();
+  // Wait for page to load after clicking Driver Licensing
+  await page.locator('#start').waitFor({ state: 'visible', timeout: 120_000 });
 
-    // Wait for page to load after clicking Driver Licensing
-    await page.locator('#start').waitFor({ state: 'visible', timeout: 120_000 });
+  // Get to location selection - click Make Appointment if header not visible
+  if (!(await header.isVisible().catch(() => false))) {
+    await makeApptButton.waitFor({ state: 'visible', timeout: 120_000 });
 
-    // Get to location selection - click Make Appointment if header not visible
-    if (!(await header.isVisible().catch(() => false))) {
-      await makeApptButton.waitFor({ state: 'visible', timeout: 120_000 });
+    try {
+      await makeApptButton.click({ timeout: 15_000 });
+    } catch {
+      await makeApptText.scrollIntoViewIfNeeded().catch(() => {});
+      await makeApptText.click({ timeout: 15_000, force: true });
+    }
+  }
 
-      try {
-        await makeApptButton.click({ timeout: 15_000 });
-      } catch {
+  // Wait for location selection header
+  if (!(await header.isVisible().catch(() => false))) {
+    const headerSeen = await header.waitFor({ timeout: 45_000 }).catch(() => null);
+    if (!headerSeen) {
+      // Try clicking Make Appointment again
+      await makeApptButton.click({ timeout: 15_000 }).catch(async () => {
         await makeApptText.scrollIntoViewIfNeeded().catch(() => {});
         await makeApptText.click({ timeout: 15_000, force: true });
-      }
+      });
+    }
+    await header.waitFor({ timeout: 120_000 });
+  }
+
+  // Wait for location tiles to appear
+  await gear.waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
+  await page.waitForSelector('.location.button-look.next[data-loc-val]', { timeout: 30_000 });
+
+  const locationTile = page.locator(`.location.button-look.next[data-loc-val="${locationCode}"]`);
+  const locationVisible = await locationTile.isVisible().catch(() => false);
+
+  if (!locationVisible) {
+    const availableCodes = await page.$$eval('.location.button-look.next[data-loc-val]', (els) =>
+      els.map((el) => el.getAttribute('data-loc-val'))
+    );
+    return {
+      ok: false,
+      error: `Location code ${locationCode} not found. Available: ${availableCodes.join(', ')}`,
+      verifiedLocation: false,
+    };
+  }
+
+  // Verify location BEFORE clicking using data-loc-nam-val attribute
+  let verifiedLocation = false;
+  let verificationMethod = '';
+  let actualLocationName = '';
+
+  const locNameVal = await locationTile.getAttribute('data-loc-nam-val');
+  const locVal = await locationTile.getAttribute('data-loc-val');
+
+  if (locVal === locationCode) {
+    verifiedLocation = true;
+    verificationMethod = 'data-loc-val_match';
+    actualLocationName = locNameVal || '';
+  }
+
+  if (locNameVal && locNameVal.toLowerCase().includes(locationName.split(' ')[0].toLowerCase())) {
+    verifiedLocation = true;
+    verificationMethod = 'data-loc-nam-val_match';
+    actualLocationName = locNameVal;
+  }
+
+  console.log(`  [Verify] ${locationCode}: ${verifiedLocation ? '✓' : '?'} ${actualLocationName || 'unknown'}`);
+
+  await locationTile.click({ timeout: 10_000 });
+
+  // Wait for #transaction container to load (services)
+  await page.waitForSelector('#transaction', { state: 'visible', timeout: 30_000 });
+  await page.waitForSelector('.transaction.button-look[data-trans-val]', { state: 'visible', timeout: 30_000 });
+  await gear.waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {});
+
+  return {
+    ok: true,
+    verifiedLocation,
+    verificationMethod,
+    actualLocationName,
+  };
+}
+
+/**
+ * Navigate back to the service list for the current location.
+ * Called after scanning a service's datepicker.
+ */
+async function returnToServiceList(page: Page): Promise<boolean> {
+  const gear = page.locator('.fa-cog, .fa-gear').first();
+  const backButton = page.locator('.button-look.back');
+
+  try {
+    // Click the Back button to return to service list
+    await backButton.waitFor({ state: 'visible', timeout: 5_000 });
+    await backButton.click();
+
+    // Check if we landed on acknowledgment page and need to go back again
+    const ackCheckbox = page.getByText('I have ALL the Required');
+    if (await ackCheckbox.isVisible({ timeout: 1_000 }).catch(() => false)) {
+      await backButton.waitFor({ state: 'visible', timeout: 5_000 });
+      await backButton.click();
     }
 
-    // Wait for location selection header
-    if (!(await header.isVisible().catch(() => false))) {
-      const headerSeen = await header.waitFor({ timeout: 45_000 }).catch(() => null);
-      if (!headerSeen) {
-        // Try clicking Make Appointment again
-        await makeApptButton.click({ timeout: 15_000 }).catch(async () => {
-          await makeApptText.scrollIntoViewIfNeeded().catch(() => {});
-          await makeApptText.click({ timeout: 15_000, force: true });
-        });
-      }
-      await header.waitFor({ timeout: 120_000 });
-    }
+    // Wait for service list to be visible
+    await page.waitForSelector('.transaction.button-look[data-trans-val]', { state: 'visible', timeout: 15_000 });
+    await gear.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {});
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-    // Wait for location tiles to appear
-    await gear.waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
-    await page.waitForSelector('.location.button-look.next[data-loc-val]', { timeout: 30_000 });
+/**
+ * Scan a single service from the service list (assumes we're already on the service list page).
+ * After scanning, returns to the service list for the next service.
+ */
+async function scanServiceFromList(
+  page: Page,
+  serviceName: string,
+  serviceTransVal: string,
+  locationCode: string,
+  locationName: string,
+  navResult: LocationNavResult
+): Promise<ServiceSupplyResult> {
+  const scannedAt = new Date().toISOString();
+  const gear = page.locator('.fa-cog, .fa-gear').first();
+  const { verifiedLocation, verificationMethod } = navResult;
 
-    const locationTile = page.locator(`.location.button-look.next[data-loc-val="${locationCode}"]`);
-    const locationVisible = await locationTile.isVisible().catch(() => false);
-
-    if (!locationVisible) {
-      // Debug: list available location codes
-      const availableCodes = await page.$$eval('.location.button-look.next[data-loc-val]', (els) =>
-        els.map((el) => el.getAttribute('data-loc-val'))
-      );
-      return {
-        locationName,
-        locationCode,
-        serviceName,
-        ok: false,
-        error: `Location code ${locationCode} not found. Available: ${availableCodes.join(', ')}`,
-        slots30Day: 0,
-        slots60Day: 0,
-        totalSlots: 0,
-        daysWithSlots: 0,
-        soonestDate: null,
-        soonestSlotCount: 0,
-        verifiedLocation: false,
-        scannedAt,
-      };
-    }
-
-    // Verify location BEFORE clicking using data-loc-nam-val attribute
-    let verifiedLocation = false;
-    let verificationMethod = '';
-    let actualLocationName = '';
-
-    // Get the data-loc-nam-val attribute to verify we're clicking the right element
-    const locNameVal = await locationTile.getAttribute('data-loc-nam-val');
-    const locVal = await locationTile.getAttribute('data-loc-val');
-
-    if (locVal === locationCode) {
-      verifiedLocation = true;
-      verificationMethod = 'data-loc-val_match';
-      actualLocationName = locNameVal || '';
-    }
-
-    // Double-check with data-loc-nam-val if it contains our expected location name
-    if (locNameVal && locNameVal.toLowerCase().includes(locationName.split(' ')[0].toLowerCase())) {
-      verifiedLocation = true;
-      verificationMethod = 'data-loc-nam-val_match';
-      actualLocationName = locNameVal;
-    }
-
-    console.log(`  [Verify] ${locationCode}: ${verifiedLocation ? '✓' : '?'} ${actualLocationName || 'unknown'}`);
-
-    await locationTile.click({ timeout: 10_000 });
-
-    // Wait for #transaction container to load (services)
-    await page.waitForSelector('#transaction', { state: 'visible', timeout: 30_000 });
-    await page.waitForSelector('.transaction.button-look[data-trans-val]', { state: 'visible', timeout: 30_000 });
-    await gear.waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {});
-
+  try {
     // Find service by data-trans-val
     const serviceLocator = page.locator(`.transaction.button-look[data-trans-val="${serviceTransVal}"]`);
 
     const serviceVisible = await serviceLocator.isVisible().catch(() => false);
     if (!serviceVisible) {
-      // Debug: list available services with their trans-val
       const availableServices = await page.$$eval('.transaction.button-look[data-trans-val]', (els) =>
         els.map((el) => `[${el.getAttribute('data-trans-val')}] ${el.getAttribute('data-trans-name')}`)
       );
@@ -613,7 +660,6 @@ async function countSlotsForService(
     const hasSelectableDays = await page.$$eval('#datepicker td[data-handler="selectDay"]', (els) => els.length > 0);
 
     if (!hasSelectableDays) {
-      // No appointments available at all
       return {
         locationName,
         locationCode,
@@ -633,9 +679,9 @@ async function countSlotsForService(
 
     // Scan for slots in both 30-day and 60-day windows
     const hstToday = getHstToday();
-    const windowStart = addDays(hstToday, 1);           // Tomorrow
-    const window30End = addDays(hstToday, SCAN_WINDOW_30_DAYS);  // Day 30
-    const window60End = addDays(hstToday, SCAN_WINDOW_60_DAYS);  // Day 60
+    const windowStart = addDays(hstToday, 1);
+    const window30End = addDays(hstToday, SCAN_WINDOW_30_DAYS);
+    const window60End = addDays(hstToday, SCAN_WINDOW_60_DAYS);
     const endMonthKey = window60End.slice(0, 7);
 
     let slots30Day = 0;
@@ -648,7 +694,6 @@ async function countSlotsForService(
       const monthTitle = await readDatepickerMonthYear(page);
       const monthKey = monthKeyFromTitle(monthTitle);
 
-      // Get all selectable days in current month view
       const dayCells = await page.$$eval('#datepicker td[data-handler="selectDay"]', (els) =>
         els.map((el) => {
           const link = el.querySelector('a.ui-state-default');
@@ -666,7 +711,6 @@ async function countSlotsForService(
         if (!isWithinRange(dateStr, windowStart, window60End)) continue;
         if (isWeekendDate(dateStr)) continue;
 
-        // Click day to see slots
         const dayLocator = page
           .locator(`#datepicker td[data-handler="selectDay"][data-month="${d.month}"][data-year="${d.year}"] a.ui-state-default`)
           .filter({ hasText: new RegExp(`^${d.day}$`) })
@@ -689,7 +733,6 @@ async function countSlotsForService(
         const daySlots = await page.$$eval('.time_wrap .time[data-val]', (els) => els.length);
 
         if (daySlots > 0) {
-          // Categorize by window
           if (dateStr <= window30End) {
             slots30Day += daySlots;
           } else {
@@ -755,7 +798,7 @@ export async function discoverServiceSupply(
 ): Promise<LocationSupplyResult> {
   const {
     headless = process.env.CI === 'true',
-    slowMo = process.env.CI === 'true' ? 0 : 300,
+    slowMo = parseInt(process.env.DISCOVERY_SLOW_MO || '0', 10),
     timeoutMs = 180_000  // 3 minute timeout per location
   } = options;
 
@@ -769,41 +812,24 @@ export async function discoverServiceSupply(
     const page = await context.newPage();
     await enableRequestBlocking(page);
 
-    for (const service of locationConfig.services) {
-      console.log(`[Discovery] Scanning ${locationConfig.name} (${locationConfig.code}) - ${service.name} [${service.transVal}]`);
+    // Navigate to location's service list once
+    console.log(`[Discovery] Navigating to ${locationConfig.name} (${locationConfig.code})`);
+    const navResult = await navigateToLocationServiceList(
+      page,
+      locationConfig.code,
+      locationConfig.name
+    );
 
-      try {
-        // Add per-service timeout
-        const servicePromise = countSlotsForService(
-          page,
-          locationConfig.code,
-          locationConfig.name,
-          service.name,
-          service.transVal
-        );
-
-        const timeoutPromise = new Promise<ServiceSupplyResult>((_, reject) => {
-          setTimeout(() => reject(new Error('Service scan timeout')), timeoutMs);
-        });
-
-        const result = await Promise.race([servicePromise, timeoutPromise]);
-        services.push(result);
-
-        if (result.ok) {
-          const verifyStatus = result.verifiedLocation ? '✓' : '?';
-          console.log(`  -> [${verifyStatus}] 30d: ${result.slots30Day} | 60d: ${result.slots60Day} | soonest: ${result.soonestDate || 'NONE'}`);
-        } else {
-          console.log(`  -> Error: ${result.error}`);
-        }
-      } catch (serviceError: any) {
-        // Handle per-service errors without stopping the whole location
-        console.log(`  -> Error: ${serviceError?.message || String(serviceError)}`);
+    if (!navResult.ok) {
+      // Location navigation failed - mark all services as failed
+      console.log(`  -> Navigation error: ${navResult.error}`);
+      for (const service of locationConfig.services) {
         services.push({
           locationName: locationConfig.name,
           locationCode: locationConfig.code,
           serviceName: service.name,
           ok: false,
-          error: serviceError?.message || String(serviceError),
+          error: navResult.error || 'Navigation to location failed',
           slots30Day: 0,
           slots60Day: 0,
           totalSlots: 0,
@@ -813,6 +839,76 @@ export async function discoverServiceSupply(
           verifiedLocation: false,
           scannedAt: new Date().toISOString(),
         });
+      }
+    } else {
+      // Loop through services, scanning each from the service list
+      for (let i = 0; i < locationConfig.services.length; i++) {
+        const service = locationConfig.services[i];
+        console.log(`[Discovery] Scanning ${locationConfig.name} (${locationConfig.code}) - ${service.name} [${service.transVal}]`);
+
+        try {
+          // Scan service with timeout
+          const servicePromise = scanServiceFromList(
+            page,
+            service.name,
+            service.transVal,
+            locationConfig.code,
+            locationConfig.name,
+            navResult
+          );
+
+          const timeoutPromise = new Promise<ServiceSupplyResult>((_, reject) => {
+            setTimeout(() => reject(new Error('Service scan timeout')), timeoutMs);
+          });
+
+          const result = await Promise.race([servicePromise, timeoutPromise]);
+          services.push(result);
+
+          if (result.ok) {
+            const verifyStatus = result.verifiedLocation ? '✓' : '?';
+            console.log(`  -> [${verifyStatus}] 30d: ${result.slots30Day} | 60d: ${result.slots60Day} | soonest: ${result.soonestDate || 'NONE'}`);
+          } else {
+            console.log(`  -> Error: ${result.error}`);
+          }
+
+          // Return to service list for next service (unless this is the last one)
+          if (i < locationConfig.services.length - 1) {
+            const returnedOk = await returnToServiceList(page);
+            if (!returnedOk) {
+              // Re-navigate to location if we couldn't return to service list
+              console.log(`  [Recovery] Re-navigating to location service list`);
+              await navigateToLocationServiceList(page, locationConfig.code, locationConfig.name);
+            }
+          }
+        } catch (serviceError: any) {
+          // Handle per-service errors without stopping the whole location
+          console.log(`  -> Error: ${serviceError?.message || String(serviceError)}`);
+          services.push({
+            locationName: locationConfig.name,
+            locationCode: locationConfig.code,
+            serviceName: service.name,
+            ok: false,
+            error: serviceError?.message || String(serviceError),
+            slots30Day: 0,
+            slots60Day: 0,
+            totalSlots: 0,
+            daysWithSlots: 0,
+            soonestDate: null,
+            soonestSlotCount: 0,
+            verifiedLocation: false,
+            scannedAt: new Date().toISOString(),
+          });
+
+          // Try to recover for next service
+          if (i < locationConfig.services.length - 1) {
+            try {
+              console.log(`  [Recovery] Re-navigating to location service list`);
+              await navigateToLocationServiceList(page, locationConfig.code, locationConfig.name);
+            } catch {
+              // Continue anyway, will fail on next service if unrecoverable
+            }
+          }
+        }
       }
     }
   } catch (error: any) {
@@ -947,30 +1043,87 @@ function normalizeServiceName(name: string): string {
 // REPORT GENERATION
 // ============================================================================
 
+function getSupplyIndicator(service: ServiceSupplyResult): string {
+  if (!service.ok) return 'ERR';
+  if (service.slots30Day === 0 && service.slots60Day === 0) return 'SCARCE';
+  if (service.slots30Day === 0) return 'LIMITED';
+  if (service.slots30Day < 10) return 'LOW';
+  return 'OK';
+}
+
+function generateLocationSection(location: LocationSupplyResult): string {
+  const services = location.services;
+  const locationCode = services[0]?.locationCode || '';
+  const successful = services.filter(s => s.ok);
+  const available = successful.filter(s => s.totalSlots > 0);
+  const noSlots = successful.filter(s => s.totalSlots === 0);
+
+  let section = `## ${location.locationName} (${locationCode})\n\n`;
+  section += '| Service | 30-Day | 31-60d | Soonest | Status |\n';
+  section += '|---------|--------|--------|---------|--------|\n';
+
+  for (const service of services) {
+    const status = getSupplyIndicator(service);
+    const soonest = service.soonestDate || 'NONE';
+    // Truncate long service names
+    const shortName = service.serviceName.length > 45
+      ? service.serviceName.slice(0, 42) + '...'
+      : service.serviceName;
+    section += `| ${shortName} | ${service.slots30Day} | ${service.slots60Day} | ${soonest} | ${status} |\n`;
+  }
+
+  section += '\n';
+
+  // Summary line
+  if (noSlots.length > 0) {
+    const noSlotNames = noSlots.map(s => s.serviceName.split(' ')[0]).join(', ');
+    section += `**Summary:** ${available.length}/${successful.length} services available. No slots: ${noSlotNames}\n`;
+  } else {
+    section += `**Summary:** ${available.length}/${successful.length} services available.\n`;
+  }
+
+  section += '\n---\n\n';
+  return section;
+}
+
 export function generateSupplyReport(results: DiscoveryRunResult): string {
+  const successRate = results.totalServices > 0
+    ? Math.round(results.successfulScans / results.totalServices * 100)
+    : 0;
+
+  // Header
+  let report = '# DMV Service Supply Discovery Report\n\n';
+  report += `Generated: ${results.completedAt}\n`;
+  report += `Duration: ${Math.round(results.durationMs / 1000)}s | `;
+  report += `Locations: ${results.totalLocations} | `;
+  report += `Services: ${results.totalServices} | `;
+  report += `Success: ${successRate}%\n\n`;
+
+  // Location sections
+  for (const location of results.locations) {
+    report += generateLocationSection(location);
+  }
+
+  // Service overview across all locations
   const summaries = analyzeSupply(results);
 
-  let report = '# DMV Service Demand Discovery Report\n\n';
-  report += `Generated: ${results.completedAt}\n`;
-  report += `Duration: ${Math.round(results.durationMs / 1000)}s\n`;
-  report += `Scanned: ${results.totalLocations} locations, ${results.totalServices} service combinations\n`;
-  report += `Success rate: ${results.successfulScans}/${results.totalServices} (${Math.round(results.successfulScans / results.totalServices * 100)}%)\n\n`;
-
-  report += '## Demand Analysis by Service\n\n';
-  report += 'Services with NO availability in 30 days indicate HIGH DEMAND.\n\n';
-  report += '| Service | No 30d | 30-Day | 31-60d | Soonest | Demand |\n';
-  report += '|---------|--------|--------|--------|---------|--------|\n';
+  report += '## Service Overview (All Locations)\n\n';
+  report += '| Service | Locations w/ Supply | Total 30d | Demand |\n';
+  report += '|---------|---------------------|-----------|--------|\n';
 
   for (const summary of summaries) {
-    const demandEmoji = {
-      high: '🔴 HIGH',
-      medium: '🟠 MED',
-      low: '🟡 LOW',
-      none: '🟢 OK',
+    const demandLabel = {
+      high: 'HIGH',
+      medium: 'MED',
+      low: 'LOW',
+      none: 'OK',
     }[summary.recommendation];
 
-    const noApptsDisplay = `${summary.locationsWithNoSupply}/${summary.totalLocations}`;
-    report += `| ${summary.serviceName.slice(0, 35)} | ${noApptsDisplay} | ${summary.slots30Day} | ${summary.slots60Day} | ${summary.soonestDate || 'NONE'} | ${demandEmoji} |\n`;
+    const locSupply = `${summary.locationsWithSupply}/${summary.totalLocations}`;
+    const shortName = summary.serviceName.length > 35
+      ? summary.serviceName.slice(0, 32) + '...'
+      : summary.serviceName;
+    report += `| ${shortName} | ${locSupply} | ${summary.slots30Day} | ${demandLabel} |\n`;
   }
 
   report += '\n## Recommendations\n\n';
@@ -980,7 +1133,7 @@ export function generateSupplyReport(results: DiscoveryRunResult): string {
   const available = summaries.filter(s => s.recommendation === 'none');
 
   if (highDemand.length > 0) {
-    report += '### 🔴 High Demand - Start Frequent Monitoring\n';
+    report += '### HIGH Demand - Start Frequent Monitoring\n';
     report += 'These services have NO or very few appointments available. Users need our queue/booking system.\n\n';
     for (const s of highDemand) {
       report += `- **${s.serviceName}**: ${s.locationsWithNoSupply}/${s.totalLocations} locations have NO availability`;
@@ -993,7 +1146,7 @@ export function generateSupplyReport(results: DiscoveryRunResult): string {
   }
 
   if (mediumDemand.length > 0) {
-    report += '### 🟠 Medium Demand - Monitor Weekly\n';
+    report += '### MEDIUM Demand - Monitor Weekly\n';
     report += 'Limited availability. Worth tracking to see if demand increases.\n\n';
     for (const s of mediumDemand) {
       report += `- **${s.serviceName}**: ${s.totalSlots} slots across ${s.locationsWithSupply} locations\n`;
@@ -1002,7 +1155,7 @@ export function generateSupplyReport(results: DiscoveryRunResult): string {
   }
 
   if (available.length > 0) {
-    report += '### 🟢 Available - Low Priority\n';
+    report += '### LOW Priority - Available\n';
     report += 'Plenty of appointments available. Users can self-serve.\n\n';
     for (const s of available) {
       report += `- **${s.serviceName}**: ${s.totalSlots} slots available\n`;

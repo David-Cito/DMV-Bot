@@ -1,0 +1,32 @@
+{
+  "runAt": "2026-02-02T08:35:31.237Z",
+  "completedAt": "2026-02-02T08:36:28.334Z",
+  "durationMs": 57097,
+  "totalLocations": 1,
+  "totalServices": 1,
+  "successfulScans": 1,
+  "failedScans": 0,
+  "locations": [
+    {
+      "locationName": "Kapalama Satellite City Hall",
+      "services": [
+        {
+          "locationName": "Kapalama Satellite City Hall",
+          "locationCode": "KSCH",
+          "serviceName": "Motor Vehicles & Other Services",
+          "ok": true,
+          "slots30Day": 619,
+          "slots60Day": 672,
+          "totalSlots": 1291,
+          "daysWithSlots": 41,
+          "soonestDate": "2026-02-03",
+          "soonestSlotCount": 12,
+          "verifiedLocation": true,
+          "verificationMethod": "data-loc-val_match",
+          "scannedAt": "2026-02-02T08:35:35.622Z"
+        }
+      ],
+      "scannedAt": "2026-02-02T08:36:28.334Z"
+    }
+  ]
+}
