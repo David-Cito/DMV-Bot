@@ -11,6 +11,10 @@ on:
         description: "Number of days to scan ahead"
         required: false
         default: "45"
+      verbose:
+        description: "Enable verbose diagnostic logging"
+        required: false
+        default: "false"
 
 jobs:
   scan:
@@ -26,6 +30,7 @@ jobs:
       CI: "true"
       ROAD_TEST_HEADLESS: "true"
       ROAD_TEST_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
+      ROAD_TEST_VERBOSE: ${{ inputs.verbose || 'false' }}
 
     steps:
       - name: Checkout repo
