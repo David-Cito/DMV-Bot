@@ -393,26 +393,31 @@ export async function scanRoadTestAppointments(
       const dayNum = getDay(currentDate);
 
       // Navigate to correct month if needed
+      const nextMonthSelector = 'a[title*="next month"]';
       while (currentCalendarMonth.year < targetMonthYear.year ||
              (currentCalendarMonth.year === targetMonthYear.year && currentCalendarMonth.month < targetMonthYear.month)) {
         console.log(`[RoadTest] Advancing to next month...`);
-        let nextButton;
+
+        // Check if next month button exists
+        let nextButtonCount = 0;
         try {
-          nextButton = await page.$('a[title*="next month"]');
+          nextButtonCount = await page.locator(nextMonthSelector).count();
         } catch (e) {
           console.log(`[RoadTest] Context error finding next month button, re-stabilizing...`);
           await page.waitForLoadState('domcontentloaded');
           await page.waitForSelector('#Calendar1', { timeout: 10000 });
-          nextButton = await page.$('a[title*="next month"]');
+          nextButtonCount = await page.locator(nextMonthSelector).count();
         }
-        if (!nextButton) {
+        if (nextButtonCount === 0) {
           console.log('[RoadTest] Could not find next month button');
           break;
         }
-        await nextButton.click();
-        // Wait for calendar to update (faster than full load + sleep)
+
+        // Use page.click() which re-queries at click time (avoids stale element)
+        await page.click(nextMonthSelector);
+        // Wait for calendar to update
         await page.waitForSelector('#Calendar1', { timeout: 10000 });
-        await sleep(200); // Minimal delay for ASP.NET postback
+        await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
         currentCalendarMonth = {
           month: (currentCalendarMonth.month + 1) % 12,
           year: currentCalendarMonth.month === 11 ? currentCalendarMonth.year + 1 : currentCalendarMonth.year
@@ -421,23 +426,26 @@ export async function scanRoadTestAppointments(
 
       // Click on the day in the calendar
       // Calendar days are links with the day number as text
-      // Use retry logic in case context was destroyed by async navigation
-      let dayLink;
+      const daySelector = `#Calendar1 a:text-is("${dayNum}")`;
+
+      // Check if the day link exists (use count to avoid stale element issues)
+      let dayLinkCount = 0;
       try {
-        dayLink = await page.$(`#Calendar1 a:text-is("${dayNum}")`);
+        dayLinkCount = await page.locator(daySelector).count();
       } catch (e) {
-        console.log(`[RoadTest] Context error finding day ${dayNum}, re-stabilizing...`);
+        console.log(`[RoadTest] Context error checking day ${dayNum}, re-stabilizing...`);
         await page.waitForLoadState('domcontentloaded');
         await page.waitForSelector('#Calendar1', { timeout: 10000 });
         await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-        dayLink = await page.$(`#Calendar1 a:text-is("${dayNum}")`);
+        dayLinkCount = await page.locator(daySelector).count();
       }
 
-      if (dayLink) {
-        // Click and wait for navigation to complete (ASP.NET postback)
+      if (dayLinkCount > 0) {
+        // Use page.click() which re-queries at click time (avoids stale element)
+        // Also wait for navigation to complete (ASP.NET postback)
         await Promise.all([
           page.waitForLoadState('domcontentloaded'),
-          dayLink.click(),
+          page.click(daySelector),
         ]);
         // Wait for page to stabilize after ASP.NET postback
         await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
