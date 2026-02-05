@@ -3,12 +3,12 @@
 ## Overview
 Bot to monitor road test appointment availability at the Hawaii DMV road test scheduling site.
 
-## Status: READY FOR TESTING
-- **Bot code**: Complete and compiles
+## Status: WORKING IN PRODUCTION
+- **Bot code**: Complete and stable in GitHub Actions
 - **Notification script**: Complete
 - **GitHub Actions workflow**: Complete with notifications enabled
-- **Database tables**: Need to be created in Supabase (SQL provided below)
-- **Next steps**: Run locally with `--headed` mode to verify selectors, then test full workflow
+- **Database tables**: Created in Supabase
+- **Verbose mode**: Available for debugging via `--verbose` flag or GitHub Actions input
 
 ## Target Site
 - **URL**: https://www12.honolulu.gov/csdarts/frmApptInt.aspx
@@ -333,9 +333,26 @@ This warmup request:
 | No warmup (hangs) | 60+ seconds (timeout) |
 | Warmup + navigation | ~5-6 seconds |
 
-## GitHub Actions Schedule
+## GitHub Actions Workflow
 Workflow: `.github/workflows/road-test-bot.yml`
 
+### Manual Trigger Inputs
+When triggering manually via Actions UI:
+
+| Input | Description | Default |
+|-------|-------------|---------|
+| `scan_days` | Number of days to scan ahead | `45` |
+| `test_notify` | Send test notification even if no appointments | `false` |
+| `verbose` | Enable verbose diagnostic logging | `false` |
+
+### Environment Variables
+| Variable | Description |
+|----------|-------------|
+| `ROAD_TEST_VERBOSE` | Enable verbose logging (`true`/`false`) |
+| `ROAD_TEST_HEADLESS` | Run in headless mode (`true`/`false`) |
+| `ROAD_TEST_NOTIFY_TEST` | Force test notification (`true`/`false`) |
+
+### Scheduled Runs (when enabled)
 ```yaml
 schedule:
   # 8am HST (6pm UTC) - morning check
@@ -390,3 +407,5 @@ schedule:
   - Added stabilization delay before scan loop
   - Documented patterns for handling ASP.NET WebForms timing issues
 - 2026-02-04: Added --verbose/-v flag for diagnostic logging (URLs, page content, screenshots)
+- 2026-02-04: Added verbose input to GitHub Actions workflow for manual trigger debugging
+- 2026-02-04: Updated status to WORKING IN PRODUCTION
