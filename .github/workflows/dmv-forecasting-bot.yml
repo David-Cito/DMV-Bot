@@ -4,9 +4,9 @@ on:
   # Manual trigger from GitHub UI
   workflow_dispatch:
 
-  # External trigger from cron-job.org (shows as "cron-trigger" in UI)
+  # External trigger from cron-job.org (shows as "forecast-cron" in UI)
   repository_dispatch:
-    types: [cron-trigger]
+    types: [forecast-cron]
 
   # Run less frequently than monitoring bot since forecast data changes slower
   # schedule:

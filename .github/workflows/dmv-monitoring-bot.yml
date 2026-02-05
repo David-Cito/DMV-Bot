@@ -13,9 +13,9 @@ on:
         required: false
         default: "14"
 
-  # External trigger from cron-job.org (shows as "cron-trigger" in UI)
+  # External trigger from cron-job.org (shows as "monitoring-cron" in UI)
   repository_dispatch:
-    types: [cron-trigger]
+    types: [monitoring-cron]
 
 jobs:
   monitor:
