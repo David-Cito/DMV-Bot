@@ -22,6 +22,7 @@ interface ParsedArgs {
   headless: boolean;
   days: number;
   upload: boolean;
+  verbose: boolean;
 }
 
 function parseArgs(): ParsedArgs {
@@ -31,6 +32,7 @@ function parseArgs(): ParsedArgs {
   let headless = process.env.CI === 'true';
   let days = 45; // Default to 45 days
   let upload = false;
+  let verbose = process.env.ROAD_TEST_VERBOSE === 'true';
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -46,6 +48,8 @@ function parseArgs(): ParsedArgs {
       headless = false;
     } else if (arg === '--upload' || arg === '-u') {
       upload = true;
+    } else if (arg === '--verbose' || arg === '-v') {
+      verbose = true;
     } else if (arg === '--days' && args[i + 1]) {
       days = parseInt(args[i + 1], 10);
       i++; // Skip next arg
@@ -54,7 +58,7 @@ function parseArgs(): ParsedArgs {
     }
   }
 
-  return { mode, headless, days, upload };
+  return { mode, headless, days, upload, verbose };
 }
 
 // ============================================================================
@@ -82,7 +86,7 @@ async function runDiscoveryMode(headless: boolean): Promise<void> {
 // MONITORING MODE
 // ============================================================================
 
-async function runMonitoringMode(headless: boolean, days: number, upload: boolean): Promise<void> {
+async function runMonitoringMode(headless: boolean, days: number, upload: boolean, verbose: boolean): Promise<void> {
   console.log('='.repeat(60));
   console.log('ROAD TEST BOT - MONITORING MODE');
   console.log('='.repeat(60));
@@ -90,14 +94,16 @@ async function runMonitoringMode(headless: boolean, days: number, upload: boolea
   console.log(`Locations: ${LOCATIONS.join(', ')}`);
   console.log(`Scan window: ${days} days`);
   console.log(`Upload to Supabase: ${upload}`);
+  if (verbose) console.log(`Verbose logging: enabled`);
   console.log();
 
   const startTime = Date.now();
 
-  const result = await monitorRoadTest({ headless, scanDays: days });
+  const result = await monitorRoadTest({ headless, scanDays: days, verbose });
 
-  const duration = Date.now() - startTime;
-  console.log(`\n[Monitor] Completed in ${duration}ms`);
+  const durationMs = Date.now() - startTime;
+  result.durationMs = durationMs;
+  console.log(`\n[Monitor] Completed in ${durationMs}ms`);
 
   // Display results
   console.log('\n' + '='.repeat(60));
@@ -120,7 +126,13 @@ async function runMonitoringMode(headless: boolean, days: number, upload: boolea
     console.log('\n' + '='.repeat(60));
     console.log('UPLOADING TO SUPABASE');
     console.log('='.repeat(60));
-    await uploadResultsToSupabase(result);
+    const uploadResult = await uploadResultsToSupabase(result);
+
+    // Add changes to result for notification script
+    if (uploadResult.success && uploadResult.changes) {
+      result.changes = uploadResult.changes;
+      console.log(`[Monitor] Changes: ${uploadResult.changes.newSlots} new, ${uploadResult.changes.reactivatedSlots} reactivated, ${uploadResult.changes.disappearedSlots} disappeared`);
+    }
   }
 
   // Exit with error if scan failed
@@ -200,12 +212,13 @@ async function runTestMode(headless: boolean): Promise<void> {
 // ============================================================================
 
 async function main(): Promise<void> {
-  const { mode, headless, days, upload } = parseArgs();
+  const { mode, headless, days, upload, verbose } = parseArgs();
 
   console.log(`[RoadTestBot] Mode: ${mode}`);
   console.log(`[RoadTestBot] Headless: ${headless}`);
   console.log(`[RoadTestBot] Days: ${days}`);
   console.log(`[RoadTestBot] Upload: ${upload}`);
+  if (verbose) console.log(`[RoadTestBot] Verbose: ${verbose}`);
   console.log();
 
   switch (mode) {
@@ -213,7 +226,7 @@ async function main(): Promise<void> {
       await runDiscoveryMode(headless);
       break;
     case 'monitor':
-      await runMonitoringMode(headless, days, upload);
+      await runMonitoringMode(headless, days, upload, verbose);
       break;
     case 'test':
       await runTestMode(headless);
@@ -230,6 +243,7 @@ async function main(): Promise<void> {
       console.log('  --headed          Run with visible browser');
       console.log('  --days=N          Scan N days ahead (default: 45)');
       console.log('  --upload, -u      Upload results to Supabase');
+      console.log('  --verbose, -v     Enable detailed diagnostic logging');
       process.exit(1);
   }
 }

@@ -265,11 +265,13 @@ export async function scanRoadTestAppointments(
   options: {
     scanDays?: number;
     takeScreenshots?: boolean;
+    verbose?: boolean;
   } = {}
 ): Promise<ScanResult> {
   const {
     scanDays = 45,
-    takeScreenshots = true
+    takeScreenshots = true,
+    verbose = false,
   } = options;
 
   const scannedAt = new Date().toISOString();
@@ -292,63 +294,67 @@ export async function scanRoadTestAppointments(
     console.log(`[RoadTest] Navigating to: ${START_URL}`);
     await page.goto(START_URL, { timeout: 60000, waitUntil: 'domcontentloaded' });
 
-    // DEBUG: Log URL immediately after goto
-    console.log(`[RoadTest] URL after goto: ${page.url()}`);
+    if (verbose) console.log(`[RoadTest] URL after goto: ${page.url()}`);
 
     await page.waitForSelector('#Calendar1', { timeout: 15000 });
 
-    // DEBUG: Log URL after calendar found
-    console.log(`[RoadTest] URL after calendar found: ${page.url()}`);
+    if (verbose) console.log(`[RoadTest] URL after calendar found: ${page.url()}`);
 
     // Wait for page to stabilize after any auto-redirects
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
-      console.log(`[RoadTest] networkidle timeout (continuing anyway)`);
+      if (verbose) console.log(`[RoadTest] networkidle timeout (continuing anyway)`);
     });
 
-    // DEBUG: Log URL and title after networkidle
-    console.log(`[RoadTest] URL after networkidle: ${page.url()}`);
-    const pageTitle = await page.title();
-    console.log(`[RoadTest] Page title: ${pageTitle}`);
+    if (verbose) {
+      console.log(`[RoadTest] URL after networkidle: ${page.url()}`);
+      const pageTitle = await page.title();
+      console.log(`[RoadTest] Page title: ${pageTitle}`);
+    }
 
     console.log(`[RoadTest] Navigation successful`);
 
-    // Always take debug screenshot (even in headless for troubleshooting)
-    try {
-      await saveScreenshot(page, '01-initial-debug');
-    } catch (screenshotErr) {
-      console.log(`[RoadTest] Screenshot failed: ${screenshotErr instanceof Error ? screenshotErr.message : String(screenshotErr)}`);
+    // Take debug screenshot only in verbose mode or headed mode
+    if (verbose || takeScreenshots) {
+      try {
+        await saveScreenshot(page, '01-initial-debug');
+      } catch (screenshotErr) {
+        if (verbose) console.log(`[RoadTest] Screenshot failed: ${screenshotErr instanceof Error ? screenshotErr.message : String(screenshotErr)}`);
+      }
     }
 
     // Check if we hit a CAPTCHA or error page (with retry for context destruction)
     let pageText = '';
     try {
-      console.log(`[RoadTest] Attempting page.evaluate for CAPTCHA check...`);
+      if (verbose) console.log(`[RoadTest] Attempting page.evaluate for CAPTCHA check...`);
       pageText = await page.evaluate(`document.body?.innerText?.slice(0, 500) || ''`) as string;
-      console.log(`[RoadTest] page.evaluate succeeded, content length: ${pageText.length}`);
+      if (verbose) console.log(`[RoadTest] page.evaluate succeeded, content length: ${pageText.length}`);
     } catch (e) {
       const evalErr = e instanceof Error ? e.message : String(e);
-      console.log(`[RoadTest] First page.evaluate failed: ${evalErr}`);
-      console.log(`[RoadTest] Current URL: ${page.url()}`);
-
-      // Context may have been destroyed by navigation, wait and retry
-      console.log(`[RoadTest] Waiting for domcontentloaded before retry...`);
-      await page.waitForLoadState('domcontentloaded');
-      console.log(`[RoadTest] URL after wait: ${page.url()}`);
-
-      // Take another screenshot to see new page state
-      try {
-        await saveScreenshot(page, '02-after-navigation');
-      } catch {
-        // Ignore screenshot errors
+      if (verbose) {
+        console.log(`[RoadTest] First page.evaluate failed: ${evalErr}`);
+        console.log(`[RoadTest] Current URL: ${page.url()}`);
+        console.log(`[RoadTest] Waiting for domcontentloaded before retry...`);
       }
 
-      console.log(`[RoadTest] Retrying page.evaluate...`);
+      // Context may have been destroyed by navigation, wait and retry
+      await page.waitForLoadState('domcontentloaded');
+      if (verbose) console.log(`[RoadTest] URL after wait: ${page.url()}`);
+
+      // Take another screenshot to see new page state
+      if (verbose) {
+        try {
+          await saveScreenshot(page, '02-after-navigation');
+        } catch {
+          // Ignore screenshot errors
+        }
+      }
+
+      if (verbose) console.log(`[RoadTest] Retrying page.evaluate...`);
       pageText = await page.evaluate(`document.body?.innerText?.slice(0, 500) || ''`) as string;
-      console.log(`[RoadTest] Retry succeeded, content length: ${pageText.length}`);
+      if (verbose) console.log(`[RoadTest] Retry succeeded, content length: ${pageText.length}`);
     }
 
-    // DEBUG: Log first 200 chars of page content
-    console.log(`[RoadTest] Page content preview: ${pageText.slice(0, 200).replace(/\n/g, ' ')}`)
+    if (verbose) console.log(`[RoadTest] Page content preview: ${pageText.slice(0, 200).replace(/\n/g, ' ')}`)
     if (pageText.toLowerCase().includes('captcha') || pageText.toLowerCase().includes('automated spam')) {
       console.log('[RoadTest] CAPTCHA detected - cannot proceed');
       return {
@@ -370,15 +376,15 @@ export async function scanRoadTestAppointments(
 
     // Wait for page to fully stabilize before starting scan loop
     // ASP.NET pages may have delayed JavaScript that triggers navigation
-    console.log(`[RoadTest] Waiting for page to stabilize before scan...`);
+    if (verbose) console.log(`[RoadTest] Waiting for page to stabilize before scan...`);
     await sleep(500); // Let any delayed JS run
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
 
     // Verify we're still on the right page
     const urlBeforeScan = page.url();
-    console.log(`[RoadTest] URL before scan loop: ${urlBeforeScan}`);
+    if (verbose) console.log(`[RoadTest] URL before scan loop: ${urlBeforeScan}`);
     if (!urlBeforeScan.includes('frmApptInt.aspx')) {
-      console.log(`[RoadTest] Page navigated away, waiting for it to return...`);
+      if (verbose) console.log(`[RoadTest] Page navigated away, waiting for it to return...`);
       await page.waitForURL('**/frmApptInt.aspx', { timeout: 10000 });
       await page.waitForSelector('#Calendar1', { timeout: 10000 });
       await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
@@ -403,7 +409,7 @@ export async function scanRoadTestAppointments(
         try {
           nextButtonCount = await page.locator(nextMonthSelector).count();
         } catch (e) {
-          console.log(`[RoadTest] Context error finding next month button, re-stabilizing...`);
+          if (verbose) console.log(`[RoadTest] Context error finding next month button, re-stabilizing...`);
           await page.waitForLoadState('domcontentloaded');
           await page.waitForSelector('#Calendar1', { timeout: 10000 });
           nextButtonCount = await page.locator(nextMonthSelector).count();
@@ -433,7 +439,7 @@ export async function scanRoadTestAppointments(
       try {
         dayLinkCount = await page.locator(daySelector).count();
       } catch (e) {
-        console.log(`[RoadTest] Context error checking day ${dayNum}, re-stabilizing...`);
+        if (verbose) console.log(`[RoadTest] Context error checking day ${dayNum}, re-stabilizing...`);
         await page.waitForLoadState('domcontentloaded');
         await page.waitForSelector('#Calendar1', { timeout: 10000 });
         await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
@@ -523,22 +529,26 @@ export async function scanRoadTestAppointments(
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : undefined;
     console.error(`[RoadTest] Error: ${errorMessage}`);
-    if (errorStack) {
-      console.error(`[RoadTest] Stack: ${errorStack.split('\n').slice(1, 4).join(' | ')}`);
+
+    // Verbose error details
+    if (verbose) {
+      if (errorStack) {
+        console.error(`[RoadTest] Stack: ${errorStack.split('\n').slice(1, 4).join(' | ')}`);
+      }
+      try {
+        console.log(`[RoadTest] URL at error: ${page.url()}`);
+      } catch {
+        console.log(`[RoadTest] Could not get URL (page may be closed)`);
+      }
     }
 
-    // DEBUG: Log URL at time of error
-    try {
-      console.log(`[RoadTest] URL at error: ${page.url()}`);
-    } catch {
-      console.log(`[RoadTest] Could not get URL (page may be closed)`);
-    }
-
-    // Always try to take error screenshot for debugging
-    try {
-      await saveScreenshot(page, 'error');
-    } catch (screenshotErr) {
-      console.log(`[RoadTest] Error screenshot failed: ${screenshotErr instanceof Error ? screenshotErr.message : String(screenshotErr)}`);
+    // Take error screenshot in verbose mode or headed mode
+    if (verbose || takeScreenshots) {
+      try {
+        await saveScreenshot(page, 'error');
+      } catch (screenshotErr) {
+        if (verbose) console.log(`[RoadTest] Error screenshot failed: ${screenshotErr instanceof Error ? screenshotErr.message : String(screenshotErr)}`);
+      }
     }
     const result: ScanResult = {
       ok: false,
@@ -624,12 +634,13 @@ export async function runDiscovery(options: { headless?: boolean } = {}): Promis
 // ============================================================================
 
 export async function monitorRoadTest(
-  options: { headless?: boolean; slowMo?: number; scanDays?: number } = {}
+  options: { headless?: boolean; slowMo?: number; scanDays?: number; verbose?: boolean } = {}
 ): Promise<ScanResult> {
   const {
     headless = process.env.ROAD_TEST_HEADLESS !== 'false' && process.env.CI === 'true',
     slowMo = process.env.CI === 'true' ? 0 : 300,
     scanDays = 45,
+    verbose = process.env.ROAD_TEST_VERBOSE === 'true',
   } = options;
 
   console.log(`[RoadTest] Starting monitoring...`);
@@ -659,19 +670,21 @@ export async function monitorRoadTest(
   console.log(`[RoadTest] Warming up session...`);
   try {
     const warmupResponse = await context.request.get(START_URL, { timeout: 5000 });
-    console.log(`[RoadTest] Warmup succeeded: status=${warmupResponse.status()}, url=${warmupResponse.url()}`);
+    if (verbose) console.log(`[RoadTest] Warmup succeeded: status=${warmupResponse.status()}, url=${warmupResponse.url()}`);
   } catch (e) {
     const errMsg = e instanceof Error ? e.message : String(e);
-    console.log(`[RoadTest] Warmup caught: ${errMsg.slice(0, 100)}`);
+    if (verbose) console.log(`[RoadTest] Warmup caught: ${errMsg.slice(0, 100)}`);
     // Expected to timeout - the redirect chain hangs, but the cookie gets set
   }
 
-  // Log cookies after warmup
-  const cookies = await context.cookies();
-  const sessionCookie = cookies.find(c => c.name === 'ASP.NET_SessionId');
-  console.log(`[RoadTest] Session cookie after warmup: ${sessionCookie ? 'YES' : 'NO'}`);
-  if (sessionCookie) {
-    console.log(`[RoadTest] Cookie domain: ${sessionCookie.domain}, path: ${sessionCookie.path}`);
+  // Log cookies after warmup (verbose only)
+  if (verbose) {
+    const cookies = await context.cookies();
+    const sessionCookie = cookies.find(c => c.name === 'ASP.NET_SessionId');
+    console.log(`[RoadTest] Session cookie after warmup: ${sessionCookie ? 'YES' : 'NO'}`);
+    if (sessionCookie) {
+      console.log(`[RoadTest] Cookie domain: ${sessionCookie.domain}, path: ${sessionCookie.path}`);
+    }
   }
 
   const page = await context.newPage();
@@ -680,6 +693,7 @@ export async function monitorRoadTest(
     const result = await scanRoadTestAppointments(page, {
       scanDays,
       takeScreenshots: !headless,
+      verbose,
     });
     return result;
   } finally {
