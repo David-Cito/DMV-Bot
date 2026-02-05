@@ -368,6 +368,22 @@ export async function scanRoadTestAppointments(
     // Track current calendar month/year
     let currentCalendarMonth = getMonthYear(hstToday);
 
+    // Wait for page to fully stabilize before starting scan loop
+    // ASP.NET pages may have delayed JavaScript that triggers navigation
+    console.log(`[RoadTest] Waiting for page to stabilize before scan...`);
+    await sleep(500); // Let any delayed JS run
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+
+    // Verify we're still on the right page
+    const urlBeforeScan = page.url();
+    console.log(`[RoadTest] URL before scan loop: ${urlBeforeScan}`);
+    if (!urlBeforeScan.includes('frmApptInt.aspx')) {
+      console.log(`[RoadTest] Page navigated away, waiting for it to return...`);
+      await page.waitForURL('**/frmApptInt.aspx', { timeout: 10000 });
+      await page.waitForSelector('#Calendar1', { timeout: 10000 });
+      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    }
+
     // Scan each day in the window
     let currentDate = startDate;
     let daysScanned = 0;
@@ -380,7 +396,15 @@ export async function scanRoadTestAppointments(
       while (currentCalendarMonth.year < targetMonthYear.year ||
              (currentCalendarMonth.year === targetMonthYear.year && currentCalendarMonth.month < targetMonthYear.month)) {
         console.log(`[RoadTest] Advancing to next month...`);
-        const nextButton = await page.$('a[title*="next month"]');
+        let nextButton;
+        try {
+          nextButton = await page.$('a[title*="next month"]');
+        } catch (e) {
+          console.log(`[RoadTest] Context error finding next month button, re-stabilizing...`);
+          await page.waitForLoadState('domcontentloaded');
+          await page.waitForSelector('#Calendar1', { timeout: 10000 });
+          nextButton = await page.$('a[title*="next month"]');
+        }
         if (!nextButton) {
           console.log('[RoadTest] Could not find next month button');
           break;
@@ -397,7 +421,17 @@ export async function scanRoadTestAppointments(
 
       // Click on the day in the calendar
       // Calendar days are links with the day number as text
-      const dayLink = await page.$(`#Calendar1 a:text-is("${dayNum}")`);
+      // Use retry logic in case context was destroyed by async navigation
+      let dayLink;
+      try {
+        dayLink = await page.$(`#Calendar1 a:text-is("${dayNum}")`);
+      } catch (e) {
+        console.log(`[RoadTest] Context error finding day ${dayNum}, re-stabilizing...`);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForSelector('#Calendar1', { timeout: 10000 });
+        await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+        dayLink = await page.$(`#Calendar1 a:text-is("${dayNum}")`);
+      }
 
       if (dayLink) {
         // Click and wait for navigation to complete (ASP.NET postback)
