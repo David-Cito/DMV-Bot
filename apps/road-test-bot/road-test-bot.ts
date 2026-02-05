@@ -351,16 +351,13 @@ export async function scanRoadTestAppointments(
       const dayLink = await page.$(`#Calendar1 a:text-is("${dayNum}")`);
 
       if (dayLink) {
-        await dayLink.click();
-        // Wait for appointment table rows instead of full page load + arbitrary sleep
-        // This is much faster than waitForLoadState('load') + sleep(300)
-        try {
-          await page.waitForSelector('table tr.TableItemLine, table tr.TableAltItemLine, #Calendar1', {
-            timeout: 10000
-          });
-        } catch {
-          // If no appointment rows appear, the table might be empty - continue
-        }
+        // Click and wait for navigation to complete (ASP.NET postback)
+        await Promise.all([
+          page.waitForLoadState('domcontentloaded'),
+          dayLink.click(),
+        ]);
+        // Small delay for ASP.NET to finish rendering
+        await sleep(100);
 
         // Extract appointments for this day
         const extraction = await page.evaluate(EXTRACT_APPOINTMENTS_SCRIPT) as {
