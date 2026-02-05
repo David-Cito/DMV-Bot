@@ -17,9 +17,9 @@ on:
         required: false
         default: "false"
 
-  # External trigger from cron-job.org (shows as "scheduled-run" in UI)
+  # External trigger from cron-job.org
   repository_dispatch:
-    types: [scheduled-run]
+    types: [cronjob.org]
 
 jobs:
   scan:
