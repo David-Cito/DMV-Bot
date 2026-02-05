@@ -1,0 +1,54 @@
+name: Road Test Notifications
+
+on:
+  schedule:
+    # Daily summary at 6pm HST (4am UTC next day)
+    - cron: '0 4 * * *'
+    # Weekly summary on Sundays at 6pm HST (4am UTC Monday)
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+    inputs:
+      notification_type:
+        description: "Notification type to send"
+        required: true
+        type: choice
+        options:
+          - daily
+          - weekly
+
+jobs:
+  daily-summary:
+    runs-on: ubuntu-latest
+    # Run on daily schedule (every day at 4am UTC) or when manually triggered with daily
+    if: github.event.schedule == '0 4 * * *' || (github.event_name == 'workflow_dispatch' && inputs.notification_type == 'daily')
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Send daily summary
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node scripts/notifications/send-road-test-notifications.js --type=daily
+
+  weekly-summary:
+    runs-on: ubuntu-latest
+    # Run on Sunday schedule or when manually triggered with weekly
+    if: github.event.schedule == '0 4 * * 0' || (github.event_name == 'workflow_dispatch' && inputs.notification_type == 'weekly')
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Send weekly summary
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node scripts/notifications/send-road-test-notifications.js --type=weekly
