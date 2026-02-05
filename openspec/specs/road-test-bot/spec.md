@@ -219,6 +219,81 @@ Include:
 
 ## Known Issues
 
+### ASP.NET Page Stability Issues (Resolved - GitHub Actions)
+
+**Problem:** The bot works locally but fails in GitHub Actions with various "Execution context destroyed" and "Element not attached to DOM" errors.
+
+**Root Cause:** The ASP.NET WebForms page has delayed JavaScript and postback behaviors that cause the DOM to change after the page appears stable. This creates race conditions where:
+1. Element handles become stale between finding and clicking
+2. Execution context is destroyed by async navigation during `page.evaluate()`
+
+**Symptoms Observed:**
+```
+page.evaluate: Execution context was destroyed, most likely because of a navigation
+page.$: Protocol error (DOM.describeNode): Cannot find context with specified id
+elementHandle.click: Element is not attached to the DOM
+```
+
+**Solutions Implemented:**
+
+1. **Use `page.click(selector)` instead of `element.click()`**
+   - Element handles can become stale if DOM changes between finding and clicking
+   - `page.click(selector)` re-queries the element at click time
+   ```typescript
+   // BAD - stale element risk
+   const dayLink = await page.$(`#Calendar1 a:text-is("${dayNum}")`);
+   await dayLink.click();
+
+   // GOOD - re-queries at click time
+   await page.click(`#Calendar1 a:text-is("${dayNum}")`);
+   ```
+
+2. **Use `locator().count()` for existence checks**
+   - More resilient to DOM changes than getting element handles
+   ```typescript
+   const dayLinkCount = await page.locator(daySelector).count();
+   if (dayLinkCount > 0) {
+     await page.click(daySelector);
+   }
+   ```
+
+3. **Wait for `networkidle` after navigation/clicks**
+   - ASP.NET postbacks can trigger multiple network requests
+   - `domcontentloaded` alone is not sufficient
+   ```typescript
+   await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+   ```
+
+4. **Add stabilization delay before scan loop**
+   - Let delayed JavaScript run before starting interactions
+   ```typescript
+   await sleep(500);
+   await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+   ```
+
+5. **Wrap `page.evaluate()` in try-catch with retry**
+   - If context is destroyed, wait for page to stabilize and retry
+   ```typescript
+   try {
+     result = await page.evaluate(SCRIPT);
+   } catch (e) {
+     await page.waitForLoadState('domcontentloaded');
+     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+     result = await page.evaluate(SCRIPT);
+   }
+   ```
+
+6. **Verify URL hasn't changed before proceeding**
+   - Detect if page navigated away unexpectedly
+   ```typescript
+   const urlBeforeScan = page.url();
+   if (!urlBeforeScan.includes('frmApptInt.aspx')) {
+     await page.waitForURL('**/frmApptInt.aspx', { timeout: 10000 });
+   }
+   ```
+
+**Key Insight:** GitHub Actions has different timing characteristics than local development. Network latency and CPU speed differences expose race conditions that don't appear locally. Always design for worst-case timing.
+
 ### Session-Based Redirect Chain (Resolved)
 The site uses a session-based redirect chain that causes first requests to hang:
 
@@ -304,3 +379,9 @@ schedule:
 - 2024-02-03: Added Supabase upload functionality
 - 2024-02-03: Added --days and --upload CLI flags
 - 2025-02-04: Fixed navigation timeout issue - discovered session-based redirect chain, implemented warmup solution
+- 2026-02-04: Fixed ASP.NET page stability issues in GitHub Actions:
+  - Added networkidle waits after navigation and postbacks
+  - Switched from element.click() to page.click(selector) to avoid stale elements
+  - Added try-catch retry logic around page.evaluate() calls
+  - Added stabilization delay before scan loop
+  - Documented patterns for handling ASP.NET WebForms timing issues
