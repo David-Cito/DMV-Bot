@@ -1,6 +1,7 @@
 name: DMV Monitoring Bot
 
 on:
+  # Manual trigger from GitHub UI
   workflow_dispatch:
     inputs:
       test_notify:
@@ -11,6 +12,10 @@ on:
         description: "Notify window in days (within X days)"
         required: false
         default: "14"
+
+  # External trigger from cron-job.org (shows as "cron-trigger" in UI)
+  repository_dispatch:
+    types: [cron-trigger]
 
 jobs:
   monitor:
@@ -23,8 +28,9 @@ jobs:
       group: dmv-monitoring-bot
       cancel-in-progress: false
     env:
-      DMV_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
-      DMV_NOTIFY_WINDOW_DAYS: ${{ inputs.notify_window_days || vars.DMV_NOTIFY_WINDOW_DAYS || '14' }}
+      # Support both workflow_dispatch (inputs) and repository_dispatch (client_payload)
+      DMV_NOTIFY_TEST: ${{ inputs.test_notify || github.event.client_payload.test_notify || 'false' }}
+      DMV_NOTIFY_WINDOW_DAYS: ${{ inputs.notify_window_days || github.event.client_payload.notify_window_days || vars.DMV_NOTIFY_WINDOW_DAYS || '14' }}
 
     steps:
       - name: Night jitter (HST)
