@@ -213,9 +213,11 @@ async function main() {
 
   const viewChecks = [];
   for (const view of views) {
-    const viewColumns = columnsByTable.get(view) || [];
+    const viewName = typeof view === 'string' ? view : view.view_name;
+    if (!viewName) continue;
+    const viewColumns = columnsByTable.get(viewName) || [];
     const latestColumn = pickLatestColumn(viewColumns.map((col) => col.column_name));
-    viewChecks.push(await safeProbe(view, latestColumn));
+    viewChecks.push(await safeProbe(viewName, latestColumn));
   }
 
   const report = {
