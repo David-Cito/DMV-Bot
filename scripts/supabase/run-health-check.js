@@ -84,18 +84,12 @@ async function main() {
   async function fetchPublicViews() {
     const { data, error } = await supabase.rpc('list_public_views');
     if (error) throw error;
-    return (data || []).map((row) => row.view_name);
+    return data || [];
   }
 
-  // Fetch columns - still use information_schema approach but handle errors gracefully
+  // Fetch columns via RPC function
   async function fetchColumns() {
-    const { data, error } = await supabase
-      .schema('information_schema')
-      .from('columns')
-      .select('table_name, column_name, data_type, ordinal_position')
-      .eq('table_schema', 'public')
-      .order('table_name', { ascending: true })
-      .order('ordinal_position', { ascending: true });
+    const { data, error } = await supabase.rpc('list_public_columns');
     if (error) return []; // Return empty on error, columns are optional
     return data || [];
   }
@@ -104,10 +98,28 @@ async function main() {
   async function fetchFunctions() {
     const { data, error } = await supabase.rpc('list_public_functions');
     if (error) throw error;
-    return (data || []).map((row) => ({
-      routine_name: row.function_name,
-      data_type: row.return_type,
-    }));
+    return data || [];
+  }
+
+  // Fetch indexes via RPC function
+  async function fetchIndexes() {
+    const { data, error } = await supabase.rpc('list_public_indexes');
+    if (error) return [];
+    return data || [];
+  }
+
+  // Fetch constraints via RPC function
+  async function fetchConstraints() {
+    const { data, error } = await supabase.rpc('list_public_constraints');
+    if (error) return [];
+    return data || [];
+  }
+
+  // Fetch triggers via RPC function
+  async function fetchTriggers() {
+    const { data, error } = await supabase.rpc('list_public_triggers');
+    if (error) return [];
+    return data || [];
   }
 
   function pickLatestColumn(columns) {
@@ -133,14 +145,22 @@ async function main() {
   let views = [];
   let columns = [];
   let functions = [];
-  let schemaSource = 'information_schema';
+  let indexes = [];
+  let constraints = [];
+  let triggers = [];
+  let schemaSource = 'rpc';
 
   try {
     tables = await fetchPublicTables();
     views = await fetchPublicViews();
     columns = await fetchColumns();
     functions = await fetchFunctions();
+    indexes = await fetchIndexes();
+    constraints = await fetchConstraints();
+    triggers = await fetchTriggers();
+    console.log(`Fetched schema via RPC: ${tables.length} tables, ${views.length} views, ${functions.length} functions`);
   } catch (err) {
+    console.log(`RPC failed (${err.message}), using fallback`);
     schemaSource = 'fallback';
     tables = fallbackTables;
     views = fallbackViews;
@@ -202,6 +222,9 @@ async function main() {
     tables: tableChecks,
     views: viewChecks,
     functions,
+    indexes,
+    constraints,
+    triggers,
     counts,
     latest,
     recent_analysis_runs: recentRuns || [],
