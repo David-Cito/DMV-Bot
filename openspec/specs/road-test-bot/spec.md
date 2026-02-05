@@ -131,6 +131,10 @@ npx ts-node apps/road-test-bot/run-road-test-bot.ts --discover
 
 # Quick connectivity test
 npx ts-node apps/road-test-bot/run-road-test-bot.ts --test
+
+# Enable verbose diagnostic logging (URLs, page content, screenshots)
+npx ts-node apps/road-test-bot/run-road-test-bot.ts --verbose
+# Or via env var: ROAD_TEST_VERBOSE=true
 ```
 
 ## Data Structures
@@ -385,3 +389,4 @@ schedule:
   - Added try-catch retry logic around page.evaluate() calls
   - Added stabilization delay before scan loop
   - Documented patterns for handling ASP.NET WebForms timing issues
+- 2026-02-04: Added --verbose/-v flag for diagnostic logging (URLs, page content, screenshots)
