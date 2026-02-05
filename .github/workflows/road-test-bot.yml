@@ -1,6 +1,7 @@
 name: Road Test Bot
 
 on:
+  # Manual trigger from GitHub UI
   workflow_dispatch:
     inputs:
       test_notify:
@@ -16,6 +17,10 @@ on:
         required: false
         default: "false"
 
+  # External trigger from cron-job.org (shows as "cron-trigger" in UI)
+  repository_dispatch:
+    types: [cron-trigger]
+
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -29,8 +34,9 @@ jobs:
     env:
       CI: "true"
       ROAD_TEST_HEADLESS: "true"
-      ROAD_TEST_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
-      ROAD_TEST_VERBOSE: ${{ inputs.verbose || 'false' }}
+      # Support both workflow_dispatch (inputs) and repository_dispatch (client_payload)
+      ROAD_TEST_NOTIFY_TEST: ${{ inputs.test_notify || github.event.client_payload.test_notify || 'false' }}
+      ROAD_TEST_VERBOSE: ${{ inputs.verbose || github.event.client_payload.verbose || 'false' }}
 
     steps:
       - name: Checkout repo
@@ -48,7 +54,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: npx ts-node apps/road-test-bot/run-road-test-bot.ts --monitor --headless --upload --days=${{ inputs.scan_days || '45' }}
+        run: npx ts-node apps/road-test-bot/run-road-test-bot.ts --monitor --headless --upload --days=${{ inputs.scan_days || github.event.client_payload.scan_days || '45' }}
 
       - name: Upload screenshots
         if: always()
@@ -73,5 +79,5 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_MENTION_USER_ID: ${{ secrets.DISCORD_MENTION_USER_ID }}
-          ROAD_TEST_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
+          ROAD_TEST_NOTIFY_TEST: ${{ inputs.test_notify || github.event.client_payload.test_notify || 'false' }}
         run: node scripts/notifications/send-road-test-notifications.js --type=instant
