@@ -48,6 +48,7 @@ async function main() {
     return { name: table, ok: true, samples: data || [] };
   }
 
+  // Fallback lists in case RPC functions don't exist
   const fallbackTables = [
     'locations',
     'runs',
@@ -61,7 +62,6 @@ async function main() {
     'queue_entries',
     'booking_attempts',
     'message_log',
-    // Road test bot tables
     'road_test_slots',
     'road_test_scans',
     'road_test_notification_log',
@@ -73,29 +73,21 @@ async function main() {
     'analysis_windows_exclusive_hst',
   ];
 
+  // Try to fetch tables dynamically via RPC function
   async function fetchPublicTables() {
-    const { data, error } = await supabase
-      .schema('information_schema')
-      .from('tables')
-      .select('table_name, table_type, table_schema')
-      .eq('table_schema', 'public')
-      .eq('table_type', 'BASE TABLE')
-      .order('table_name', { ascending: true });
+    const { data, error } = await supabase.rpc('list_public_tables');
     if (error) throw error;
     return (data || []).map((row) => row.table_name);
   }
 
+  // Try to fetch views dynamically via RPC function
   async function fetchPublicViews() {
-    const { data, error } = await supabase
-      .schema('information_schema')
-      .from('views')
-      .select('table_name, table_schema')
-      .eq('table_schema', 'public')
-      .order('table_name', { ascending: true });
+    const { data, error } = await supabase.rpc('list_public_views');
     if (error) throw error;
-    return (data || []).map((row) => row.table_name);
+    return (data || []).map((row) => row.view_name);
   }
 
+  // Fetch columns - still use information_schema approach but handle errors gracefully
   async function fetchColumns() {
     const { data, error } = await supabase
       .schema('information_schema')
@@ -104,19 +96,18 @@ async function main() {
       .eq('table_schema', 'public')
       .order('table_name', { ascending: true })
       .order('ordinal_position', { ascending: true });
-    if (error) throw error;
+    if (error) return []; // Return empty on error, columns are optional
     return data || [];
   }
 
+  // Fetch functions dynamically via RPC function
   async function fetchFunctions() {
-    const { data, error } = await supabase
-      .schema('information_schema')
-      .from('routines')
-      .select('routine_name, routine_type, data_type')
-      .eq('specific_schema', 'public')
-      .order('routine_name', { ascending: true });
+    const { data, error } = await supabase.rpc('list_public_functions');
     if (error) throw error;
-    return data || [];
+    return (data || []).map((row) => ({
+      routine_name: row.function_name,
+      data_type: row.return_type,
+    }));
   }
 
   function pickLatestColumn(columns) {
