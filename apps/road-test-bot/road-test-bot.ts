@@ -405,14 +405,19 @@ export async function scanRoadTestAppointments(
           page.waitForLoadState('domcontentloaded'),
           dayLink.click(),
         ]);
-        // Small delay for ASP.NET to finish rendering
-        await sleep(100);
+        // Wait for page to stabilize after ASP.NET postback
+        await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
 
-        // Extract appointments for this day
-        const extraction = await page.evaluate(EXTRACT_APPOINTMENTS_SCRIPT) as {
-          currentDate: string | null;
-          slots: RoadTestSlot[];
-        };
+        // Extract appointments for this day (with retry for context destruction)
+        let extraction: { currentDate: string | null; slots: RoadTestSlot[] };
+        try {
+          extraction = await page.evaluate(EXTRACT_APPOINTMENTS_SCRIPT) as typeof extraction;
+        } catch (e) {
+          // Context may have been destroyed by navigation, wait and retry
+          await page.waitForLoadState('domcontentloaded');
+          await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+          extraction = await page.evaluate(EXTRACT_APPOINTMENTS_SCRIPT) as typeof extraction;
+        }
 
         if (extraction.slots.length > 0) {
           const dayResult: DayResult = {
