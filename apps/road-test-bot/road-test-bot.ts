@@ -292,14 +292,23 @@ export async function scanRoadTestAppointments(
     console.log(`[RoadTest] Navigating to: ${START_URL}`);
     await page.goto(START_URL, { timeout: 60000, waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#Calendar1', { timeout: 15000 });
+    // Wait for page to stabilize after any auto-redirects
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
     console.log(`[RoadTest] Navigation successful`);
 
     if (takeScreenshots) {
       await saveScreenshot(page, '01-initial');
     }
 
-    // Check if we hit a CAPTCHA or error page
-    const pageText = await page.evaluate(`document.body?.innerText?.slice(0, 500) || ''`) as string;
+    // Check if we hit a CAPTCHA or error page (with retry for context destruction)
+    let pageText = '';
+    try {
+      pageText = await page.evaluate(`document.body?.innerText?.slice(0, 500) || ''`) as string;
+    } catch (e) {
+      // Context may have been destroyed by navigation, wait and retry
+      await page.waitForLoadState('domcontentloaded');
+      pageText = await page.evaluate(`document.body?.innerText?.slice(0, 500) || ''`) as string;
+    }
     if (pageText.toLowerCase().includes('captcha') || pageText.toLowerCase().includes('automated spam')) {
       console.log('[RoadTest] CAPTCHA detected - cannot proceed');
       return {
