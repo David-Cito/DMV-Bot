@@ -58,15 +58,13 @@ async function main() {
     'analysis_rollups_daily',
     'notification_subscribers',
     'notification_state',
-    'customers',
     'queue_entries',
-    'target_window_presets',
-    'user_target_window_selections',
-    'user_location_preferences',
-    'queue_watermarks',
     'booking_attempts',
-    'booking_locks',
     'message_log',
+    // Road test bot tables
+    'road_test_slots',
+    'road_test_scans',
+    'road_test_notification_log',
   ];
 
   const fallbackViews = [
