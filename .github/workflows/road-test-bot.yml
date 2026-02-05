@@ -1,0 +1,72 @@
+name: Road Test Bot
+
+on:
+  schedule:
+    # Run at 8am HST (6pm UTC) - morning check
+    - cron: '0 18 * * *'
+    # Run at 4:30pm HST (2:30am UTC next day) - standby slot release time
+    - cron: '30 2 * * *'
+    # Run at 6pm HST (4am UTC next day) - evening check
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      test_notify:
+        description: "Send a test notification even if no appointments found"
+        required: false
+        default: "false"
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-jammy
+    permissions:
+      contents: read
+    concurrency:
+      group: road-test-bot
+      cancel-in-progress: false
+    env:
+      CI: "true"
+      ROAD_TEST_HEADLESS: "true"
+      ROAD_TEST_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Run Road Test monitoring bot
+        run: npx ts-node apps/road-test-bot/run-road-test-bot.ts --monitor --headless
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: road-test-screenshots-${{ github.run_id }}
+          path: data/screenshots/
+          retention-days: 7
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: road-test-results-${{ github.run_id }}
+          path: data/results/road-test-results.json
+          retention-days: 30
+
+      - name: Notify users
+        if: always()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_MENTION_USER_ID: ${{ secrets.DISCORD_MENTION_USER_ID }}
+          ROAD_TEST_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
+        run: node scripts/notifications/send-road-test-notifications.js
