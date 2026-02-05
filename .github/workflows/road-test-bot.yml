@@ -1,19 +1,26 @@
 name: Road Test Bot
 
 on:
-  schedule:
-    # Run at 8am HST (6pm UTC) - morning check
-    - cron: '0 18 * * *'
-    # Run at 4:30pm HST (2:30am UTC next day) - standby slot release time
-    - cron: '30 2 * * *'
-    # Run at 6pm HST (4am UTC next day) - evening check
-    - cron: '0 4 * * *'
   workflow_dispatch:
     inputs:
       test_notify:
         description: "Send a test notification even if no appointments found"
         required: false
         default: "false"
+      notification_type:
+        description: "Notification type to send (after scan)"
+        required: false
+        default: "instant"
+        type: choice
+        options:
+          - instant
+          - daily
+          - weekly
+          - none
+      scan_days:
+        description: "Number of days to scan ahead"
+        required: false
+        default: "45"
 
 jobs:
   monitor:
@@ -31,6 +38,17 @@ jobs:
       ROAD_TEST_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
 
     steps:
+      - name: Night jitter (HST)
+        run: |
+          hour=$(TZ=Pacific/Honolulu date +%H)
+          if [ "$hour" -ge 0 ] && [ "$hour" -lt 6 ]; then
+            delay=$((RANDOM % 121))
+            echo "Night hours (HST). Sleeping ${delay}s for jitter."
+            sleep "$delay"
+          else
+            echo "Daytime hours (HST). No jitter."
+          fi
+
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
@@ -43,7 +61,10 @@ jobs:
         run: npm run build
 
       - name: Run Road Test monitoring bot
-        run: npx ts-node apps/road-test-bot/run-road-test-bot.ts --monitor --headless
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx ts-node apps/road-test-bot/run-road-test-bot.ts --monitor --headless --upload --days=${{ inputs.scan_days || '45' }}
 
       - name: Upload screenshots
         if: always()
@@ -61,12 +82,12 @@ jobs:
           path: data/results/road-test-results.json
           retention-days: 30
 
-      - name: Notify users
-        if: always()
+      - name: Send notifications
+        if: always() && inputs.notification_type != 'none'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_MENTION_USER_ID: ${{ secrets.DISCORD_MENTION_USER_ID }}
           ROAD_TEST_NOTIFY_TEST: ${{ inputs.test_notify || 'false' }}
-        run: node scripts/notifications/send-road-test-notifications.js
+        run: node scripts/notifications/send-road-test-notifications.js --type=${{ inputs.notification_type || 'instant' }}
