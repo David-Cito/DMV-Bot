@@ -5,6 +5,12 @@ import { chromium, type Page } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
 import { getSupabaseClient } from '../../packages/db/supabase_client';
+import {
+  upsertRoadTestSlots,
+  markDisappearedSlots,
+  recordRoadTestScan,
+  type RoadTestSlotRecord,
+} from '../../packages/db/road-test-slots';
 
 // ============================================================================
 // CONSTANTS
@@ -52,6 +58,15 @@ export interface ScanResult {
     byLocation: Record<string, number>;
     earliestDate: string | null;
     earliestDaysAway: number | null;
+  };
+  // Timing metrics
+  durationMs?: number;
+  daysScanned?: number;
+  // Change tracking (populated after DB sync)
+  changes?: {
+    newSlots: number;
+    reactivatedSlots: number;
+    disappearedSlots: number;
   };
 }
 
@@ -322,8 +337,9 @@ export async function scanRoadTestAppointments(
           break;
         }
         await nextButton.click();
-        await page.waitForLoadState('load');
-        await sleep(500);
+        // Wait for calendar to update (faster than full load + sleep)
+        await page.waitForSelector('#Calendar1', { timeout: 10000 });
+        await sleep(200); // Minimal delay for ASP.NET postback
         currentCalendarMonth = {
           month: (currentCalendarMonth.month + 1) % 12,
           year: currentCalendarMonth.month === 11 ? currentCalendarMonth.year + 1 : currentCalendarMonth.year
@@ -336,8 +352,15 @@ export async function scanRoadTestAppointments(
 
       if (dayLink) {
         await dayLink.click();
-        await page.waitForLoadState('load');
-        await sleep(300);
+        // Wait for appointment table rows instead of full page load + arbitrary sleep
+        // This is much faster than waitForLoadState('load') + sleep(300)
+        try {
+          await page.waitForSelector('table tr.TableItemLine, table tr.TableAltItemLine, #Calendar1', {
+            timeout: 10000
+          });
+        } catch {
+          // If no appointment rows appear, the table might be empty - continue
+        }
 
         // Extract appointments for this day
         const extraction = await page.evaluate(EXTRACT_APPOINTMENTS_SCRIPT) as {
@@ -346,8 +369,6 @@ export async function scanRoadTestAppointments(
         };
 
         if (extraction.slots.length > 0) {
-          console.log(`[RoadTest] ${currentDate}: ${extraction.slots.length} slots`);
-
           const dayResult: DayResult = {
             date: currentDate,
             dateDisplay: currentDate,
@@ -362,26 +383,16 @@ export async function scanRoadTestAppointments(
               slotsByLocation[slot.location]++;
             }
           });
-
-          // Log found slots
-          extraction.slots.forEach(slot => {
-            const typeLabel = slot.type === 'standby' ? ' [STANDBY]' : '';
-            console.log(`    ${slot.time} @ ${slot.location}${typeLabel}`);
-          });
         }
-      } else {
-        // Day not clickable (might be in the past or not available)
-        console.log(`[RoadTest] ${currentDate}: Not available in calendar`);
       }
 
       daysScanned++;
       currentDate = addDays(currentDate, 1);
     }
 
-    console.log(`[RoadTest] Scanned ${daysScanned} days`);
-
     // Calculate summary
     const totalSlots = Object.values(slotsByLocation).reduce((a, b) => a + b, 0);
+    console.log(`[RoadTest] Scanned ${daysScanned} days, found ${totalSlots} slots across ${allDays.length} days`);
     let earliestDate: string | null = null;
     let earliestDaysAway: number | null = null;
 
@@ -403,6 +414,7 @@ export async function scanRoadTestAppointments(
         earliestDate,
         earliestDaysAway,
       },
+      daysScanned,
     };
 
     if (takeScreenshots) {
@@ -612,75 +624,72 @@ export function formatResultMessage(result: ScanResult): string {
 }
 
 // ============================================================================
-// SUPABASE UPLOAD
+// SUPABASE UPLOAD (with change tracking)
 // ============================================================================
 
-export async function uploadResultsToSupabase(result: ScanResult): Promise<boolean> {
+export async function uploadResultsToSupabase(result: ScanResult): Promise<{
+  success: boolean;
+  changes?: {
+    newSlots: number;
+    reactivatedSlots: number;
+    disappearedSlots: number;
+  };
+}> {
   try {
-    const supabase = getSupabaseClient();
-    const runId = `road-test-${Date.now()}`;
+    console.log('[Supabase] Uploading scan results with change tracking...');
 
-    console.log('[Supabase] Uploading scan results...');
-
-    // Insert the scan run record
-    const { error: runError } = await supabase
-      .from('road_test_scans')
-      .insert({
-        id: runId,
-        scanned_at: result.scannedAt,
-        ok: result.ok,
-        reason: result.reason || null,
-        total_slots: result.summary.totalSlots,
-        slots_by_location: result.summary.byLocation,
-        earliest_date: result.summary.earliestDate,
-        earliest_days_away: result.summary.earliestDaysAway,
-      });
-
-    if (runError) {
-      // Table might not exist - try creating a simpler log
-      console.log(`[Supabase] road_test_scans insert error: ${runError.message}`);
-      console.log('[Supabase] Trying alternative: road_test_slots table...');
-    }
-
-    // Insert individual slots
-    if (result.ok && result.days.length > 0) {
-      const slotsToInsert = [];
-      for (const day of result.days) {
-        for (const slot of day.slots) {
-          slotsToInsert.push({
-            scan_id: runId,
-            scan_date: result.currentDate,
-            scanned_at: result.scannedAt,
-            date: day.date,
-            time: slot.time,
-            location: slot.location,
-            slot_type: slot.type,
-            button_name: slot.buttonName || null,
-            button_value: slot.buttonValue || null,
-          });
-        }
-      }
-
-      if (slotsToInsert.length > 0) {
-        const { error: slotsError } = await supabase
-          .from('road_test_slots')
-          .insert(slotsToInsert);
-
-        if (slotsError) {
-          console.log(`[Supabase] road_test_slots insert error: ${slotsError.message}`);
-        } else {
-          console.log(`[Supabase] Inserted ${slotsToInsert.length} slots`);
-        }
+    // Build slot records from scan result
+    const slotRecords: RoadTestSlotRecord[] = [];
+    for (const day of result.days) {
+      for (const slot of day.slots) {
+        slotRecords.push({
+          date: day.date,
+          time: slot.time,
+          location: slot.location,
+          slot_type: slot.type,
+          button_name: slot.buttonName,
+          button_value: slot.buttonValue,
+        });
       }
     }
+
+    // Upsert slots with change tracking
+    const upsertResult = await upsertRoadTestSlots(slotRecords);
+    console.log(`[Supabase] Slots: ${upsertResult.newSlots} new, ${upsertResult.reactivatedSlots} reactivated, ${upsertResult.updatedSlots} updated`);
+
+    // Mark disappeared slots (not seen in this scan)
+    // Use a cutoff of 5 minutes ago to account for scan duration
+    const cutoff = new Date(Date.now() - 5 * 60 * 1000);
+    const disappearedCount = await markDisappearedSlots(cutoff);
+    console.log(`[Supabase] Marked ${disappearedCount} slots as disappeared`);
+
+    // Record the scan
+    await recordRoadTestScan({
+      ok: result.ok,
+      reason: result.reason,
+      durationMs: result.durationMs,
+      daysScanned: result.daysScanned,
+      totalSlots: result.summary.totalSlots,
+      slotsByLocation: result.summary.byLocation,
+      newSlotsCount: upsertResult.newSlots + upsertResult.reactivatedSlots,
+      disappearedSlotsCount: disappearedCount,
+    });
 
     console.log('[Supabase] Upload complete');
-    return true;
+
+    return {
+      success: true,
+      changes: {
+        newSlots: upsertResult.newSlots,
+        reactivatedSlots: upsertResult.reactivatedSlots,
+        disappearedSlots: disappearedCount,
+      },
+    };
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`[Supabase] Upload failed: ${errorMessage}`);
-    return false;
+    return { success: false };
   }
 }
 
