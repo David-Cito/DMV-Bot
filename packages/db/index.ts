@@ -3,3 +3,4 @@
 
 export * from './supabase_client';
 export * from './slots';
+export * from './road-test-slots';
