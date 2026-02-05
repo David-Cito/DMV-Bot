@@ -689,6 +689,9 @@ export async function uploadResultsToSupabase(result: ScanResult): Promise<{
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`[Supabase] Upload failed: ${errorMessage}`);
+    if (error instanceof Error && error.stack) {
+      console.error(error.stack);
+    }
     return { success: false };
   }
 }
