@@ -1,4 +1,5 @@
 name: DMV Monitoring Bot
+run-name: DMV Monitoring Bot${{ github.event_name == 'repository_dispatch' && ' (cronjob.org)' || '' }}
 
 on:
   # Manual trigger from GitHub UI
@@ -15,7 +16,7 @@ on:
 
   # External trigger from cron-job.org
   repository_dispatch:
-    types: [cronjob.org]
+    types: [cron]
 
 jobs:
   monitor:
