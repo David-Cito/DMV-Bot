@@ -17,9 +17,9 @@ on:
         required: false
         default: "false"
 
-  # External trigger from cron-job.org (shows as "road-test-cron" in UI)
+  # External trigger from cron-job.org (shows as "scheduled-run" in UI)
   repository_dispatch:
-    types: [road-test-cron]
+    types: [scheduled-run]
 
 jobs:
   scan:
