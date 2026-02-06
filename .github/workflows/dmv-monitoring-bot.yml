@@ -30,7 +30,7 @@ jobs:
       cancel-in-progress: false
     env:
       # Support both workflow_dispatch (inputs) and repository_dispatch (client_payload)
-      DMV_NOTIFY_TEST: ${{ inputs.test_notify || github.event.client_payload.test_notify || 'false' }}
+      DMV_NOTIFY_TEST: ${{ inputs.test_notify || github.event.client_payload.test_notify || vars.DMV_NOTIFY_TEST || 'false' }}
       DMV_NOTIFY_WINDOW_DAYS: ${{ inputs.notify_window_days || github.event.client_payload.notify_window_days || vars.DMV_NOTIFY_WINDOW_DAYS || '14' }}
 
     steps:
@@ -80,4 +80,5 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_MENTION_USER_ID: ${{ secrets.DISCORD_MENTION_USER_ID }}
+          DMV_NOTIFY_TEST: ${{ env.DMV_NOTIFY_TEST }}
         run: node scripts/notifications/send-dmv-notifications.js
