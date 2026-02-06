@@ -110,6 +110,20 @@ function getShortLocationName(fullName) {
   return LOCATION_SHORT_NAMES[fullName] || fullName || 'Unknown';
 }
 
+function formatDuration(firstSeen, lastSeen) {
+  const first = new Date(firstSeen);
+  const last = new Date(lastSeen);
+  const diffMs = last.getTime() - first.getTime();
+  const diffMinutes = Math.round(diffMs / (1000 * 60));
+
+  if (diffMinutes < 60) {
+    return `~${diffMinutes} min`;
+  } else {
+    const hours = Math.round(diffMinutes / 60);
+    return `~${hours} hr${hours === 1 ? '' : 's'}`;
+  }
+}
+
 // ============================================================================
 // DATABASE QUERIES
 // ============================================================================
@@ -296,7 +310,8 @@ async function sendNotifications(supabase) {
       const countLabel = `${slots.length} gone`;
       lines.push(`**${shortName}** (${countLabel})`);
       for (const slot of slots) {
-        lines.push(`  - ${formatPrettyDate(slot.date)} - ${formatPrettyTime(slot.time)}`);
+        const duration = formatDuration(slot.first_seen, slot.last_seen);
+        lines.push(`  - ${formatPrettyDate(slot.date)} - ${formatPrettyTime(slot.time)} - lasted ${duration}`);
       }
       lines.push('');
     }
