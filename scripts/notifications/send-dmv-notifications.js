@@ -128,16 +128,22 @@ function formatDuration(firstSeen, lastSeen) {
 // DATABASE QUERIES
 // ============================================================================
 
-async function getLatestScanTime(supabase) {
+async function getRecentScanTimes(supabase) {
+  // Get distinct scan times (last_seen values), most recent first
   const { data, error } = await supabase
     .from('slot_states')
     .select('last_seen')
-    .order('last_seen', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order('last_seen', { ascending: false });
 
   if (error) throw error;
-  return data?.last_seen || null;
+  if (!data || data.length === 0) return { latest: null, previous: null };
+
+  // Get unique scan times
+  const uniqueTimes = [...new Set(data.map(d => d.last_seen))];
+  return {
+    latest: uniqueTimes[0] || null,
+    previous: uniqueTimes[1] || null,
+  };
 }
 
 async function getNewSlots(supabase, latestScanTime) {
@@ -162,9 +168,11 @@ async function getNewSlots(supabase, latestScanTime) {
   return data || [];
 }
 
-async function getDisappearedSlots(supabase, latestScanTime) {
-  // Slots not seen in the latest scan (last_seen is older)
-  // We look for slots that were last seen in the previous scan
+async function getDisappearedSlots(supabase, previousScanTime) {
+  // Slots that were last seen in the previous scan (not in current scan)
+  // This means they disappeared between the previous and current scan
+  if (!previousScanTime) return [];
+
   const { data, error } = await supabase
     .from('slot_states')
     .select(`
@@ -175,7 +183,7 @@ async function getDisappearedSlots(supabase, latestScanTime) {
       last_seen,
       locations!inner(name)
     `)
-    .lt('last_seen', latestScanTime)
+    .eq('last_seen', previousScanTime)
     .gte('date', getHstToday()) // Only future appointments
     .order('date', { ascending: true })
     .order('time', { ascending: true });
@@ -232,19 +240,20 @@ async function sendDiscordMessage(content, ping = false) {
 async function sendNotifications(supabase) {
   const today = getHstToday();
 
-  // Get the latest scan time
-  const latestScanTime = await getLatestScanTime(supabase);
+  // Get the latest and previous scan times
+  const { latest: latestScanTime, previous: previousScanTime } = await getRecentScanTimes(supabase);
   if (!latestScanTime) {
     console.log('No scan data found in slot_states table.');
     return { appeared: 0, disappeared: 0 };
   }
 
   console.log(`Latest scan time: ${latestScanTime}`);
+  console.log(`Previous scan time: ${previousScanTime || 'none'}`);
 
   // Get new and disappeared slots
   const [newSlots, disappearedSlots] = await Promise.all([
     getNewSlots(supabase, latestScanTime),
-    getDisappearedSlots(supabase, latestScanTime),
+    getDisappearedSlots(supabase, previousScanTime),
   ]);
 
   // Filter to slots within INSTANT_ALERT_DAYS
