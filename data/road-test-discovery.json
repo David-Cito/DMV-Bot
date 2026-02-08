@@ -1,0 +1,17 @@
+{
+  "forms": [],
+  "dropdowns": [],
+  "buttons": [
+    {
+      "tag": "BUTTON",
+      "id": "jar",
+      "text": "submit",
+      "value": null,
+      "onclick": null
+    }
+  ],
+  "calendarElements": [],
+  "tables": [],
+  "radioButtons": [],
+  "pageText": "This question is for testing whether you are a human visitor and to prevent automated spam submission.\n  \nWhat code is in the image? \nsubmit\n\nYour support ID is: 11179826484275402540."
+}

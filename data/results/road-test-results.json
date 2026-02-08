@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "scannedAt": "2026-02-05T08:10:25.031Z",
+  "currentDate": "2026-02-04",
+  "days": [
+    {
+      "date": "2026-02-05",
+      "dateDisplay": "2026-02-05",
+      "slots": [
+        {
+          "time": "10:00 AM",
+          "location": "Kapahulu",
+          "type": "regular",
+          "buttonName": "dlstAppointment:_ctl5:_ctl1",
+          "buttonValue": "1"
+        },
+        {
+          "time": "02:00 PM",
+          "location": "Kapolei",
+          "type": "regular",
+          "buttonName": "dlstAppointment:_ctl13:_ctl2",
+          "buttonValue": "1"
+        },
+        {
+          "time": "Stand-by",
+          "location": "Kapahulu",
+          "type": "standby",
+          "buttonName": "dlstAppointment:_ctl17:_ctl1",
+          "buttonValue": "2"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "totalSlots": 3,
+    "byLocation": {
+      "Kapahulu": 2,
+      "Kapolei": 1,
+      "Koolau": 0,
+      "Wahiawa": 0,
+      "Waianae": 0
+    },
+    "earliestDate": "2026-02-05",
+    "earliestDaysAway": 1
+  },
+  "daysScanned": 3
+}

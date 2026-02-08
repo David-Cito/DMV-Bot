@@ -19,4 +19,3 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./supabase_client"), exports);
 __exportStar(require("./slots"), exports);
 __exportStar(require("./road-test-slots"), exports);
-//# sourceMappingURL=index.js.map
