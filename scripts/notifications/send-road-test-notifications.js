@@ -408,7 +408,8 @@ async function sendInstantNotifications(supabase) {
     if (DISCORD_MENTION_USER_ID) {
       lines.push(`<@${DISCORD_MENTION_USER_ID}>`);
     }
-    lines.push(`**Road Test Slots Appeared!** (within ${INSTANT_ALERT_DAYS} days)`);
+    const testLabel = NOTIFY_TEST && nearAppearedSlots.length === 0 ? ' (TEST)' : '';
+    lines.push(`**Road Test Slots Appeared!**${testLabel} (within ${INSTANT_ALERT_DAYS} days)`);
     lines.push('');
 
     for (const [location, slots] of Object.entries(grouped)) {
@@ -504,7 +505,8 @@ async function sendDailySummary(supabase) {
   const today = getHstToday();
   const lines = [];
 
-  lines.push('**Road Test Daily Summary**');
+  const testLabel = NOTIFY_TEST && newSlots.length === 0 && disappearedSlots.length === 0 ? ' (TEST)' : '';
+  lines.push(`**Road Test Daily Summary**${testLabel}`);
   lines.push(`Since last update: ${newSlots.length} new slots, ${disappearedSlots.length} disappeared`);
   lines.push('');
 
