@@ -17,9 +17,11 @@ const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_DRIVER_LICENSE_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
 const DISCORD_MENTION_USER_ID = process.env.DISCORD_MENTION_USER_ID || '';
 const NOTIFY_TEST = (process.env.DMV_NOTIFY_TEST || '').toLowerCase() === 'true';
+
+const DISCORD_MAX_LENGTH = 1900; // Discord limit is 2000, use 1900 for safety buffer
 
 const INSTANT_ALERT_DAYS = 14;
 const APPT_URL = 'https://alohaq.honolulu.gov/';
@@ -212,7 +214,53 @@ function groupByLocation(slots) {
 // DISCORD HELPERS
 // ============================================================================
 
-async function sendDiscordMessage(content, ping = false) {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function splitIntoChunks(content, maxLength) {
+  if (content.length <= maxLength) {
+    return [content];
+  }
+
+  const chunks = [];
+  const lines = content.split('\n');
+  let currentChunk = '';
+
+  for (const line of lines) {
+    // If adding this line would exceed the limit
+    if (currentChunk.length + line.length + 1 > maxLength) {
+      // If current chunk has content, save it
+      if (currentChunk.length > 0) {
+        chunks.push(currentChunk.trimEnd());
+        currentChunk = '';
+      }
+      // If a single line is too long, split it
+      if (line.length > maxLength) {
+        let remaining = line;
+        while (remaining.length > maxLength) {
+          chunks.push(remaining.slice(0, maxLength));
+          remaining = remaining.slice(maxLength);
+        }
+        if (remaining.length > 0) {
+          currentChunk = remaining;
+        }
+      } else {
+        currentChunk = line;
+      }
+    } else {
+      currentChunk += (currentChunk.length > 0 ? '\n' : '') + line;
+    }
+  }
+
+  if (currentChunk.length > 0) {
+    chunks.push(currentChunk.trimEnd());
+  }
+
+  return chunks;
+}
+
+async function sendSingleMessage(content, ping = false) {
   const body = {
     content,
   };
@@ -230,6 +278,24 @@ async function sendDiscordMessage(content, ping = false) {
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`Discord webhook failed: ${res.status} ${text}`.trim());
+  }
+}
+
+async function sendDiscordMessage(content, ping = false) {
+  if (content.length <= DISCORD_MAX_LENGTH) {
+    return sendSingleMessage(content, ping);
+  }
+
+  // Split into chunks at line breaks
+  const chunks = splitIntoChunks(content, DISCORD_MAX_LENGTH);
+  console.log(`[Discord] Message too long (${content.length} chars), splitting into ${chunks.length} chunks`);
+
+  for (let i = 0; i < chunks.length; i++) {
+    // Only ping on first message
+    await sendSingleMessage(chunks[i], ping && i === 0);
+    if (i < chunks.length - 1) {
+      await sleep(500); // Rate limit buffer
+    }
   }
 }
 
