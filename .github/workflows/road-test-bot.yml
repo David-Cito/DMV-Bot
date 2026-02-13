@@ -79,6 +79,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_ROAD_TEST_WEBHOOK_URL: ${{ secrets.DISCORD_ROAD_TEST_WEBHOOK_URL }}
           DISCORD_MENTION_USER_ID: ${{ secrets.DISCORD_MENTION_USER_ID }}
           ROAD_TEST_NOTIFY_TEST: ${{ inputs.test_notify || github.event.client_payload.test_notify || 'false' }}
         run: node scripts/notifications/send-road-test-notifications.js --type=instant
