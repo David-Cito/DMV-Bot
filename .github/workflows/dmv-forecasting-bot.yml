@@ -3,6 +3,11 @@ name: DMV Forecasting Bot
 on:
   # Manual trigger from GitHub UI
   workflow_dispatch:
+    inputs:
+      verbose:
+        description: "Enable verbose diagnostic logging"
+        required: false
+        default: "false"
 
   # External trigger from cron-job.org (shows as "forecast-cron" in UI)
   repository_dispatch:
@@ -47,6 +52,8 @@ jobs:
         run: npm run build
 
       - name: Run DMV forecasting bot
+        env:
+          DMV_FORECAST_VERBOSE: ${{ inputs.verbose || 'false' }}
         run: npm run forecast
 
       - name: Upload screenshots

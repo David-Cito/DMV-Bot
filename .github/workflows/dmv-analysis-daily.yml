@@ -4,7 +4,12 @@ on:
   schedule:
     # HST 7:30 AM (UTC 17:30)
     - cron: "30 17 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      skip_notify:
+        description: "Skip dispatching notification workflow"
+        required: false
+        default: "false"
 
 jobs:
   summarize:
@@ -35,7 +40,7 @@ jobs:
         run: node scripts/analysis/run-daily-summary.js
 
       - name: Dispatch notifications
-        if: success()
+        if: success() && inputs.skip_notify != 'true'
         env:
           JOB_TYPE: ${{ steps.summary.outputs.job_type }}
         uses: actions/github-script@v7

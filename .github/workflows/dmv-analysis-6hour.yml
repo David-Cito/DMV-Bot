@@ -4,7 +4,12 @@ on:
   schedule:
     # HST 12:00 AM, 6:00 AM, 12:00 PM, 6:00 PM (UTC 10:00, 16:00, 22:00, 04:00)
     - cron: "0 4,10,16,22 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      skip_notify:
+        description: "Skip dispatching notification workflow"
+        required: false
+        default: "false"
 
 jobs:
   analyze:
@@ -35,7 +40,7 @@ jobs:
         run: node scripts/analysis/run-6hour-analysis.js
 
       - name: Dispatch notifications
-        if: success()
+        if: success() && inputs.skip_notify != 'true'
         env:
           JOB_TYPE: ${{ steps.analysis.outputs.job_type }}
         uses: actions/github-script@v7
