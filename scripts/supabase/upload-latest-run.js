@@ -82,6 +82,15 @@ async function upsertSlotStatesInChunks(rows, chunkSize = 500) {
   }
 }
 
+async function markDisappearedSlots(cutoffTime) {
+  // Mark slots not seen in this scan as inactive
+  const { data, error } = await supabase.rpc('mark_disappeared_slot_states', {
+    p_cutoff: cutoffTime,
+  });
+  if (error) throw error;
+  return data;
+}
+
 async function main() {
   const payload = JSON.parse(fs.readFileSync(RESULTS_PATH, 'utf8'));
   const runAt = payload.generatedAt || new Date().toISOString();
@@ -148,6 +157,11 @@ async function main() {
   if (runSlotCounts.length) {
     await insertInChunks('run_slot_counts', runSlotCounts);
   }
+
+  // Mark slots not seen in this scan as disappeared
+  // Use the runAt timestamp as the cutoff - slots with last_seen < runAt are gone
+  const disappearedCount = await markDisappearedSlots(runAt);
+  console.log(`Marked ${disappearedCount} slots as disappeared`);
 
   console.log(
     `Supabase upload complete. Run ${runId}. day_snapshots=${daySnapshotRows.length}, slot_states=${slotStateRows.length}`

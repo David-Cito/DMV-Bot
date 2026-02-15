@@ -2,11 +2,15 @@
 /**
  * DMV Slot Notification Script
  *
- * Sends Discord notifications for:
- * - Slots that just appeared (first_seen = last_seen in latest scan)
- * - Slots that disappeared (last_seen < max(last_seen))
+ * Supports three notification types:
+ * - instant: Immediate alerts for slots that appeared/disappeared within 14 days (pings user)
+ * - daily: Daily summary of new slots since last daily notification + supply outlook (no ping)
+ * - weekly: Weekly overview of all availability + supply outlook (no ping)
  *
- * Uses the existing slot_states table without any database changes.
+ * Usage:
+ *   node scripts/notifications/send-dmv-notifications.js --type=instant
+ *   node scripts/notifications/send-dmv-notifications.js --type=daily
+ *   node scripts/notifications/send-dmv-notifications.js --type=weekly
  */
 
 const { createClient } = require('@supabase/supabase-js');
@@ -27,6 +31,13 @@ const INSTANT_ALERT_DAYS = 14;
 const APPT_URL = 'https://alohaq.honolulu.gov/';
 const HST_TIMEZONE = 'Pacific/Honolulu';
 
+// Supply outlook thresholds
+const SUPPLY_THRESHOLD_SLOTS = 20;        // 20 slots/week = open availability
+const PERSISTENCE_THRESHOLD_MINUTES = 15; // 15 minutes minimum persistence
+
+// Known locations for ordering
+const DMV_LOCATIONS = ['Downtown', 'Hawaii Kai', 'Pearlridge', 'Windward'];
+
 // Short names for Discord messages
 const LOCATION_SHORT_NAMES = {
   'Downtown Satellite City Hall': 'Downtown',
@@ -34,6 +45,31 @@ const LOCATION_SHORT_NAMES = {
   'Pearlridge Satellite City Hall': 'Pearlridge',
   'Windward City Satellite City Hall': 'Windward',
 };
+
+// ============================================================================
+// ARGUMENT PARSING
+// ============================================================================
+
+function parseArgs() {
+  const args = process.argv.slice(2);
+  let type = 'instant'; // default
+
+  for (const arg of args) {
+    if (arg.startsWith('--type=')) {
+      type = arg.split('=')[1];
+    } else if (arg === '--type' && args[args.indexOf(arg) + 1]) {
+      type = args[args.indexOf(arg) + 1];
+    }
+  }
+
+  if (!['instant', 'daily', 'weekly'].includes(type)) {
+    console.error(`Invalid notification type: ${type}`);
+    console.log('Valid types: instant, daily, weekly');
+    process.exit(1);
+  }
+
+  return { type };
+}
 
 // ============================================================================
 // ENVIRONMENT VALIDATION
@@ -108,6 +144,53 @@ function daysBetween(date1, date2) {
   return Math.round((d2.getTime() - d1.getTime()) / (24 * 60 * 60 * 1000));
 }
 
+function addDays(dateStr, days) {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function getWeekStart(dateStr) {
+  // Return Monday of the week containing dateStr
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  const day = d.getUTCDay();
+  const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+  d.setUTCDate(diff);
+  return d.toISOString().slice(0, 10);
+}
+
+function formatWeekRange(weekStart) {
+  const startDate = new Date(`${weekStart}T00:00:00Z`);
+  const endDate = new Date(startDate);
+  endDate.setUTCDate(startDate.getUTCDate() + 6);
+
+  const format = (d) => d.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    month: 'short',
+    day: 'numeric',
+  });
+
+  return `${format(startDate)}-${format(endDate)}`;
+}
+
+function getWeekRangeForDisplay() {
+  const today = new Date();
+  const dayOfWeek = today.getUTCDay();
+  const startOfWeek = new Date(today);
+  startOfWeek.setUTCDate(today.getUTCDate() - dayOfWeek);
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 6);
+
+  const format = (d) => d.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+  return `${format(startOfWeek)} - ${format(endOfWeek)}`;
+}
+
 function getShortLocationName(fullName) {
   return LOCATION_SHORT_NAMES[fullName] || fullName || 'Unknown';
 }
@@ -127,30 +210,129 @@ function formatDuration(firstSeen, lastSeen) {
 }
 
 // ============================================================================
+// SUPPLY OUTLOOK CALCULATION
+// ============================================================================
+
+async function calculateSupplyOutlook(supabase) {
+  const today = getHstToday();
+  const now = new Date();
+  const cutoffTime = new Date(now.getTime() - PERSISTENCE_THRESHOLD_MINUTES * 60 * 1000);
+
+  // Query active slots that have persisted for 15+ minutes (first_seen at least 15 min ago)
+  const { data: slots, error } = await supabase
+    .from('slot_states')
+    .select('date, time, location_id, first_seen, last_seen, locations!inner(name)')
+    .gte('date', today)
+    .eq('is_active', true) // Only active slots
+    .lte('first_seen', cutoffTime.toISOString()) // First seen 15+ min ago
+    .order('date', { ascending: true });
+
+  if (error) {
+    console.error('[SupplyOutlook] Error querying slots:', error.message);
+    return null;
+  }
+
+  if (!slots || slots.length === 0) {
+    return null;
+  }
+
+  // Aggregate by week AND location
+  // Structure: { locationName: { weekStart: slotCount } }
+  const locationWeeklyData = {};
+
+  for (const slot of slots) {
+    const weekStart = getWeekStart(slot.date);
+    const locationName = getShortLocationName(slot.locations?.name || 'Unknown');
+
+    if (!locationWeeklyData[locationName]) {
+      locationWeeklyData[locationName] = {};
+    }
+    locationWeeklyData[locationName][weekStart] =
+      (locationWeeklyData[locationName][weekStart] || 0) + 1;
+  }
+
+  // For each location, find the first week with 20+ slots
+  const result = {};
+
+  for (const locationName of DMV_LOCATIONS) {
+    const weeklyData = locationWeeklyData[locationName] || {};
+    const sortedWeeks = Object.entries(weeklyData).sort((a, b) => a[0].localeCompare(b[0]));
+
+    let foundWeek = null;
+    for (const [weekStart, slotCount] of sortedWeeks) {
+      if (slotCount >= SUPPLY_THRESHOLD_SLOTS) {
+        foundWeek = { weekStart, slots: slotCount };
+        break;
+      }
+    }
+
+    result[locationName] = foundWeek; // null if no open week found
+  }
+
+  return result;
+}
+
+function formatSupplyOutlookSection(outlook) {
+  const today = getHstToday();
+  const lines = [];
+  lines.push('**Supply Outlook**');
+
+  if (!outlook) {
+    lines.push(`No weeks with ${SUPPLY_THRESHOLD_SLOTS}+ slots in scan window`);
+    return lines.join('\n');
+  }
+
+  // Build list of locations with their outlook data
+  const locationEntries = [];
+  for (const locationName of DMV_LOCATIONS) {
+    const data = outlook[locationName];
+    if (data) {
+      const daysOut = daysBetween(today, data.weekStart);
+      locationEntries.push({
+        location: locationName,
+        daysOut,
+        slots: data.slots,
+        weekStart: data.weekStart,
+      });
+    } else {
+      locationEntries.push({
+        location: locationName,
+        daysOut: null,
+        slots: null,
+        weekStart: null,
+      });
+    }
+  }
+
+  // Sort by daysOut ascending (locations with no open week go last)
+  locationEntries.sort((a, b) => {
+    if (a.daysOut === null && b.daysOut === null) return 0;
+    if (a.daysOut === null) return 1;
+    if (b.daysOut === null) return -1;
+    return a.daysOut - b.daysOut;
+  });
+
+  // Format each location
+  for (const entry of locationEntries) {
+    if (entry.daysOut === null) {
+      lines.push(`  ${entry.location} — no open weeks in window`);
+    } else {
+      const weekRange = formatWeekRange(entry.weekStart);
+      const daysLabel = entry.daysOut === 1 ? '1 day out' : `${entry.daysOut} days out`;
+      lines.push(`  ${entry.location} — ${daysLabel} (${entry.slots} slots that week, ${weekRange})`);
+    }
+  }
+
+  return lines.join('\n');
+}
+
+// ============================================================================
 // DATABASE QUERIES
 // ============================================================================
 
-async function getRecentScanTimes(supabase) {
-  // Get distinct scan times (last_seen values), most recent first
-  const { data, error } = await supabase
-    .from('slot_states')
-    .select('last_seen')
-    .order('last_seen', { ascending: false });
-
-  if (error) throw error;
-  if (!data || data.length === 0) return { latest: null, previous: null };
-
-  // Get unique scan times
-  const uniqueTimes = [...new Set(data.map(d => d.last_seen))];
-  return {
-    latest: uniqueTimes[0] || null,
-    previous: uniqueTimes[1] || null,
-  };
-}
-
-async function getNewSlots(supabase, latestScanTime) {
-  // Slots where first_seen = last_seen at the latest scan time
-  // These are slots that appeared in this scan
+async function getUnnotifiedAppearedSlots(supabase) {
+  // Get slots that are active but haven't been notified about yet
+  // This is the flag-based approach that prevents duplicate notifications
   const { data, error } = await supabase
     .from('slot_states')
     .select(`
@@ -161,20 +343,16 @@ async function getNewSlots(supabase, latestScanTime) {
       last_seen,
       locations!inner(name)
     `)
-    .eq('last_seen', latestScanTime)
-    .eq('first_seen', latestScanTime)
-    .order('date', { ascending: true })
-    .order('time', { ascending: true });
+    .eq('is_active', true)
+    .eq('notified_appeared', false)
+    .order('first_seen', { ascending: true });
 
   if (error) throw error;
   return data || [];
 }
 
-async function getDisappearedSlots(supabase, previousScanTime) {
-  // Slots that were last seen in the previous scan (not in current scan)
-  // This means they disappeared between the previous and current scan
-  if (!previousScanTime) return [];
-
+async function getUnnotifiedDisappearedSlots(supabase) {
+  // Get slots that disappeared but haven't been notified about yet
   const { data, error } = await supabase
     .from('slot_states')
     .select(`
@@ -183,15 +361,146 @@ async function getDisappearedSlots(supabase, previousScanTime) {
       time,
       first_seen,
       last_seen,
+      disappeared_at,
       locations!inner(name)
     `)
-    .eq('last_seen', previousScanTime)
+    .eq('is_active', false)
+    .eq('notified_disappeared', false)
     .gte('date', getHstToday()) // Only future appointments
+    .order('disappeared_at', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
+async function markSlotsNotifiedAppeared(supabase, slots) {
+  if (!slots || slots.length === 0) return;
+
+  // Build composite keys for the slots to update
+  for (const slot of slots) {
+    const { error } = await supabase
+      .from('slot_states')
+      .update({ notified_appeared: true })
+      .eq('location_id', slot.location_id)
+      .eq('date', slot.date)
+      .eq('time', slot.time);
+
+    if (error) throw error;
+  }
+}
+
+async function markSlotsNotifiedDisappeared(supabase, slots) {
+  if (!slots || slots.length === 0) return;
+
+  // Build composite keys for the slots to update
+  for (const slot of slots) {
+    const { error } = await supabase
+      .from('slot_states')
+      .update({ notified_disappeared: true })
+      .eq('location_id', slot.location_id)
+      .eq('date', slot.date)
+      .eq('time', slot.time);
+
+    if (error) throw error;
+  }
+}
+
+async function getActiveSlots(supabase) {
+  // Get all active slots using the is_active flag
+  const { data, error } = await supabase
+    .from('slot_states')
+    .select(`
+      location_id,
+      date,
+      time,
+      first_seen,
+      last_seen,
+      locations!inner(name)
+    `)
+    .eq('is_active', true)
+    .gte('date', getHstToday())
     .order('date', { ascending: true })
     .order('time', { ascending: true });
 
   if (error) throw error;
   return data || [];
+}
+
+async function getSlotsAppearedSince(supabase, since) {
+  const { data, error } = await supabase
+    .from('slot_states')
+    .select(`
+      location_id,
+      date,
+      time,
+      first_seen,
+      last_seen,
+      locations!inner(name)
+    `)
+    .gte('first_seen', since.toISOString())
+    .gte('date', getHstToday())
+    .order('first_seen', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
+async function getSlotsDisappearedSince(supabase, since) {
+  // Get slots that disappeared after `since` using the disappeared_at timestamp
+  const { data, error } = await supabase
+    .from('slot_states')
+    .select(`
+      location_id,
+      date,
+      time,
+      first_seen,
+      last_seen,
+      disappeared_at,
+      locations!inner(name)
+    `)
+    .eq('is_active', false)
+    .gte('disappeared_at', since.toISOString())
+    .gte('date', getHstToday())
+    .order('disappeared_at', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
+async function getLastNotification(supabase, type) {
+  const { data, error } = await supabase
+    .from('dmv_notification_log')
+    .select('id, sent_at, slots_notified')
+    .eq('notification_type', type)
+    .order('sent_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    // Table may not exist yet - that's okay
+    if (error.code === '42P01') return null;
+    throw error;
+  }
+  return data;
+}
+
+async function recordNotification(supabase, type, slotsNotified) {
+  const { error } = await supabase
+    .from('dmv_notification_log')
+    .insert({
+      notification_type: type,
+      sent_at: new Date().toISOString(),
+      slots_notified: slotsNotified,
+    });
+
+  if (error) {
+    // Table may not exist yet - log warning but don't fail
+    if (error.code === '42P01') {
+      console.warn('[DMVNotify] dmv_notification_log table does not exist, skipping log');
+      return;
+    }
+    throw error;
+  }
 }
 
 // ============================================================================
@@ -300,30 +609,20 @@ async function sendDiscordMessage(content, ping = false) {
 }
 
 // ============================================================================
-// NOTIFICATION LOGIC
+// INSTANT NOTIFICATIONS
 // ============================================================================
 
-async function sendNotifications(supabase) {
+async function sendInstantNotifications(supabase) {
   const today = getHstToday();
 
-  // Get the latest and previous scan times
-  const { latest: latestScanTime, previous: previousScanTime } = await getRecentScanTimes(supabase);
-  if (!latestScanTime) {
-    console.log('No scan data found in slot_states table.');
-    return { appeared: 0, disappeared: 0 };
-  }
-
-  console.log(`Latest scan time: ${latestScanTime}`);
-  console.log(`Previous scan time: ${previousScanTime || 'none'}`);
-
-  // Get new and disappeared slots
-  const [newSlots, disappearedSlots] = await Promise.all([
-    getNewSlots(supabase, latestScanTime),
-    getDisappearedSlots(supabase, previousScanTime),
+  // Get unnotified appeared and disappeared slots (flag-based detection)
+  const [appearedSlots, disappearedSlots] = await Promise.all([
+    getUnnotifiedAppearedSlots(supabase),
+    getUnnotifiedDisappearedSlots(supabase),
   ]);
 
   // Filter to slots within INSTANT_ALERT_DAYS
-  const nearNewSlots = newSlots.filter(slot => {
+  const nearAppearedSlots = appearedSlots.filter(slot => {
     const daysAway = daysBetween(today, slot.date);
     return daysAway >= 0 && daysAway <= INSTANT_ALERT_DAYS;
   });
@@ -333,11 +632,11 @@ async function sendNotifications(supabase) {
     return daysAway >= 0 && daysAway <= INSTANT_ALERT_DAYS;
   });
 
-  console.log(`Found ${nearNewSlots.length} new slots, ${nearDisappearedSlots.length} disappeared slots within ${INSTANT_ALERT_DAYS} days`);
+  console.log(`[Instant] Found ${nearAppearedSlots.length} new slots, ${nearDisappearedSlots.length} disappeared slots within ${INSTANT_ALERT_DAYS} days`);
 
   // Send APPEARED notification
-  if (nearNewSlots.length > 0 || NOTIFY_TEST) {
-    const slotsToNotify = nearNewSlots.length > 0 ? nearNewSlots : [{
+  if (nearAppearedSlots.length > 0 || NOTIFY_TEST) {
+    const slotsToNotify = nearAppearedSlots.length > 0 ? nearAppearedSlots : [{
       locations: { name: 'Test Location' },
       date: today,
       time: '10:00:00',
@@ -349,7 +648,8 @@ async function sendNotifications(supabase) {
     if (DISCORD_MENTION_USER_ID) {
       lines.push(`<@${DISCORD_MENTION_USER_ID}>`);
     }
-    lines.push(`**DMV Slots Appeared!**${NOTIFY_TEST && nearNewSlots.length === 0 ? ' (TEST)' : ''}`);
+    const testLabel = NOTIFY_TEST && nearAppearedSlots.length === 0 ? ' (TEST)' : '';
+    lines.push(`**DMV Slots Appeared!**${testLabel}`);
     lines.push('');
 
     for (const [locationName, slots] of Object.entries(grouped)) {
@@ -366,7 +666,12 @@ async function sendNotifications(supabase) {
     lines.push(`Book now: ${APPT_URL}`);
 
     await sendDiscordMessage(lines.join('\n'), true);
-    console.log('Sent APPEARED notification');
+    console.log('[Instant] Sent APPEARED notification');
+
+    // Mark as notified (skip in test mode with no real slots)
+    if (nearAppearedSlots.length > 0) {
+      await markSlotsNotifiedAppeared(supabase, nearAppearedSlots);
+    }
   }
 
   // Send GONE notification
@@ -394,12 +699,180 @@ async function sendNotifications(supabase) {
     lines.push('These appointments were booked or removed.');
 
     await sendDiscordMessage(lines.join('\n'), true);
-    console.log('Sent GONE notification');
+    console.log('[Instant] Sent GONE notification');
+
+    // Mark as notified
+    await markSlotsNotifiedDisappeared(supabase, nearDisappearedSlots);
   }
 
   return {
-    appeared: nearNewSlots.length,
+    appeared: nearAppearedSlots.length,
     disappeared: nearDisappearedSlots.length,
+  };
+}
+
+// ============================================================================
+// DAILY SUMMARY
+// ============================================================================
+
+async function sendDailySummary(supabase) {
+  // Get last daily notification
+  const lastDaily = await getLastNotification(supabase, 'daily');
+  const since = lastDaily ? new Date(lastDaily.sent_at) : new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  // Get slots that appeared/disappeared since last daily
+  const [newSlots, disappearedSlots, supplyOutlook] = await Promise.all([
+    getSlotsAppearedSince(supabase, since),
+    getSlotsDisappearedSince(supabase, since),
+    calculateSupplyOutlook(supabase),
+  ]);
+
+  console.log(`[Daily] Since ${since.toISOString()}: ${newSlots.length} new, ${disappearedSlots.length} disappeared`);
+
+  if (newSlots.length === 0 && disappearedSlots.length === 0 && !NOTIFY_TEST) {
+    console.log('[Daily] No changes to report. Skipping notification.');
+    return { newSlots: 0, disappeared: 0 };
+  }
+
+  const today = getHstToday();
+  const lines = [];
+
+  const testLabel = NOTIFY_TEST && newSlots.length === 0 && disappearedSlots.length === 0 ? ' (TEST)' : '';
+  lines.push(`**DMV Daily Summary**${testLabel}`);
+  lines.push(`Since last update: ${newSlots.length} new slots, ${disappearedSlots.length} disappeared`);
+  lines.push('');
+
+  if (newSlots.length > 0) {
+    lines.push('**New Slots by Location:**');
+    lines.push('');
+
+    const grouped = groupByLocation(newSlots);
+    for (const [locationName, slots] of Object.entries(grouped)) {
+      const shortName = getShortLocationName(locationName);
+      const countLabel = slots.length === 1 ? '1 new' : `${slots.length} new`;
+      lines.push(`**${shortName}** (${countLabel})`);
+      for (const slot of slots.slice(0, 10)) {
+        const daysAway = daysBetween(today, slot.date);
+        lines.push(`  - ${formatPrettyDate(slot.date)} - ${formatPrettyTime(slot.time)} (${daysAway} days)`);
+      }
+      if (slots.length > 10) {
+        lines.push(`  ... and ${slots.length - 10} more`);
+      }
+      lines.push('');
+    }
+  }
+
+  if (disappearedSlots.length > 0) {
+    lines.push('**Disappeared:**');
+    const grouped = groupByLocation(disappearedSlots);
+    for (const [locationName, slots] of Object.entries(grouped)) {
+      const shortName = getShortLocationName(locationName);
+      for (const slot of slots.slice(0, 5)) {
+        lines.push(`  - ${shortName}: ${formatPrettyDate(slot.date)} - ${formatPrettyTime(slot.time)}`);
+      }
+      if (slots.length > 5) {
+        lines.push(`  ... and ${slots.length - 5} more from ${shortName}`);
+      }
+    }
+    lines.push('');
+  }
+
+  // Add supply outlook section
+  lines.push(formatSupplyOutlookSection(supplyOutlook));
+  lines.push('');
+
+  lines.push(`Book: ${APPT_URL}`);
+
+  await sendDiscordMessage(lines.join('\n'), false);
+  console.log('[Daily] Sent daily summary');
+
+  // Record notification
+  const allIds = [
+    ...newSlots.map(s => `${s.location_id}-${s.date}-${s.time}`),
+    ...disappearedSlots.map(s => `${s.location_id}-${s.date}-${s.time}`),
+  ];
+  await recordNotification(supabase, 'daily', allIds);
+
+  return { newSlots: newSlots.length, disappeared: disappearedSlots.length };
+}
+
+// ============================================================================
+// WEEKLY SUMMARY
+// ============================================================================
+
+async function sendWeeklySummary(supabase) {
+  const today = getHstToday();
+  const weekRange = getWeekRangeForDisplay();
+
+  // Get all active slots and supply outlook
+  const [activeSlots, supplyOutlook] = await Promise.all([
+    getActiveSlots(supabase),
+    calculateSupplyOutlook(supabase),
+  ]);
+
+  // Get last weekly notification to calculate activity
+  const lastWeekly = await getLastNotification(supabase, 'weekly');
+  const since = lastWeekly ? new Date(lastWeekly.sent_at) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const [newThisWeek, disappearedThisWeek] = await Promise.all([
+    getSlotsAppearedSince(supabase, since),
+    getSlotsDisappearedSince(supabase, since),
+  ]);
+
+  console.log(`[Weekly] Active slots: ${activeSlots.length}, This week: ${newThisWeek.length} new, ${disappearedThisWeek.length} disappeared`);
+
+  const lines = [];
+
+  lines.push('**DMV Weekly Summary**');
+  lines.push(`Week of ${weekRange}`);
+  lines.push('');
+  lines.push('**Current Availability by Location:**');
+  lines.push('');
+
+  // Group by location
+  const grouped = groupByLocation(activeSlots);
+
+  for (const location of DMV_LOCATIONS) {
+    // Find slots for this location (need to find matching full name)
+    const fullName = Object.keys(LOCATION_SHORT_NAMES).find(
+      key => LOCATION_SHORT_NAMES[key] === location
+    );
+    const slots = grouped[fullName] || [];
+
+    if (slots.length === 0) {
+      lines.push(`**${location}** - 0 slots`);
+    } else {
+      lines.push(`**${location}** - ${slots.length} slot${slots.length === 1 ? '' : 's'} available`);
+      // Find earliest
+      const sorted = slots.sort((a, b) => a.date.localeCompare(b.date));
+      const earliest = sorted[0];
+      const daysAway = daysBetween(today, earliest.date);
+      lines.push(`  Earliest: ${formatPrettyDate(earliest.date)} (${daysAway} days)`);
+    }
+  }
+
+  lines.push('');
+  lines.push("**This Week's Activity:**");
+  lines.push(`  - New slots found: ${newThisWeek.length}`);
+  lines.push(`  - Slots that disappeared: ${disappearedThisWeek.length}`);
+  lines.push('');
+
+  // Add supply outlook section
+  lines.push(formatSupplyOutlookSection(supplyOutlook));
+  lines.push('');
+
+  lines.push(`Book: ${APPT_URL}`);
+
+  await sendDiscordMessage(lines.join('\n'), false);
+  console.log('[Weekly] Sent weekly summary');
+
+  // Record notification
+  await recordNotification(supabase, 'weekly', activeSlots.map(s => `${s.location_id}-${s.date}-${s.time}`));
+
+  return {
+    activeSlots: activeSlots.length,
+    newThisWeek: newThisWeek.length,
+    disappearedThisWeek: disappearedThisWeek.length,
   };
 }
 
@@ -408,16 +881,33 @@ async function sendNotifications(supabase) {
 // ============================================================================
 
 async function main() {
+  const { type } = parseArgs();
   validateEnv();
 
-  console.log('[DMVNotify] Starting notification check...');
+  console.log(`[DMVNotify] Type: ${type}`);
   console.log(`[DMVNotify] Test mode: ${NOTIFY_TEST}`);
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
-    const result = await sendNotifications(supabase);
-    console.log(`[DMVNotify] Done. Appeared: ${result.appeared}, Disappeared: ${result.disappeared}`);
+    let result;
+
+    switch (type) {
+      case 'instant':
+        result = await sendInstantNotifications(supabase);
+        console.log(`[DMVNotify] Done. Appeared: ${result.appeared}, Disappeared: ${result.disappeared}`);
+        break;
+
+      case 'daily':
+        result = await sendDailySummary(supabase);
+        console.log(`[DMVNotify] Done. New: ${result.newSlots}, Disappeared: ${result.disappeared}`);
+        break;
+
+      case 'weekly':
+        result = await sendWeeklySummary(supabase);
+        console.log(`[DMVNotify] Done. Active: ${result.activeSlots}, New this week: ${result.newThisWeek}`);
+        break;
+    }
   } catch (error) {
     console.error('[DMVNotify] Error:', error.message || error);
     if (error.stack) console.error(error.stack);
